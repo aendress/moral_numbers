@@ -28,7 +28,7 @@ code/figures/
 *.webloc
 power.Rmd
 0000_NEW_METHODS_FOR_ANALYSIS.txt
-
+headlines.md
 
 # History files
 .Rhistory
