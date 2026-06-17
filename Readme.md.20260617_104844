@@ -1,0 +1,101 @@
+# List of experiments
+
+## Experiment 1
+Experiment 1 was the initial pilot studies, testing the following hypotheses:
+
+* For the large number system, acceptability is driven by Weber's law
+* For the small number system, observers can make exact judgments. 
+* There is a special status for the first victim.
+
+The following number conditions were used: 
+
+n_victims	n_saved	n_total
+2	4	6
+3	4	7
+2	3	5
+20	40	60
+30	40	70
+20	30	50
+200	400	600
+300	400	700
+200	300	500
+1	40	41
+2	40	42
+10	40	50
+
+## Experiment 1b
+Given that Experiment 1 suggested that acceptability was driven by Weber's ratio for all numbers, Experiment 1b was a replication of Experiment 1 with the following ratios:
+n_victims	n_saved	n_total
+300	400	700
+20	30	50
+200	400	600
+10	30	40
+100	400	500
+30	300	330
+400	6000	6400
+30	600	630
+400	12000	12400
+20	800	820
+
+## Experiment 2
+Experiment 2 (ran together with Experiment 3) pitted ratios against the number of victims and the utility (in separate experiment), for both moral and economic versions of the experiment. See Readme.md in the relevant folder.
+
+
+## Experiment 3
+In Experiment 3, we ask how acceptable it would be to sacrifice a *greater* number due to nepotism. These experiments were ran after Experiment 2.
+
+### Experiment 3b
+In Experiment 3, lower ratio scenarios had a less negative utility and higher number of victims. Participants had a preference for the low ratio/less negative utility scenarios despite the higher number of victims. As a result, they might have made this choice to minimize the ratio or maximize the utility. We thus pit utility and ratio against one another
+
+In Experiment 3b, the lower ratio scenarios have more negative utility (and a greater number of victims).
+
+
+### Experiment 3c
+This experiment is identical to Experiment 3a, except that the immoral decisions are based on in-group favoritism. That is, instead of the decider having one friend among those who are saved, they are part of the same group.
+
+### Experiment 3d
+This experiment is identical to Experiment 3b, except that the immoral decisions are based on in-group favoritism. 
+
+
+## Experiment 4
+Replication of Experiment 1b with moral vs. economic decisions. 
+
+
+## Experiment 5
+### Experiment 5(a)
+We compared a vivid and a non-vivid version of the scenarios (see Readme.md in the folder for me detail). 
+
+We added a sentences making the victims more salient. To test for asymptotic behavior, we added 4 ratios.
+
+
+### Experiment 5b
+Participants complete only a single block with either vivid or neutral scenarios. Compared to Experiment 5a, we added more ratios in the asymptotic range to better fit the curve in this range. We also emphasized the vivid statements in bold face.
+
+## Experiment 6
+We again pit vivid against neutral versions of the experiment. In Experiment 6, the neutral scenarios are presented in 3rd person voice, while the vivid scenarios are 1st person scenarios. In addition, the neutral versions contain sentences to make the victims more salient. 
+
+
+
+# File locations
+
+## Helper functions
+
+Reusable R functions are organised by theme in `code/helper_functions/`. All files in that directory are sourced automatically when `moral_numbers.Rmd` is rendered. See `code/helper_functions/README.md` for a full description of each file and the functions it contains.
+
+## Child RMDs
+
+`code/child_rmds/` contains child RMD files that are knitted into the main document (`code/moral_numbers.Rmd`).
+
+## Experiment materials
+
+Scenario files (XML) and number-condition files (CSV) for all experiments are collected in the `materials/` folder:
+
+- `materials/scenarios/` — XML files with scenario text and questions for each experiment
+- `materials/number_conditions/` — CSV files specifying the numerical values (number saved, number harmed, group size) for each trial
+
+Files are named using the paper's experiment numbering (e.g., `exp1a_scenarios.xml`, `exp3b_number_conditions.csv`). See `materials/README.md` for a full description of file contents, naming conventions, and the original source locations within the repository.
+
+
+# Stuff to note somewhere else
+
+Given that we have long question names on qualtrics, we need to export the qsf files to extract the names

@@ -1,0 +1,141 @@
+<experiment> 
+  <scenario>
+    <label>desertAqueduct.evil</label>
+    <title>Aqueduct in the desert</title>
+    <text>
+      Settlements in the Burning Barren desert are supplied with water through a series of aqueducts.[br]
+      One day, the main supply to the Sandharbor settlement has a leak. The inhabitants of Sandharbor will die if nothing is done. However, the control engineer can remotely switch the supply meant for the Midcross settlement to the Sandharbor settlement, which would kill the inhabitants of the Midcross settlement. 
+    </text>
+    <question>
+      If the control engineer has a friend in the Sandharbor settlement, would it be morally acceptable to switch the supplies to the Sandharbor settlement? This would kill the n_victims people in Midcross but save the n_saved people in Sand harbor.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>trainBomb.evil</label>
+    <title>Bomb on the Train</title>
+    <text>
+      Intelligence services have detected a terrorist attack using a bomb in a train headed towards Bangebe station. The bomb is located in the front cargo cars, while the rear cars contain passengers. Once the train reaches its destination to deliver the cargo, the bomb will explode, killing everyone at the station, but the rear cars will stick out of the station so the passengers will be fine. [br]
+      The intelligence services have a drone available to bomb the train before it arrives at its destination, at the cost of killing all the passengers. Bangebe station will be relatively empty when the train arrives. 
+    </text>
+    <question>	
+      If the intelligence services agent has a friend who works in Bangebe station, would it be morally acceptable to bomb the train? This would kill the n_victims passengers on the train but save the n_saved people at the station?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>fumingHospital.evil</label>
+    <title>Fuming Hospital</title>
+    <text>
+      In a hospital complex with buildings of different sizes, there are deadly corrosive fumes rising through the central ventilation system due to an accident in one of the laboratories in the middle of the night. The corrosive chemicals were found travelling towards the Evergreen building. If nothing is done, then all the patients in the Evergreen building will be killed from the exposure to the fumes. [br]
+      An on-site control engineer can redirect the fumes by running to a junction in the ventilation system and opening and closing specific vents within the ventilation system.
+    </text>
+    <question>	
+      If the engineer has a friend in the Evergreen building, would it be morally acceptable to redirect the fumes from the Evergreen building to the Clearview building? This would kill the n_victims patients in the Clearview building but save the n_saved patients in the Evergreen building.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>blitz.evil</label>
+    <title>Blitz</title>
+    <text>
+      An enemy fighter plane is approaching in a night strike. The government received intelligence that the plane targets the settlement of Namden. The electronic warfare division can hack the enemy guidance systems to redirect the attacks to the nearby settlement of Vista instead. 
+    </text>
+    <question>	
+      If the intelligence agent has a friend in Namden, is it morally appropriate to redirect the attack to Vista? This would kill the n_victims people in Vista to save the n_saved people in Namden?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>powerHospital.evil</label>
+    <title>Hospital Power Outage</title>
+    <text>
+      During a city-wide power outage, the local hospital needs to rely on backup generators to keep patients on life support alive. The only electrical engineer on site receives a warning that the generator for the Spring Forest building is overheating and will lose power in the next 5 minutes. The engineer has just enough time to run to a switching station to replace the failing generators with power destined for the East Valley building. 
+    </text>
+    <question>	
+      If the electrical engineer has a friend in the Spring Forest building, is it morally acceptable to switch the electrical supply from the East Valley building to the Spring Forest building instead? This would kill the n_victims patients in the East Valley building but save the n_saved patients in the Spring Forest building?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>suppliesSpace.evil</label>
+    <title>Space Supplies</title>
+    <text>
+      In the year 3050, humans have colonized multiple planets. However, they still rely on oxygen tanks which are periodically shipped from Earth. One day the transporter destined for the planet Otroa explodes en route, leaving the planet without oxygen. If nothing is done, the population of Otroa will die as a result. [br]
+      The planet Hurilia has just received its oxygen shipments, but the shipments have not been distributed yet and the transporters need extensive maintenance before the next mission. However, in a nearby space station, there is a fast transporter that could reach Hurilia in time to pick up their oxygen tank and ferry it to Otroa.
+    </text>
+    <question>	
+      If the aerospace engineer has a friend in Hurilia, would it be morally appropriate to send the fast transporter to Otroa and send the oxygen shipment to Hurilia? This would kill n_victims citizens on Otrao but save the n_saved citizens on Hurilia?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>valleysFlooding.evil</label>
+    <title>Flooding Valleys</title>
+    <text>
+      Two towns are located in the valleys of the Whitgus mountains. During the spring snow melt, the valleys are protected from floods by a system of dams that are badly maintained. [br]
+      One day, the dams protecting the Leefside Valley collapse. If nothing is done, then the Leefside Valley will be flooded and the inhabitants will die. The remaining dams have manually operated floodgates. The governor of the mountain district can airlift an operator to open the floodgates, which would redirect the water to another valley. 
+    </text>
+    <question>	
+      If the governor has a friend in Leafside Valley, would it be morally appropriate to airlift the operator to redirect the flooding waters to the Llyne Valley? This would kill n_victims people in the Llyne Valley but save the n_saved people in the Leafside Valley?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>factoryBomb.evil</label>
+    <title>Bomb Disposal in a Factory</title>
+    <text>
+      During construction in a car factory, an unexploded bomb from a previous war is discovered just when the day shift is about to end and the workers from the night shift are about to enter the factory. Examining the bomb accidentally started the timer for the explosion. If nothing is done, the bomb will explode in 10 min, when the factory day shift workers will have left and the night shift workers will have arrived. However, it is possible for the demining agent to explode the bomb now when the day shift workers are still in the factory.
+    </text>
+    <question>	
+      If the demining agent has a friend among the night shift workers, would it be morally acceptable to trigger the explosion now? This will kill n_victims people from the day shift but save n_saved people from the night shift.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>plagueZoklid.evil</label>
+    <title>Zoklid Plague</title>
+    <text>
+      While using drones to monitor the army of emperor Kheogezia conquering another country, an air force officer sees that the emperor has released a Zoklid swarm to attack the settlement of Onaphis. [br]
+      Zoklids are dangerous insects. If nothing is done, the Zoklid swarm will reach the settlement of Onaphis all kill all of its citizens. The officer can send a drone to release pesticides over the swarm, though the quantity of pesticide needed will affect the area underneath, which is the settlement of Nova Mistral. The people in Nova Mistral will be exposed to the pesticide and will develop critical health problems and die.
+    </text>
+    <question>	
+      If the officer has a friend in the settlement of Onaphis, is it morally acceptable to send the drone to release the pesticides over the swarm? This will kill the n_victims citizens in Nova Mistral but save the n_saved citizens in Onaphis.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>sacrificeHuman.evil</label>
+    <title>Human Sacrifice</title>
+    <text>
+      For his imperial cult, the king of the Chirfiqa demands human sacrifices once a year. He typically burns one village to the ground and kills all its residents, but if enough volunteers are sacrificed in the capital, the village is spared.
+      This year, the Whotnir have been chosen to provide the sacrifice. However, a group of villagers flee to hide in the capital and would survive if they make it to the capital. Their movements have been detected by the intelligence services and a commando is sent to detain them and to use them as volunteers to be sacrificed.
+    </text>
+    <question>	
+      If an intelligence officer has a friend with the escapees, would it be morally acceptable to misdirect the commando to an incorrect location? This would give the n_saved escapees time to escape and to survive, but lead to the death of the n_victims remaining Whotnir, whose village will be set on fire.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>treatmentPolicy.evil</label>
+    <title>Treatment Policy</title>
+    <text>
+      Hyena's Ears is a deadly disease that can be treated with the drug Abacavelam. Unfortunately, diagnosis is unreliable, so some healthy patients will be misdiagnosed as having Hyena's Ears. Giving Abacavelam to healthy people kills them. The local health department needs to decide how to deal with an outbreak of Hyena's Ears. If they decide to administer Abacavelam, they will save n_saved Hyena's Ears patients, but will kill n_victims healthy, misdiagnosed patients. If they do nothing, the n_saved Hyena's Ears patients will die, but the n_victims misdiagnosed patients will survive. 
+    </text>
+    <question>	
+      If the head of the health department has a friend at the hospital who does not have Hyena's Ears, is it morally acceptable to administer a placebo drug, which will kill n_victims Hyena's Ears patients, but save n_saved misdiagnosed patients?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>forcedSiege.evil</label>
+    <title>Forced Siege</title>
+    <text>
+      While watching the army of Emperor Hyikra via drones conquer another country, the intelligence agency sees that he forced the men to serve as soldiers in his army by taking their families hostage. These slave soldiers have no choice but to follow Hyikra orders to save their families. He orders his newly aquired army of slave soldiers to burn down the settlement of Onaphis. The intelligence agency has one drone at their disposal to drop a bomb on the marching army of slave soldiers, killing them.
+    </text>
+    <question>	
+      If the intelligence agent has a friend in Onaphis, would it be morally acceptable to bomb the slave soldiers? This would kill the n_victims slave soldiers but save the n_saved citizens of Onaphis.
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+</experiment>

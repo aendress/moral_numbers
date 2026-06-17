@@ -1,0 +1,14 @@
+id	mistake	suggestion
+2	decission	decision,decisions,decommission,declension,derision
+2	nfortunatelly	fortunately,unfortunate,importunately,fortuneteller
+2	peole	prole,pole,people,oleo
+8	brainer	brainier,trainer,brained,drainer,brain er,brain-er,brain
+17	handwave	hand wave,hand-wave,handwoven,waveband
+17	dillemas	dilemmas,dilemma
+21	wouls	would,woulds,souls,fouls
+23	sacrofoce	sacrifice
+23	alrger	larger,allergen
+23	gorup	group,gorp
+23	ness	sens,mess,nests,nest,nets,less,fess,news,Tess,Hess,Bess,newness
+33	positivity	positivist,positivism,positive,pomposity
+48	decions	decisions,decision,declensions,declension

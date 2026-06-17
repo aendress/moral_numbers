@@ -1,0 +1,2 @@
+.Skin .QuestionText{max-width: 80% !important}
+#SkinContent{ width:80vw; } .Skin .QuestionOuter.Matrix{ width:80vw; max-width:80vw; }

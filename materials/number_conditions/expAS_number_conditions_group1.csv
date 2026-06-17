@@ -1,0 +1,11 @@
+counterbalancing_group,n_victims,n_saved,n_total,ratio_saved_victims,experiments
+1,300,120000,120300,400,"9a (neutral, - verify assymptoe)"
+1,20,12000,12020,600,"9a (neutral, - verify assymptoe)"
+1,10,8000,8010,800,"9a (neutral, - verify assymptoe)"
+1,20,20000,20020,1000,"9a (neutral, - verify assymptoe)"
+1,50,75000,75050,1500,"9a (neutral, - verify assymptoe)"
+1,100,300000,300100,3000,"9a (neutral, - verify assymptoe)"
+1,40,200000,200040,5000,"9a (neutral, - verify assymptoe)"
+1,10,100000,100010,10000,"9a (neutral, - verify assymptoe)"
+1,200,3000000,3000200,15000,"9a (neutral, - verify assymptoe)"
+1,30,600000,600030,20000,"9a (neutral, - verify assymptoe)"

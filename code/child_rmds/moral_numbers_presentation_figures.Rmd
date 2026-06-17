@@ -1,0 +1,269 @@
+## Model illustration
+
+```{r presentation-model-illustration-utilitarian-deontological, fig.cap = "Model illustration (panel a): Psychophysical model of moral decision making. Utilitarian choices reflect decisions with low internal noise ($w$); deontological choices reflect high internal noise.", fig.height = 7}
+plot.utilitarian.deontological +
+    theme_presentation() +
+    ggplot2::theme(
+        legend.position = "bottom",
+        legend.direction = "horizontal"
+    )
+```
+
+```{r presentation-model-illustration-criterion-shift, fig.cap = "Model illustration (panel b): Effect of attentional weight of victims ($\\alpha$) on acceptability threshold. Higher $\\alpha$ shifts the threshold toward greater beneficiary:victim ratios.", fig.height = 5}
+plot.criterion.shift +
+    ggplot2::facet_wrap(~w, ncol = 3) +
+    ggplot2::guides(
+        colour = ggplot2::guide_legend(title.position = "top"),
+        linetype = ggplot2::guide_legend(title.position = "top")
+    ) +
+    theme_presentation() +
+    ggplot2::theme(
+        legend.position = "bottom",
+        legend.direction = "horizontal",
+        legend.text = ggplot2::element_text(size = 14, angle = 0),
+        legend.title = ggplot2::element_text(size = 14, angle = 0)
+    )
+```
+
+```{r presentation-model-illustration-prospect-utility, fig.cap = "Model illustration (panel c): Subjective utility as a function of relative gains or losses. The S-shaped curve emerges naturally from the psychometric function, with asymmetric utilities for gains and losses.", fig.height = 9, fig.width=8}
+dat_prospect_demo %>%
+    create_prospect_change_value_plot() +
+    ggh4x::coord_axes_inside(xintercept = 0, yintercept = 0, labels_inside = FALSE) +
+    theme_presentation() +
+    ggplot2::theme(axis.text = ggplot2::element_text(size = 16))
+```
+
+```{r presentation-model-illustration-loss-aversion, fig.cap = "Model illustration (panel d): Ratio of absolute utilities for losses vs.\\ gains as a function of relative change. Values greater than 1 indicate loss aversion, which emerges automatically from the model."}
+dat_prospect_demo %>%
+    create_prospect_relative_value_plot() +
+    theme_presentation()
+```
+
+## Model comparisons
+
+```{r presentation-model-comparisons-exp1, fig.cap = "Binarized acceptability ratings in Experiment 1 as a function of (left) beneficiary:victim Weber ratio, (center) number of victims (harm), and (right) net number of survivors (utility). Error bars are 95\\% bootstrap confidence intervals.", fig.width = 10, fig.height = 5}
+presentation_wrap(
+    ggpubr::ggarrange(
+        plotlist = l.exp1.model.comp.plots %>%
+            purrr::discard_at("plot.by.p.saved") %>%
+            purrr::imap(\(p, name) {
+                p2 <- presentation_fix_layer_colours(p) +
+                    theme_presentation() +
+                    ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black"))
+                if (name != "plot.by.ratio") {
+                    p2 <- p2 + ggplot2::theme(axis.title.y = ggplot2::element_blank())
+                }
+                p2
+            }),
+        ncol = 3,
+        legend = "none"
+    )
+)
+```
+
+```{r presentation-model-comparisons-exp2, fig.cap = "Binarized acceptability ratings in Experiment 2 as a function of (left) beneficiary:victim Weber ratio, (center) number of victims (harm), and (right) net number of survivors (utility). Error bars are 95\\% bootstrap confidence intervals. Economic choices yielded a lower noise parameter and thus more utilitarian responses.", fig.width = 10, fig.height = 5}
+presentation_wrap(
+    ggpubr::ggarrange(
+        plotlist = l.exp4.model.comp.plots %>%
+            purrr::discard_at("plot.by.p.saved") %>%
+            purrr::map(\(p) p +
+                           theme_presentation() +
+                           ggplot2::theme(
+                               plot.background = ggplot2::element_rect(colour = NA, fill = "black"),
+                               legend.direction = "horizontal",
+                               legend.title = ggplot2::element_blank()
+                           )),
+        ncol = 3,
+        common.legend = TRUE,
+        legend = "bottom"
+    )
+)
+```
+
+## Bootstrap $w$ estimates and Experiment 3
+
+```{r presentation-bootstrap-w-exp2, fig.cap = "Bootstrap distribution of the $w$ (noise) parameter in Experiment 2 (moral vs.\\ economic decisions). Estimates in the economic condition are substantially lower, reflecting more precise numerical representations."}
+p.moral.numbers.bootstrap.1param.exp4 +
+    ggplot2::labs(x = NULL, title = NULL) +
+    theme_presentation() +
+    ggplot2::theme(
+        strip.text.x = ggplot2::element_blank(),
+        strip.background = ggplot2::element_blank()
+    )
+```
+
+```{r presentation-exp3-binary-decisions, fig.cap = "Experiment 3: Binarized acceptability ratings. Participants favor beneficiary:victim ratios over harm in moral dilemmas, but favor utility over ratios in economic dilemmas.", fig.width = 8}
+p.moral.numbers.exp2.m +
+    ggplot2::labs(x = NULL) +
+    theme_presentation()
+```
+
+## Relative risk and $\\alpha$ parameter (Experiments 4--6)
+
+```{r presentation-rr-alpha-all-experiments, fig.cap = "Relative risk of acceptability (left panels) and bootstrap distribution of the attentional weight parameter $\\alpha$ (right panels) in Experiments 4 to 6, restricted to participants for whom the vividness manipulation was effective.", fig.width = 8, fig.height = 18, out.height = "0.9\\textheight", out.extra = "keepaspectratio"}
+purrr::map2(
+    l_moral_numbers_rr_plot_filtered,
+    l_plots_fits_bootstrap_a_with_forced_w %>%
+        purrr::keep_at(\(p) stringr::str_detect(p, "vivacityManipulationWorking")),
+    \(rr, a) {
+        rr_fixed <- presentation_fix_layer_colours(presentation_remove_smooth_ci(rr)) +
+            ggplot2::labs(title = NULL) +
+            theme_presentation() +
+            ggplot2::theme(
+                plot.background = ggplot2::element_rect(colour = NA, fill = "black"),
+                axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1),
+                panel.grid.major.x = ggplot2::element_blank(),
+                panel.grid.minor.x = ggplot2::element_blank()
+            )
+        a_fixed <- a +
+            ggplot2::labs(title = NULL) +
+            theme_presentation() +
+            ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black"))
+        list(rr_fixed, a_fixed)
+    }
+) %>%
+    purrr::imap(\(pair, name) {
+        p <- ggpubr::ggarrange(
+            plotlist = pair,
+            ncol = 2,
+            nrow = 1,
+            widths = c(2, 1)
+        ) %>%
+            ggpubr::annotate_figure(
+                top = ggpubr::text_grob(format_exp_info(name), face = "bold", color = "white")
+            )
+        cowplot::ggdraw(p) +
+            ggplot2::theme(plot.background = ggplot2::element_rect(fill = "black", colour = "black"))
+    }) %>%
+    ggpubr::ggarrange(
+        plotlist = .,
+        ncol = 1,
+        nrow = 3,
+        labels = "auto",
+        common.legend = FALSE,
+        legend = "bottom"
+    ) %>%
+    presentation_wrap()
+```
+
+## LLM comparisons
+
+### Experiment 2: Ratio sensitivity
+
+```{r presentation-llm-exp2-ratio-frontier, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Acceptability of sacrificial decisions as a function of \\emph{beneficiary:victim} Weber ratios in Experiment 2 for \\emph{frontier models}. Points represent mean acceptability with 95% confidence intervals. Curves show psychophysical model fits for the average responses across simulated participants.  (a) \\emph{Binarized responses} (acceptable/unacceptable) for moral (top) and economic (bottom) scenarios. (b) \\emph{Raw} responses on a 6-point scale. Most models showed some sensitivity to Weber ratios in moral scenarios at least when considering raw ratings, though some models (GPT-4.1 mini, GPT-5 mini variants, Qwen-plus) were substantially more lenient than humans.", fig.height = 16, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+presentation_wrap(
+    p_list_llm_single_option$cloud$exp4 %>%
+        purrr::map(\(x) purrr::pluck(x, "plot.by.ratio") +
+                       theme_presentation() +
+                       ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black"))) %>%
+        rev %>%
+        ggpubr::ggarrange(
+            plotlist = .,
+            common.legend = TRUE,
+            legend = "none",
+            ncol = 1,
+            nrow = 2,
+            labels = "auto",
+            font.label = list(size = 32)
+        )
+)
+```
+
+```{r presentation-llm-exp2-ratio-local, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Acceptability of sacrificial decisions as a function of \\emph{beneficiary:victim} Weber ratios in Experiment 2 for \\emph{local models}. Points represent mean acceptability with 95% confidence intervals. Curves show psychophysical model fits for the average responses across simulated participants. (a) \\emph{Binarized responses} (acceptable/unacceptable) for moral (top) and economic (bottom) scenarios. (b) \\emph{Raw} responses on a 6-point scale. Unlike frontier models, local models showed no discernible sensitivity to Weber ratios in either moral or economic scenarios. However, most models showed higher acceptability rates for economic than for moral decisions.", fig.height = 16, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+presentation_wrap(
+    p_list_llm_single_option$local$exp4 %>%
+        purrr::map(\(x) purrr::pluck(x, "plot.by.ratio") +
+                       theme_presentation() +
+                       ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black"))) %>%
+        rev %>%
+        ggpubr::ggarrange(
+            plotlist = .,
+            common.legend = TRUE,
+            legend = "none",
+            ncol = 1,
+            nrow = 2,
+            labels = "auto",
+            font.label = list(size = 32)
+        )
+)
+```
+
+### Experiment 3: Pitting ratios against harm and utility
+
+```{r presentation-llm-exp3-forest-frontier, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Forest plot of preferences between high-ratio and alternative options in Experiment 3 for frontier models. Points show mean preference ratings with 95\\% confidence intervals. The vertical dashed line at 3.5 indicates no preference; values above favour the high Weber ratio option, values below favour the alternative (low harm in Exp. 3a, high utility in Exp. 3b). Humans are shown as larger diamonds. Colour indicates the significantly favoured option (blue = ratio, red = alternative, grey = no significant preference).", fig.height = 12, fig.width = 16, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+l_exp2_forest$cloud +
+    theme_presentation() +
+    ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black")) +
+    ggplot2::scale_color_manual(
+        values = c("Ratios" = "#56B4E9", "No preference" = "grey70", "Harm/Utility" = "#d73027"),
+        name = "Favoring"
+    )
+```
+
+```{r presentation-llm-exp3-joint-preference, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Joint preference ratings in Experiment 3 for each model and condition. The x-axis shows the mean preference rating in Experiment 3a (ratio vs. harm); the y-axis shows the mean rating in Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\\% CIs. Background colours indicate the quadrant: top-right (blue) = ratio preferred in both experiments, the human-like pattern. Colour and shape distinguish humans (red diamond), frontier models (dark circles), and local models (teal triangles). Quadrant labels are placed in the margins.", fig.height = 18, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+make_llm_exp2_joint_plot(base_size = 24, label_size = 8, add_repel = TRUE, repel_size = 6.5) +
+    theme_presentation() +
+    ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black")) +
+    ggplot2::scale_color_manual(
+        values = c("Humans" = "#56B4E9", "Frontier" = "#E69F00", "Local" = "#cccccc"),
+        name = "Model type"
+    )
+```
+
+```{r presentation-llm-exp3-joint-preference-no-labels, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Joint preference ratings in Experiment 3 for each model and condition. The x-axis shows the mean preference rating in Experiment 3a (ratio vs. harm); the y-axis shows the mean rating in Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\\% CIs. Background colours indicate the quadrant: top-right (blue) = ratio preferred in both experiments, the human-like pattern. Colour and shape distinguish humans (red diamond), frontier models (dark circles), and local models (teal triangles). Quadrant labels are placed in the margins.", fig.height = 10, fig.width = 10, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+make_llm_exp2_joint_plot() +
+    theme_presentation() +
+    ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black")) +
+    ggplot2::scale_color_manual(
+        values = c("Humans" = "#56B4E9", "Frontier" = "#E69F00", "Local" = "#cccccc"),
+        name = "Model type"
+    )
+```
+
+```{r presentation-llm-exp3-forest-local, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Forest plot of preferences between high-ratio and alternative options in Experiment 3 for local models. Points show mean preference ratings with 95\\% confidence intervals. The vertical dashed line at 3.5 indicates no preference; values above favour the high Weber ratio option, values below favour the alternative (low harm in Exp. 3a, high utility in Exp. 3b). Humans are shown as larger diamonds. Colour indicates the significantly favoured option (blue = ratio, red = alternative, grey = no significant preference).", fig.height = 12, fig.width = 16, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+l_exp2_forest$local +
+    theme_presentation() +
+    ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black")) +
+    ggplot2::scale_color_manual(
+        values = c("Ratios" = "#56B4E9", "No preference" = "grey70", "Harm/Utility" = "#d73027"),
+        name = "Favoring"
+    )
+```
+
+### Experiment 6: Vivacity and relative risk
+
+```{r presentation-llm-exp6-rr-frontier, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Risk ratio of acceptability judgements as a function of \\emph{beneficiary:victim} Weber ratio in Experiment 6 for frontier models. The risk ratio compares acceptability rates when victims' deaths were portrayed vividly or in the same neutral language as the beneficiaries' deaths, $\\RR = \\frac{P_{\\text{acceptable, vivid}}}{P_{\\text{acceptable, neutral}}}$. Points show mean risk ratios with 95% confidence intervals. Regression lines show the relationship between Weber ratio and risk ratio. In humans, higher Weber ratios are associated with higher risk ratios, indicating that the effect of the salience of the victims' deaths portrayals is reduced for higher \\emph{beneficiary:victim} ratios. Seven frontier models reproduced this positive correlation, one showed a negative correlation (GPT-4o mini), and two showed no correlation (Claude Sonnet 4.5, Mistral Medium).", fig.height = 12, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+p_list_exp11_rr_correlation$cloud$bin +
+    theme_presentation() +
+    ggplot2::theme(
+        legend.position = "none",
+        plot.background = ggplot2::element_rect(colour = NA, fill = "black")
+    )
+```
+
+```{r presentation-llm-exp6-ratio, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Acceptability of sacrificial decisions as a function of \\emph{beneficiary:victim} Weber ratio in Experiment 6. Data show binarized responses for neutral (top) and vivid (bottom) portrayals of the victims' deaths. Points represent mean acceptability with 95% confidence intervals. Curves show psychophysical model fits. (a) Frontier models. (b) Local models.", fig.height = 16, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+presentation_wrap(
+    p_list_llm_single_option %>%
+        purrr::map(\(p) purrr::pluck(p, "exp11", "bin", "plot.by.ratio") +
+                       theme_presentation() +
+                       ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = "black"))) %>%
+        ggpubr::ggarrange(
+            plotlist = .,
+            common.legend = TRUE,
+            legend = "none",
+            ncol = 1,
+            nrow = 2,
+            labels = "auto",
+            font.label = list(size = 32)
+        )
+)
+```
+
+```{r presentation-llm-exp6-rr-local, eval = isTRUE(INCLUDE_LLM_SI), fig.cap = "Risk ratio of acceptability judgements as a function of \\emph{beneficiary:victim} Weber ratio in Experiment 6 for local models. The risk ratio compares acceptability rates when victims' deaths were portrayed vividly or in the same neutral language as the beneficiaries' deaths, $\\RR = \\frac{P_{\\text{acceptable, vivid}}}{P_{\\text{acceptable, neutral}}}$. Points show mean risk ratios with 95% confidence intervals. Regression lines show the relationship between Weber ratio and risk ratio. In humans, higher Weber ratios are associated with higher risk ratios, indicating that the effect of the salience of the victims' deaths portrayals is reduced for higher \\emph{beneficiary:victim} ratios. Local models largely failed to reproduce the human pattern: one model (Mistral 7.2B) showed a negative correlation, while the other two models showed no correlation.", fig.height = 12, fig.width = 18, out.width = "\\textwidth", out.extra = "keepaspectratio"}
+p_list_exp11_rr_correlation$local$bin +
+    theme_presentation() +
+    ggplot2::theme(
+        legend.position = "none",
+        plot.background = ggplot2::element_rect(colour = NA, fill = "black")
+    )
+```

@@ -1,0 +1,217 @@
+<experiment>
+  <scenario>
+    <label>desertAqueduct.econ</label>
+    <title>Aqueduct in the desert</title>
+    <text>
+      Fields in the Burning Barren desert are supplied with water through a series of aqueducts.[br]
+      One day, the main supplies to the Sandharbor farm and the Blackfield farm have a leak, but there is only one repair crew available. The crops in both Sandharbor and Blackfield will be lost if nothing is done. This leaves the repair crew with two options:
+    </text>
+    <option1>
+      Switch the supply meant for the Midcross farm to the Sandharbor farm. This would destroy n_victims1 acres of crops in the Midcross farm but would save n_saved1 acres of crops in the Sandharbor farm.
+    </option1>
+    <option2>
+      Switch the supply meant for the Dullspring farm to the Blackfield farm. This would destroy n_victims2 acres of crops in the Dullspring farm but save n_saved2 acres of crops in the Sandharbor farm.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>trainBomb.econ</label>
+    <title>Bomb on the Train</title>
+    <text>
+      Intelligence services have detected two coordinated terrorist attacks using bombs on cargo trains, one heading towards the warehouse station of Kaxraz and one heading towards the warehouse station of Izzook. The front cars carry bulk goods, which is where the bomb is located. The rear cars contain valuable goods. Once the trains reach their respective destinations to deliver the cargo, the bombs will explode, destroying all goods already in the warehouse stations, but the rear cars will stick out of the stations so the valuable good will be fine.[br]
+      The intelligence services have one drone available which can be sent to bomb one of the trains before it reaches its destination, at the cost of destroying all the valuable goods in the train. This leaves the intelligence agency two choices:
+    </text>
+    <option1>
+      Send a drone to bomb the train headed for Khaxraz. This will destroy n_victims1 Gold Wriarints worth of goods on the train but save n_saved1 Gold Wriarints worth of goods in the station.
+    </option1>
+    <option2>
+      Send a drone to bomb the train headed for Izzook. This will destroy n_victims2 Gold Wriarints worth of goods on the train but save n_saved2 Gold Wriarints worth of goods in the station.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>fumingHospital.econ</label>
+    <title>Fuming Hospital</title>
+    <text>
+      In a hospital complex with buildings of different sizes, there are deadly corrosive fumes rising through the central ventilation system due to an accident in one of the laboratories in the middle of the night. The corrosive chemicals were found in two separate vents heading towards the Evergreen and Clearview buildings, respectively. If nothing is done, then the Evergreen and Clearview buildings will be exposed to the corrosive fumes. These buildings house medical equipment for the hospital.[br]
+      The control engineer can redirect one of the fumes by running to a junction in the ventilation system and opening and closing specific vents, but there is not enough time to redirect both fumes. This leaves the engineer with two options:
+    </text>
+    <option1>
+      Redirect the fumes heading towards the Evergreen building to the Harmony Grove Building. This would destroy n_victims1 Chrono coins worth of medical equipment in the Harmony Grove building but save the n_saved1 Chrono coins worth of medical equipment in the Evergreen building
+    </option1>
+    <option2>
+      Redirect the fumes heading towards Clearview building to Summer Stone building. This would destroy n_victims2 Chrono coins worth of medical equipment in Summer Stone building but save the n_saved2 Chrono coins worth of medical equipment in the Clearview building
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>blitz.econ</label>
+    <title>Blitz</title>
+    <text>
+      Two enemy fighter planes are approaching in a night strike. The government received intelligence that the planes target storage facilities containing military gear in the settlements of Namden and Wuwu.[br]
+      The  electronic warfare division can hack the enemy guidance systems to redirect the attacks to another settlement. However, it has only one antenna powerful enough to interfere with the guidance system and can only redirect one of the attacks in time. This gives the electronic warfare division two options:
+    </text>
+    <option1>
+      Redirect the attack approaching the Namden storage facility to the Ocrin storage facility. This will destroy n_victims1 spectral mines stored in Ocrin but save n_saved1 spectral mines stored in Namden
+    </option1>
+    <option2>
+      Redirect the attack approaching the Wuwu storage facility to the Vrelda storage facility. This will destroy n_victims2 spectral mines stored in Vrelda but save n_saved2 spectral mines stored in Wuwu.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>powerHospital.econ</label>
+    <title>Hopsital Power Outage</title>
+    <text>
+      During a city-wide power outage, the local hospital needs to rely on backup generators to keep laboratories running. The laboratories require electricity to cool down pathology samples. The only electrical engineer on site receives a warning that the generators for the Spring Forest building and the East Valley building are overheating and will lose power in the next 5 minutes. The engineer has just enough time to run to a switching station to replace the failing generators with power destined to other buildings. This leaves the engineer with two options
+    </text>
+    <option1>
+      Use the generator for the Highland building to keep the Spring Forest building powered. This will destroy n_victims1 pathology samples in the Highland building but save n_saved1 pathology samples in the Spring Forest building
+    </option1>
+    <option2>
+      Use the generator for the Hopedale building to keep the East Valley building powered. This will destroy n_victims2 pathology samples in the Hopedale building but save n_saved2 pathology samples in the East Valley building.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>suppliesSpace.econ</label>
+    <title>Space Supplies</title>
+    <text>
+      In the year 3050, humans have colonized multiple planets. However, they still rely on oxygen tanks which are periodically shipped from Earth.[br]
+      One day, the transporters destined for the planets Phithitis and Reawei explode en route, leaving these planets without oxygen tanks which are used for their mining operations. If nothing is done, the mining of Hanozonite will have to be temporarily halted.[br]
+      The planets Otrao and Hurilia have just received their oxygen shipments, but the shipments have not been distributed yet, and the transporters need extensive maintenance before their next mission. However, in a nearby space station, there is a fast transporter that could reach these planets in time to pick up their oxygen tank and ferry it to Phithitis or Reawei. This leaves the space agency with two options:
+    </text>
+    <option1>
+      Order the fast transporter to pick up the oxygen from Otroa and ship it to Phithtis. This will cause n_victims1 tons of Hazonite to be lost due to the halt of mining operations but save n_saved1 tons of Hazonite from being lost.
+    </option1>
+    <option2>
+      Order the fast transporter to pick up the oxygen from Hurilia and ship it to Reawei. This will cause n_victims2 tons of Hazonite to be lost due to the halt of mining operations but save n_saved2 tons of Hazonite from being lost.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>valleysFlooding.econ</label>
+    <title>Flooding Valleys</title>
+    <text>
+      Four towns containing papermills are located in the valleys of the Whitgus mountains. During the spring snow melt, the valleys are protected from floods by a system of dams that are badly maintained. One day, the dams protecting the Leefside and Llyne valleys collapse. If nothing is done, then the papermills in Leefside and Llyn valleys will be flooded and the paper rolls waiting for shipment will be destroyed by the water. The remaining dams have manually operated floodgates. The governor of the mountain district can airlift an operator to open the floodgates, which would redirect the water to other valleys. However, there is only one high altitude helicopter available, so only one dam can be reached in time. This leaves the governor with two options:
+    </text>
+    <option1>
+      Airlift the operator to redirect the flood heading towards Leefside Valley to Frostford Valley. This will destroy n_victims1 paper rolls in Frostford Valley, but save n_saved1  paper rolls in Leefside Valley.
+    </option1>
+    <option2>
+      Airlift the operator to redirect the flood heading towards Llyne Valley to Bleackburn Valley. This will destroy n_victims2 paper rolls in Bleackburn valley, but save n_saved2 paper rolls in Llyne Valley.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>factoryBomb.econ</label>
+    <title>Bomb Disposal in a Factory</title>
+    <text>
+      One night during construction in a car factory complex, two unexploded bombs from a previous war are discovered in the Ivory building and the Astral building just when the night shift is about to end and the day shift is about to start. The construction accidentally started the timers of the bombs. If nothing is done, the bombs will explode in 10 min, which will destroy the parts and components for the day shift, and thus make it impossible to produce cars for the day. However, it gives enough time to transport away the cars produced during the night shift. The only other option is to explode the bombs now, which will destroy all the cars that have been produced during the night shift. However, there is only one demining squad available.[br]
+      No cars will be produced for the entire day in the Ivory building and the Astral building if nothing is done. However, the demining squad has two options:
+    </text>
+    <option1>
+      Explode the bomb in the Ivory building. This would destroy the n_victims1 cars produced during the night shift but allow for the production of n_saved1 cars during the day shift
+    </option1>
+    <option2>
+      Explode the bomb in the Astral building. This would destroy the n_victims2 cars produced during the night shift but allow for the production of n_saved2 cars during the day shift.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>plagueZoklid.econ</label>
+    <title>Zoklid Plague</title>
+    <text>
+      While using drones to monitor the army of emperor Kheogezia conquering another country, an air force officer sees that the emperor has released two Zoklid swarms to destroy the crops of the enemy population.[br]
+      Zoklids are dangerous insects. If nothing is done, the Zoklid swarms will reach the settlements of Onpahis and Nova Mistral respectively, destroying their crops. The officer can send a drone to release pesticides over one of the swarms, though the quantity of pesticide needed will affect the area underneath which is occupied by another field of crops. The crops exposed to the pesticide will make them toxic and inedible. This leaves the officer with two options:
+    </text>
+    <option1>
+      Release pesticides over the swarm headed for Onaphis. This would destroy n_victims1 acres of crops underneath but save n_saved1 acres of crops in Onaphis.
+    </option1>
+    <option2>
+      Release pesticides over the swarm headed for Nova Mistral. This would destroy n_victims2 acres of crops underneath but save n_saved2 acres of crops in Nova Mistral.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>sacrificeHuman.econ</label>
+    <title>Human Sacrifice</title>
+    <text>
+      For his imperial cult, the king Chirfiqa demands in-kind tribute in the form of sheep once a year. He typically confiscates all sheep in two villages, but if enough sheep are brought to the capital voluntarily, a village is spared. This year, the villages Fiorn and Liory are chosen to provide the tribute.[br]
+      An intelligence officer who is abhorred by heavy tribute demands by the king has detected a group of villagers from a group of villagers from each village who have fled in an attempt to hide their sheep. Should they be able to hide their sheep would survive. The officer can follow the tracks of the escaped villagers in order to confiscate their sheep, however given the time constraints only one of the two groups can be pursued. This leaves the officer with two options:
+    </text>
+    <option1>
+      Confiscate the sheep from the villagers fleeing Fiorn. This would kill the n_victims1 escaped sheep but save the n_saved1 sheep in Fiorn.
+    </option1>
+    <option2>
+      Confiscate the sheep from the villagers fleeing Liory. This would kill the n_victims2 escaped sheep but save the n_saved2 sheep in Liory.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>treatmentPolicy.econ</label>
+    <title>Treatment Policy</title>
+    <text>
+      Hyena's Ears is a deadly disease that infects plants but can be treated with the drug Abacavelam. Unfortunately, diagnosis is unreliable, resulting in some healthy plants being misdiagnosed as having Hyena's Ears. Giving Abacavelam to healthy plants kills them.[br]
+      The local forestry department has just learned that both the Bayview Forest and The Lakewood Forest have outbreaks of Hyena's Ears. However, there is only one team of forest rangers that can reach these forests in time to deliver Abacavelam. This leaves the forestry department with two options:
+    </text>
+    <option1>
+      Send the rangers to the Bayview Forest to administer the Abacavelam. This would kill n_victims1 misdiagnosed trees but save n_saved1 trees with Hyena's Ears.
+    </option1>
+    <option2>
+      Send the rangers to the Lakewood Forest to administer the Abacavelam. This would kill n_victims2 misdiagnosed trees but save n_saved2 trees with Hyena's Ears.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>forcedSiege.econ</label>
+    <title>Forced Siege</title>
+    <text>
+      While watching the actions of Emperor Hyikra via drones, the intelligence agency sees that he has released two herds of trained Kirorians into the western and eastern forests to lure out wild Kirorians. The emperor then kills the wild Kirorians for pleasure. As Kirorians are a protected species, the intelligence agency must intervene and protect them.[br]
+      The intelligence agency has one drone at their disposal to drop a bomb on one of the heards of trained Kirorians, killing them. The intelligence agency thus has two options:
+    </text>
+    <option1>
+      Send the drone to bomb the Kiriorians heading towards the western forest. This would kill the n_victims1 trained Kirorians but save n_saved1 Kirorians in the forest.
+    </option1>
+    <option2>
+      Send the drone to bomb the Kiriorians heading towards the eastern forest. This would kill the n_victims2 trained Kirorians but save n_saved2 Kirorians in the forest.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+</experiment>

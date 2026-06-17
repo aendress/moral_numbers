@@ -1,0 +1,550 @@
+## Preliminary analyses for Experiment 1 {#app:prelim-analysis-exp1} 
+
+### Outlier detection
+
+```{r averages-by-participant-scenario-plot, fig.cap = "Averages ratings in Experiments 1a and 1b by participants (a) and scenarios (b), for binary ratings (left) and raw ratings (right)."}
+list(
+    dat.moral.numbers.m.overall.by.participant.long %>%
+        dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+        dplyr::group_by(ResponseId, rating.type) %>%
+        dplyr::summarize(rating = mean(rating)) %>%
+        # ggplot2::ggplot(ggplot2::aes(x = reorder(ResponseId, rating), y = rating, fill = rating)) +
+        ggplot2::ggplot(ggplot2::aes(x = tidytext::reorder_within(ResponseId, rating, rating.type), y = rating, fill = rating)) +
+        ggplot2::geom_bar(stat = "identity") +
+        tidytext::scale_x_reordered() +
+        ggplot2::facet_wrap(~rating.type,
+                            scales = "free"
+        ) +
+        ggplot2::labs(
+            x = "Participant ID",
+            y = "rating",
+            title = paste0(
+                "By participant averages (N=",
+                dat.moral.numbers.m.overall.by.participant %>%
+                    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+                    dplyr::pull(ResponseId) %>%
+                    nlevels2(),
+                ")"
+            )
+        ) +
+        ggplot2::theme(legend.position = "none"),
+    dat.moral.numbers.m.overall.by.scenario.long %>%
+        dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+        dplyr::group_by(scenarioID, rating.type) %>%
+        dplyr::summarize(rating = mean(rating)) %>%
+        # ggplot (ggplot2::aes(x = reorder(scenarioID, rating), y = rating, fill = rating)) +
+        ggplot2::ggplot(ggplot2::aes(x = tidytext::reorder_within(scenarioID, rating, rating.type), y = rating, fill = rating)) +
+        ggplot2::geom_bar(stat = "identity") +
+        tidytext::scale_x_reordered() +
+        ggplot2::facet_wrap(~rating.type,
+                            scales = "free"
+        ) +
+        ggplot2::labs(
+            x = "Scenario ID",
+            y = "rating",
+            title = paste0(
+                "By scenario averages (N=",
+                dat.moral.numbers.m.overall.by.scenario %>%
+                    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+                    dplyr::pull(scenarioID) %>%
+                    nlevels2(),
+                ")"
+            )
+        ) +
+        ggplot2::theme(
+            axis.text.x = ggplot2::element_text(
+                angle = 45,
+                vjust = 1,
+                hjust = 1,
+                size = 5
+            ),
+            legend.position = "none"
+        )
+) %>%
+    ggpubr::ggarrange(
+        plotlist = .,
+        nrow = 2, labels = "auto",
+        #        common.legend = TRUE,
+        legend = "none"
+    )
+```
+
+As shown in Figure \ref{fig:averages-by-participant-scenario-plot}, participants in Experiment 1a ranged from rejecting all sacrificial decisions to accepting all of them, with most participants occupying intermediate tendencies.
+
+Likewise, most scenarios (with the exception of the "slavery" and the "island landing" scenarios) received intermediate acceptability ratings between about 3 and about 3.5, suggesting that scenarios are not inherently rated better than others. The "island" landing scenario is removed in subsequent experiments.
+
+### Distribution of ratings
+
+```{r exp1-test-normality}
+# Calculate coefficients
+lambda.tukey.exp1ab <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    dplyr::pull(rating.raw) %>%
+    get.lambda.trans("t")
+
+boxcox.rating.transformed.lambda.tukey.exp1ab <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    dplyr::pull(rating.raw) %>%
+    caret::BoxCoxTrans()
+
+lambda.boxcox.exp1ab <- boxcox.rating.transformed.lambda.tukey.exp1ab$lambda
+
+# Try to heal data
+p.shapiro.rating.transformed.lambda.tukey.exp1ab <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    dplyr::pull(rating.raw) %>%
+    rcompanion::transformTukey(
+        .,
+        plotit = FALSE,
+        quiet = TRUE,
+        returnLambda = FALSE
+    ) %>%
+    shapiro.test(.) %>%
+    broom::tidy() %>%
+    dplyr::pull(p.value)
+
+
+p.boxcox.rating.transformed.lambda.tukey.exp1ab <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    dplyr::pull(rating.raw) %>%
+    predict(boxcox.rating.transformed.lambda.tukey.exp1ab, .) %>%
+    shapiro.test(.) %>%
+    broom::tidy() %>%
+    dplyr::pull(p.value)
+```
+
+The distribution of the data is shown in Figure \ref{fig:averages-by-participant-scenario-plot}. Tukey's ladder suggests a $\lambda$ of `r lambda.tukey.exp1ab` and the Box-Cox transform one of `r lambda.boxcox.exp1ab`. However, neither heals the violation of normality detect by the Shapiro-Wilk test, $p =$ `r p.shapiro.rating.transformed.lambda.tukey.exp1ab` and `r p.boxcox.rating.transformed.lambda.tukey.exp1ab`, respectively. Our analyses will transform the data to binary variables and perform statistical analyses through generalized linear models.
+
+```{r exp1-rating-distribution-plot, fig.cap="QQ plots (a) and distributions (b) for binarized ratings (left) and raw ratings (right) in Experiment 1. Both distributions deviate substantially from normality, motivating the use of binarized ratings and generalized linear mixed models for statistical analyses."}
+qplot.rating <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    tidyr::gather(
+        rating.type, rating,
+        c("rating.raw", "rating.bin")
+    ) %>%
+    qplot(
+        sample = rating,
+        data = .,
+        color = "#0000AA",
+        shape = "#0000AA"
+    ) +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::facet_wrap(~rating.type,
+                        scales = "free",
+                        labeller = ggplot2::as_labeller(c(rating.bin = "Binarized ratings", rating.raw = "Raw ratings"))
+    ) +
+    ggplot2::labs(tag = "a")
+
+hist.rating <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp1(b)*$")) %>%
+    tidyr::gather(
+        rating.type, rating,
+        c("rating.raw", "rating.bin")
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = rating)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..), color = "#0000AA", fill = "#0000AA") +
+    ggplot2::geom_density(alpha = .8, fill = "#6666FF") +
+    ggplot2::facet_wrap(~rating.type,
+                        scales = "free",
+                        labeller = ggplot2::as_labeller(c(rating.bin = "Binarized ratings", rating.raw = "Raw ratings"))
+    ) +
+    ggplot2::labs(tag = "b")
+
+ggpubr::ggarrange(qplot.rating, hist.rating, nrow = 2, labels = NULL)
+```
+
+`r clearpage()`
+
+
+## Unused: Experiment 3: Evil choices
+
+In Experiment 3, we asked whether acceptability ratings would be affected the saved:victim ratio, the utility or the number of victims when a *greater* number of people would be sacrificed to save a smaller number (e.g., due to nepotism).
+
+XXX INSERT EXAMPLE SCENARIO HERE XXX
+
+As shown in Table \ref{tab:exp3-number-conds}, the number condition were prepared in pairs. For the first condition in each pair, we fixed the ratio, the number of victims (and thus the number of saved). For the second condition in each pair, we halved the ratio, but increased the number of victims in such a way that the net number of victims was reduced.
+
+This design is not appropriate for a model selection analysis, as the number of victims is correlated with net number of victims. As a result, we analyze the data in the following way. For each pair $p$, let $R_{p1}$ be the rating for the lower number of victims, and $R_{p2}$ the rating for the higher number of victims, and calculate $D_p = R_{p_2} - R_{p_1}$ (or $D_p = (R_{p_2} - R_{p_1})/(R_{p_2} + R_{p_1})$ if the distribution looks better). We then average the $D_p$'s across pairs for each participant, and compare the distribution of $\bar{D_p}$ to the chance level of zero. The differences should be significantly above zero.
+
+```{r exp3-number-conds}
+
+dplyr::bind_rows(
+    read.csv(
+        here::here(
+            "experiments",
+            "experiment2_3",
+            "final",
+            "number_conditions",
+            "number_conds_evil.csv"
+        ),
+        header = TRUE
+    ) %>%
+        dplyr::mutate(experimentID = "Experiment 3"),
+    
+    read.csv(
+        here::here(
+            "experiments",
+            "experiment2_3",
+            "final",
+            "number_conditions",
+            "number_conds_evil_ratio_vs_utillity.csv"
+        ),
+        header = TRUE
+    ) %>%
+        dplyr::mutate(experimentID = "Experiment 3b")
+) %>%
+    dplyr::mutate(
+        ratio = n_victims / n_saved,
+        utility = n_saved - n_victims,
+        .after = n_saved
+    ) %>%
+    dplyr::mutate(conditionPair = stringr::str_c("Condition pair ", conditionPair)) %>%
+    dplyr::select(-conditionType, -n_total1) %>%
+    dplyr::select(conditionPair, dplyr::everything()) %>%
+    tidyr::unite(pack.col, experimentID, conditionPair, sep = " - ") %>%
+    kable.packed("pack.col",
+                 caption = "Number conditions used in Exp. 3. THIS NEEDS TO BE UPDATED TO INCLUDE EXP 3B. IS EXP3 IDENTICAL TO EXP3?",
+                 col.names = c("\\\\# victims", "\\\\# saved", "ratio", "utility"),
+                 booktabs = TRUE,
+                 longtable = TRUE,
+                 escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(
+        bootstrap_options = "striped",
+        latex_options = c("striped", "hold_position", "repeat_header"), # , "scale_down"),
+        full_width = FALSE
+    ) %>%
+    kableExtra::kable_classic_2()
+```
+
+As shown in Figure \ref{fig:exp3-plot-differences} and Table \ref{tab:exp3-descriptives}, participants gave slightly better ratings to the low ratio/low (negative utility)/high victim situation; contrary to our predictions, the participants ratings were thus influenced by the saved:victim ratio (or the utility) when when the actions are morally reprehensible.
+
+```{r exp3-find-constant-participants}
+dat.moral.numbers.exp3.constant.ss <- dat.moral.numbers %>%
+    dplyr::filter(stringr::str_detect(experimentID, "exp3")) %>%
+    dplyr::group_by(experimentID, ResponseId) %>%
+    dplyr::summarize(rating.raw = var(rating.raw)) %>%
+    dplyr::filter(rating.raw == 0) %>%
+    dplyr::select(ResponseId)
+```
+
+```{r exp3-plot-ratings, fig.cap = "Results of Experiment 3 in terms of ratings, after excluding participants always giving the same response. The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Orange circles represent individual participants."}
+dplyr::anti_join(
+    dat.moral.numbers,
+    dat.moral.numbers.exp3.constant.ss
+) %>%
+    dplyr::filter(stringr::str_detect(experimentID, "exp3")) %>%
+    dplyr::group_by(experimentID, ResponseId, conditionType) %>%
+    dplyr::summarize(
+        rating.raw = mean(rating.raw) - 3.5,
+        rating.bin = mean(rating.bin)
+    ) %>%
+    tidyr::pivot_longer(dplyr::starts_with("rating"),
+                        names_to = "measure",
+                        values_to = "rating"
+    ) %>%
+    dplyr::mutate(conditionType = factor(conditionType)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = conditionType, y = rating)) %>%
+    violin_plot_template(yintercept = 0, dotsize = 0.3) +
+    ggplot2::scale_x_discrete("Response category",
+                              labels = ~ stringr::str_replace_all(.x, fixed("_"), " ") %>%
+                                  stringr::str_trunc(width = 50, "left") %>%
+                                  stringr::str_wrap(15),
+                              guide = ggplot2::guide_axis(angle = 60)
+    ) +
+    ggplot2::facet_grid(measure ~ experimentID, scales = "free")
+```
+
+```{r exp3-create-difference-scores}
+# dat.moral.numbers %>%
+#     dplyr::filter(experimentID == "exp3") %>%
+#     group_by(ResponseId, conditionType)  %>%
+#     summarize(rating.raw = mean(rating.raw) - 3.5) %>%
+#     pivot_wider(names_from = "conditionType",
+#                 values_from = "rating.raw") %>%
+#     dplyr::mutate(d = high_ratio_low_victims_high_net_victims - low_ratio_high_victims_low_net_victims) %>%
+#     ggplot (aes (x = 1, y = d)) +
+#     theme_linedraw(14) +
+#     geom_violin (alpha = .5,
+#                  fill = "#5588CC",
+#                  col="#5588CC") +
+#     # ggplot2::scale_x_discrete("Response category",
+#     #                  labels = ~ stringr::str_wrap(.x, 15),
+#     #                  guide = guide_axis(angle = 60)) +
+#     ggplot2::scale_y_continuous("Low victims - High Victims") +# , limits = 0:1) +
+#     stat_summary(fun.data=mean_cl_boot,
+#                  #fun.args = list(mult=sqrt (nlevels2(.$filename)-1)),
+#                  geom="pointrange", color="#cc556f") +
+#     geom_hline (yintercept = 0, lty = 3)
+#
+
+
+dat.moral.numbers %>%
+    dplyr::filter(stringr::str_detect(experimentID, "exp3")) %>%
+    dplyr::group_by(experimentID, ResponseId, conditionType, conditionPair) %>%
+    dplyr::summarize(
+        rating.raw = mean(rating.raw) - 3.5,
+        rating.bin = mean(rating.bin)
+    ) %>%
+    tidyr::pivot_wider(
+        names_from = c(conditionType),
+        values_from = dplyr::starts_with("rating"),
+        values_fill = NA_real_
+    ) %>%
+    dplyr::mutate(
+        d.raw = dplyr::case_when(
+            # Experiment 3
+            !is.na(rating.raw_high_ratio_low_victims_high_net_victims) ~
+                rating.raw_high_ratio_low_victims_high_net_victims -
+                rating.raw_low_ratio_high_victims_low_net_victims,
+            # Experiment 3b
+            !is.na(rating.raw_high_ratio_low_victims_low_net_victims) ~
+                rating.raw_high_ratio_low_victims_low_net_victims -
+                rating.raw_low_ratio_high_victims_high_net_victims,
+            TRUE ~ NA_real_
+        ),
+        d.bin = dplyr::case_when(
+            # Experiment 3
+            !is.na(rating.bin_high_ratio_low_victims_high_net_victims) ~
+                rating.bin_high_ratio_low_victims_high_net_victims -
+                rating.bin_low_ratio_high_victims_low_net_victims,
+            # Experiment 3b
+            !is.na(rating.bin_high_ratio_low_victims_low_net_victims) ~
+                rating.bin_high_ratio_low_victims_low_net_victims -
+                rating.bin_low_ratio_high_victims_high_net_victims,
+            TRUE ~ NA_real_
+        )
+    ) %>%
+    dplyr::select(-dplyr::starts_with("rating")) -> dat.moral.numbers.exp3.d.m
+
+dplyr::bind_rows(
+    dat.moral.numbers.exp3.d.m,
+    dat.moral.numbers.exp3.d.m %>%
+        dplyr::group_by(experimentID, ResponseId) %>%
+        dplyr::summarize(
+            d.raw = mean(d.raw),
+            d.bin = mean(d.bin)
+        ) %>%
+        dplyr::mutate(conditionPair = "M")
+) -> dat.moral.numbers.exp3.d.m
+```
+
+```{r exp3-plot-differences, fig.cap = "Results of Experiment 3 in terms of difference scores, after excluding participants always giving the same response. The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Orange circles represent individual participants."}
+dplyr::anti_join(
+    dat.moral.numbers.exp3.d.m,
+    dat.moral.numbers.exp3.constant.ss
+) %>%
+    tidyr::pivot_longer(dplyr::starts_with("d"),
+                        names_to = "measure",
+                        values_to = "d"
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = conditionPair, y = d)) %>%
+    violin_plot_template(yintercept = 0, dotsize = 0.3) +
+    ggplot2::scale_y_continuous("Low victims - High Victims") +
+    ggplot2::facet_grid(experimentID ~ measure, scales = "free_y")
+```
+
+```{r exp3-plot-differences-histogram, fig.cap = "Results of Experiment 3 in terms of difference scores, after excluding participants always givin the same response."}
+dplyr::anti_join(
+    dat.moral.numbers.exp3.d.m,
+    dat.moral.numbers.exp3.constant.ss
+) %>%
+    dplyr::filter(conditionPair == "M") %>%
+    tidyr::pivot_longer(dplyr::starts_with("d"),
+                        names_to = "measure",
+                        values_to = "d"
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = d)) +
+    #    theme_linedraw(14) +
+    ggplot2::geom_histogram(
+        alpha = .5,
+        fill = "#5588CC",
+        col = "#5588CC"
+    ) +
+    ggplot2::scale_x_continuous("Low victims - High Victims") + # , limits = 0:1) +
+    ggplot2::facet_wrap(ggplot2::vars(experimentID), scales = "free_y")
+```
+
+```{r exp3-descriptives}
+dat.moral.numbers.exp3.d.m %>%
+    dplyr::group_by(experimentID, conditionPair) %>%
+    dplyr::summarize(dplyr::across(
+        dplyr::starts_with("d"),
+        list(
+            N = length,
+            M = mean,
+            SE = se,
+            "Cohen's" = ~ mean(.x) / se(.x),
+            p = ~ wilcox.p(.x, mu = 0)
+        )
+    )) %>%
+    dplyr::select(-d.bin_N) %>%
+    dplyr::mutate(dplyr::across(dplyr::ends_with("_p"), fix_zero_p_values)) %>%
+    kable.packed("experimentID",
+                 caption = "Descriptives for Experiment 3 for the difference scores, using raw ratings and ratings transformed to binary variables. The p value reflects a Wilcoxon test against a chance level of zero. Positive differences reflect a preference for the high ratio/low victims condition.",
+                 col.names = c(
+                     "Pair", "N",
+                     rep(c("M", "SE", "Cohen's d", "p"), 2)
+                 ),
+                 booktabs = TRUE
+    ) %>%
+    kableExtra::add_header_above(c(" " = 2, "Difference (raw)" = 4, "Difference (binary)" = 4), bold = TRUE) %>%
+    kableExtra::kable_styling(
+        bootstrap_options = "striped",
+        latex_options = c("striped", "hold_position", "repeat_header"), # , "scale_down"),
+        full_width = TRUE
+    ) %>%
+    kableExtra::kable_classic_2()
+```
+
+`r clearpage()`
+
+
+## Unused: Correlations between ratios and difference scores
+
+### Experiment 8
+
+```{r exp8-asymptotic-vs-preasymptotic-range-raw-calculate-correlations}
+dat.moral.numbers.exp8.asymptotic.vs.preasymptotic.raw.by.ratios <- dat.moral.numbers %>%
+    dplyr::filter(
+        stringr::str_starts(experimentID, "exp8"),
+        question == "acceptability"
+    ) %>%
+    dplyr::group_by(experimentID, ratio, vivacity, ResponseId) %>%
+    dplyr::summarise(rating = mean(rating.raw)) %>%
+    dplyr::ungroup() %>%
+    tidyr::pivot_wider(
+        id_cols = c(experimentID, ratio, ResponseId),
+        names_from = vivacity,
+        values_from = rating
+    ) %>%
+    dplyr::mutate(
+        d.absolute = neutral - vivid,
+        d.relative = 7 / 5 * (neutral - vivid) / (neutral + vivid)
+    )
+
+dat.moral.numbers.exp8.asymptotic.vs.preasymptotic.raw.by.ratios.correlations <-
+    dat.moral.numbers.exp8.asymptotic.vs.preasymptotic.raw.by.ratios %>%
+    tidyr::pivot_longer(dplyr::starts_with("d."),
+                        names_to = "difference.type",
+                        values_to = "d"
+    ) %>%
+    dplyr::group_by(experimentID, difference.type) %>%
+    rstatix::cor_test(d, ratio, method = "spearman")
+```
+
+```{r exp8-asymptotic-vs-preasymptotic-ratio-raw-correlation-plot, fig.cap = "Differences for raw ratings between the vivid and neutral condition as a function of ratios."}
+dat.moral.numbers.exp8.asymptotic.vs.preasymptotic.raw.by.ratios %>%
+    tidyr::pivot_longer(dplyr::starts_with("d."),
+                        names_to = "difference.type",
+                        values_to = "d"
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = ratio, y = d)) +
+    stat_summary(
+        fun.data = mean_cl_boot,
+        geom = "pointrange"
+    ) +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x) +
+    # coord_trans(x = "log2") +
+    ggplot2::scale_x_continuous(
+        breaks = l.moral.numbers.ratios$exp8,
+        trans = "log2"
+    ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1)) +
+    ggplot2::facet_wrap(experimentID ~ difference.type, scales = "free")
+```
+
+```{r exp8-asymptotic-vs-preasymptotic-ratio-raw-correlation-print}
+dat.moral.numbers.exp8.asymptotic.vs.preasymptotic.raw.by.ratios.correlations %>%
+    dplyr::select(experimentID, difference.type, cor, p) %>%
+    dplyr::arrange(desc(experimentID), difference.type) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Correelations between ratios and difference scores of raw ratings between the vivid and the neutral conditions in Experiment 8.",
+        # col.names = c(),
+        linesep = "",
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::row_spec(9:12, color = "red") %>%
+    # kableExtra::kable_styling(latex_options = c(#"striped",
+    #                                             #"hold_position",
+    #                                             "scale_down")) %>%
+    kableExtra::kable_classic_2()
+```
+
+The correlation coefficient between the ratios and the difference scores is always numerically negative. However, it reached only marginal significance when all participants were included, and when the relative difference score was used, but not in the other situations. As a result, it is unclear how to interpret these data. However, Figure \ref{fig:exp8-asymptotic-vs-preasymptotic-range-raw-plot} also shows that there is no clear relationship between ratio and difference score.
+
+### Experiment 10
+
+```{r exp10-asymptotic-vs-preasymptotic-range-raw-calculate-correlations}
+# By ratio
+dat.moral.numbers.exp10.asymptotic.vs.preasymptotic.raw.by.ratios <- dat.moral.numbers %>%
+    dplyr::filter(
+        stringr::str_starts(experimentID, "exp10"),
+        question == "acceptability"
+    ) %>%
+    dplyr::group_by(experimentID, ratio, vivacity, ResponseId) %>%
+    dplyr::summarise(rating = mean(rating.raw)) %>%
+    dplyr::ungroup() %>%
+    tidyr::pivot_wider(
+        id_cols = c(experimentID, ratio, ResponseId),
+        names_from = vivacity,
+        values_from = rating
+    ) %>%
+    dplyr::mutate(
+        d.absolute = neutral - vivid,
+        d.relative = 7 / 5 * (neutral - vivid) / (neutral + vivid)
+    )
+
+dat.moral.numbers.exp10.asymptotic.vs.preasymptotic.raw.by.ratios.correlations <-
+    dat.moral.numbers.exp10.asymptotic.vs.preasymptotic.raw.by.ratios %>%
+    tidyr::pivot_longer(dplyr::starts_with("d."),
+                        names_to = "difference.type",
+                        values_to = "d"
+    ) %>%
+    dplyr::group_by(experimentID, difference.type) %>%
+    rstatix::cor_test(d, ratio, method = "spearman")
+```
+
+```{r exp10-asymptotic-vs-preasymptotic-ratio-raw-correlations-plot, fig.cap = "Differences for raw ratings between the vivid and neutral condition as a function of ratios. (Experiment 10)"}
+dat.moral.numbers.exp10.asymptotic.vs.preasymptotic.raw.by.ratios %>%
+    tidyr::pivot_longer(dplyr::starts_with("d."),
+                        names_to = "difference.type",
+                        values_to = "d"
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = ratio, y = d)) +
+    stat_summary(
+        fun.data = mean_cl_boot,
+        geom = "pointrange"
+    ) +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x) +
+    # coord_trans(x = "log2") +
+    ggplot2::scale_x_continuous(
+        breaks = l.moral.numbers.ratios$exp10,
+        trans = "log2"
+    ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 0.5, hjust = 1)) +
+    ggplot2::facet_wrap(experimentID ~ difference.type, scales = "free")
+```
+
+```{r exp10-asymptotic-vs-preasymptotic-ratio-raw-correlations-print}
+dat.moral.numbers.exp10.asymptotic.vs.preasymptotic.raw.by.ratios.correlations %>%
+    dplyr::select(experimentID, difference.type, cor, p) %>%
+    dplyr::arrange(desc(experimentID), difference.type) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Correelations between ratios and difference scores of raw ratings between the vivid and the neutral conditions in Experiment 10.",
+        # col.names = c(),
+        linesep = "",
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::row_spec(9:12, color = "red") %>%
+    # kableExtra::kable_styling(latex_options = c(#"striped",
+    #                                             #"hold_position",
+    #                                             "scale_down")) %>%
+    kableExtra::kable_classic_2()
+```

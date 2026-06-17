@@ -1,0 +1,348 @@
+## APP: Pre-registered analyses for Experiment 1 {#app:planned-analysis-exp1}
+
+### Does the number of victims count in the small vs. large number range?
+
+We use trolley dilemma type scenarios, where we manipulate both the number of people who are saved and the number of people who are killed, using the following combinations:
+
+1.  Save 4 while killing
+a.  2 (ratio: 2:1)
+b.  3 (ratio: 4:3)
+2.  Save 40 while killing
+a.  20 (ratio: 2:1)
+b.  30 (ratio: 4:3)
+3.  Save 400 while killing
+a.  200 (ratio: 2:1)
+b.  300 (ratio: 4:3)
+
+Based on these scenarios, we make a number of predictions, that will be tested in the following model
+
+\| `acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)` \| \| The number range is the number of saved and the ratio the contrast between a and b; \| \| the number range will be coded as a factor, with 4 as the base level
+
+-   People should be less willing to kill in the small number range, and thus less likely to kill in (1) than in (2) or (3)
+-   This prediction translates to a main effect of `number_range`.
+-   [Analysis not performed since the main effect was not significant] If the effect is driven by harm aversion, the difference between 1a and 1b should be smaller than between 2a and 2b and than between 3a and 3b; after all, there are fewer people who die in the former scenario.
+-   This prediction translates to an interaction between `number_range` and `number_ratio`.
+-   There might also be an interaction between `number_range` and `number_ratio` after removing Condition 1.
+-   [Analysis not performed since the main effect was not significant] If the effect is driven by the net number of saved individuals, the difference should be greater between 3a and 3b than between 2a and 2b, and people should be more willing to kill in (3) than in 2. In contrast, if it is psychophysically driven by the Weber ratio, the relative willingness to kill should be the same in (2) and (3).
+-   This prediction translates to a main effect of `number_range` and an interaction between `number_range` and `number_ratio` after removing Condition 1.
+-   We can use difference scores to provide evidence for the absence of a difference between Conditions 2 and 3:
+-   For each of Conditions 2 and 3: Calculate within-participant difference score between Conditions 2a and 2b and Conditions 3a and 3b, respectively.
+-   Subtract the difference scores.
+-   Fit two normal distributions to these difference, one fitting the mean and one setting the mean to zero, calculate the likelihood of the difference given these distributions, adjust the likelihoods of the different numbers of parameters using the Bayesian Information Criterion and the Akaike Information Criterion, and calculate the likelihood ratio for the null model (i.e. the one where the mean is set to zero).
+
+```{r n-victims-prepare-data-for-analysis}
+# Prepare data first
+# Calculate number range and ratio
+dat.moral.numbers.for.n.victims <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp1") %>%
+    dplyr::filter(n.saved %in% c(4, 40, 400)) %>%
+    dplyr::filter((n.saved / n.victims) %in% c(4 / 3, 2)) %>%
+    dplyr::mutate(number.range = factor(n.saved / 4, levels = c(1, 10, 100))) %>%
+    dplyr::mutate(number.ratio = get.number.ratio(n.saved / n.victims))
+```
+
+```{r n-victims-print-data}
+dat.moral.numbers.for.n.victims %>%
+    summarize.first.by.subj.then.by.overall() %>%
+    kable(caption = "\\label{tab:descriptives_n_victims}Descriptive statistics for the analysis pertaining to the number of victims.", booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("scale_down", "hold_position"))
+```
+
+```{r n-victims-glmer-raw-calculate}
+# - acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)
+#     - The number range is the number of saved and the ratio the contrast between a and b.
+#     - Number range will be coded as a factor, with 4
+moral.numbers.n.victims.raw.lmer1 <- lmer(
+    # lme4::glmer (
+    rating.raw ~ number.range * number.ratio +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    #           family = "binomial",
+    data = dat.moral.numbers.for.n.victims
+)
+
+moral.numbers.n.victims.raw.lmer2 <- stats::update(
+    moral.numbers.n.victims.raw.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    moral.numbers.n.victims.raw.lmer1,
+    moral.numbers.n.victims.raw.lmer2
+)
+
+moral.numbers.n.victims.raw.lmer1.results <-
+    extract.results.from.model(moral.numbers.n.victims.raw.lmer1)
+```
+
+```{r n-victims-glmer-bin-calculate}
+# - acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)
+#     - The number range is the number of saved and the ratio the contrast between a and b.
+#     - Number range will be coded as a factor, with 4
+moral.numbers.n.victims.bin.lmer1 <- lme4::glmer(
+    rating.bin ~ number.range * number.ratio +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.moral.numbers.for.n.victims
+)
+
+moral.numbers.n.victims.bin.lmer2 <- stats::update(
+    moral.numbers.n.victims.bin.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    moral.numbers.n.victims.bin.lmer1,
+    moral.numbers.n.victims.bin.lmer2
+)
+
+moral.numbers.n.victims.bin.lmer1.results <-
+    extract.results.from.model(moral.numbers.n.victims.bin.lmer1)
+```
+
+```{r n-victims-glmer-print}
+dplyr::bind_rows(
+    moral.numbers.n.victims.bin.lmer1.results %>%
+        process.glmm.table(),
+    moral.numbers.n.victims.raw.lmer1.results %>%
+        process.glmm.table()
+) %>%
+    fix_zero_p_values(p) %>% 
+    kable(
+        caption = "GLMM result investigating the status of the number of victims",
+        booktabs = TRUE) %>%
+    pack_rows(
+        index = c(
+            "binary ratings" = nrow(moral.numbers.n.victims.bin.lmer1.results),
+            "raw ratings" = nrow(moral.numbers.n.victims.raw.lmer1.results)
+        )
+    ) %>% 
+    kableExtra::kable_classic_2()
+```
+
+To assess if participants were less willing to sacrifice individuals in the small number range than in the large number range, we fitted a generalized linear model with the fixed factors `number range` and `number ratio` as well as their interaciton, both to the raw ratings and the ratings transformed to binary decisions. We included random intercepts for both participants and scenarios. If participants are less likely to kill in the small number range, we should observe a main effect of `number range` (using the small number range as the baseline level).
+
+As shown in Tables \ref{tab:descriptives_n_victims} and \ref{tab:glmm_n_victims}, the results depend on whether raw ratings or binary ratings are considered. While the main effect of `number range` was not significant with raw ratings, it was significant with binary ratings. Crucially, however, the scenarios were rated as *more* acceptable in the small number range than in the large number range. It is unclear why the ratings were higher in the small number range than in the large number range; for example, inspection of Figure \ref{tab:descriptives_n_victims} shows that there does not appear to be a simple relation between the absolute number of victims and the ratings. Be that as it may, the current analyses suggest that the acceptability of sacrificing individuals is not greater in the large number range.
+
+In contrast, we observed a significant main effect of `number ratio` for both raw and binary ratings, suggesting that sacrifial behavior is more acceptable for the 2:1 ratio than the 4:3 ratio. Further, the `number ratio` did not interact with the `number range`, suggesting that participants are sensitive to the ratio of saved:sacrificed for both large and small numbers.
+
+### Does the number of saved count in the small vs. large number range
+
+In the small number case, people might be driven by the number of victims, while, in the large number case, they might go for the ratio between the saved and the sacrificed. This can be tested by manipulating the number of the saved individuals.
+
+4.  Kill 2 for saving
+a.  3 (ratio: 2:3)
+b.  4 (ratio: 1:2)
+5.  Kill 20 for saving
+a.  30 (ratio: 2:3)
+b.  40 (ratio: 1:2)
+6.  Kill 200 for saving
+a.  300 (ratio: 2:3)
+b.  400 (ratio: 1:2)
+
+Based on these scenarios, we make a number of predictions that will be tested in the following model
+
+\| `acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)` \| \| The number range is the number of killed and the ratio the contrast between a and b. \| \| The number range will be coded as a factor, with 2 as the base level \|
+
+Predictions and analyses: \* Difference between (a) and (b) is stronger in 5 or 6 (where people go for the ratio) than in 4, where people go for the number of victims - This translates to an interaction between `number_range` and `ratio`. \* However, it also possible that people are overall less sensitive to the number of saved than to the number of victims. - It is unclear how this should be tested. Having a combined model of Conditions 1 to 6, with an additional factor whether number of victims or the number of saved is manipulated, and expect a triple interaction? Not sure this make sense
+
+```{r n-saved-prepare-data-for-analysis}
+dat.moral.numbers.for.n.saved <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp1") %>%
+    dplyr::filter(n.victims %in% c(2, 20, 200)) %>%
+    dplyr::filter((n.saved / n.victims) %in% c(3 / 2, 2)) %>%
+    dplyr::mutate(number.range = factor(n.victims / 2, levels = c(1, 10, 100))) %>%
+    dplyr::mutate(number.ratio = get.number.ratio(n.saved / n.victims))
+```
+
+```{r n-saved-print-data}
+dat.moral.numbers.for.n.saved %>%
+    summarize.first.by.subj.then.by.overall() %>%
+    kable(caption = "\\label{tab:descriptives_n_saved}Descriptive statistics for the analysis pertaining to the number of saved individuals", booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("scale_down", "hold_position"))
+```
+
+```{r n-saved-glmer-raw-calculate}
+#* Model
+#    - acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)
+#    - The number range is the number of killed and the ratio the contrast between a and b.
+
+moral.numbers.n.saved.raw.lmer1 <- lmer(
+    # lme4::glmer (
+    rating.raw ~ number.range * number.ratio +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    #           family = "binomial",
+    data = dat.moral.numbers.for.n.saved
+)
+
+moral.numbers.n.saved.raw.lmer2 <- stats::update(
+    moral.numbers.n.saved.raw.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    moral.numbers.n.saved.raw.lmer1,
+    moral.numbers.n.saved.raw.lmer2
+)
+
+moral.numbers.n.saved.raw.lmer1.results <-
+    extract.results.from.model(moral.numbers.n.saved.raw.lmer1)
+```
+
+```{r n-saved-glmer-bin-calculate}
+#* Model
+#    - acceptability ~ number_range * number_ratio + (1|participant) + (1|scenario)
+#    - The number range is the number of killed and the ratio the contrast between a and b.
+
+moral.numbers.n.saved.bin.lmer1 <- lme4::glmer(
+    rating.bin ~ number.range * number.ratio +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.moral.numbers.for.n.saved
+)
+
+moral.numbers.n.saved.bin.lmer2 <- stats::update(
+    moral.numbers.n.saved.bin.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    moral.numbers.n.saved.bin.lmer1,
+    moral.numbers.n.saved.bin.lmer2
+)
+
+moral.numbers.n.saved.bin.lmer1.results <-
+    extract.results.from.model(moral.numbers.n.saved.bin.lmer1)
+```
+
+```{r n-saved-glmer-print}
+dplyr::bind_rows(
+    moral.numbers.n.saved.bin.lmer1.results %>%
+        process.glmm.table(),
+    moral.numbers.n.saved.raw.lmer1.results %>%
+        process.glmm.table()
+) %>%
+    fix_zero_p_values(p) %>%
+    kable(caption = "GLMM result investigating the status of the number of saved people.", booktabs = TRUE) %>%
+    pack_rows(
+        index = c(
+            "binary ratings" = nrow(moral.numbers.n.saved.bin.lmer1.results),
+            "raw ratings" = nrow(moral.numbers.n.saved.raw.lmer1.results)
+        )
+    ) %>% 
+    kableExtra::kable_classic_2()
+```
+
+We next assessed the role of the number of saved individuals. Our main predictions were that people should be less willing to kill in the smaller number range than in the large number range, and that the efffect of the number ratio should be reduced in the small number range. This translates to a main effect of `number range` and an interation between `number range` and `number ratio`. However, as shown in Tables \ref{tab:descriptives_n_saved} and \ref{tab:glmm_n_saved}, these predictions were not born out; rather we only observed a main effect of `number ratio` (for both raw and binary ratings), suggesting that higher ratios between saved and victims make sacrificial behavior more acceptable.
+
+### Does the first victim has a special status?
+
+We will use trolley dilemma type scenarios, where vary the number of victims. In all conditions, 40 people will be saved if the participant is willing to kill 1, 2 or 10 people.
+
+The predictions will be tested in the following model:
+
+\| `acceptability ~ n_victims + (1|participant) + (1|scenario)`. \| \| `n_victims` is treated as a factor with 10 as the base level
+
+-   If the first victim has a special status, people will be more likely to kill 10 people than to kill a single person due to the singleton effect.
+-   This translates to a main effect of `n_victims` for the 1 vs. 10 contrast
+-   They are more likely to kill 2 people than to kill 10 people.
+-   This translates to a main effect of `n_victims` for the 2 vs. 10 contrast
+
+```{r first-special-prepare-data-for-analysis}
+dat.moral.numbers.for.first <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp1") %>%
+    dplyr::filter(n.saved == 40) %>%
+    dplyr::filter(n.victims %in% c(1, 2, 10)) %>%
+    dplyr::mutate(number.ratio = get.number.ratio(n.saved / n.victims)) %>%
+    dplyr::mutate(n.victims = factor(n.victims, levels = c(10, 1, 2))) %>%
+    dplyr::mutate(number.range = NA)
+```
+
+```{r first-special-print-data}
+dat.moral.numbers.for.first %>%
+    summarize.first.by.subj.then.by.overall() %>%
+    kable(caption = "\\label{tab:descriptives_first_victim}Descriptive statistics for the analysis pertaining to the status of the first victim.", booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("scale_down", "hold_position"))
+```
+
+```{r first-special-glmer-raw-calculate}
+# * Model
+# - acceptability ~ number_killed + (1|participant) + (1|scenario)
+# - number_killed is treated as a factor with 10 as the base level
+
+dat.moral.numbers.for.first.raw.lmer1 <- lmer(
+    # lme4::glmer (
+    rating.raw ~ n.victims +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    #           family = "binomial",
+    data = dat.moral.numbers.for.first
+)
+
+dat.moral.numbers.for.first.raw.lmer2 <- stats::update(
+    dat.moral.numbers.for.first.raw.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    dat.moral.numbers.for.first.raw.lmer1,
+    dat.moral.numbers.for.first.raw.lmer2
+)
+
+dat.moral.numbers.for.first.raw.lmer1.results <-
+    extract.results.from.model(dat.moral.numbers.for.first.raw.lmer1)
+```
+
+```{r first-special-glmer-bin-calculate}
+# * Model
+# - acceptability ~ number_killed + (1|participant) + (1|scenario)
+# - number_killed is treated as a factor with 10 as the base level
+
+dat.moral.numbers.for.first.bin.lmer1 <- lmer(
+    # lme4::glmer (
+    rating.bin ~ n.victims +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    #           family = "binomial",
+    data = dat.moral.numbers.for.first
+)
+
+dat.moral.numbers.for.first.bin.lmer2 <- stats::update(
+    dat.moral.numbers.for.first.bin.lmer1,
+    ~ . - (1 | scenarioID)
+)
+
+model.comp <- anova(
+    dat.moral.numbers.for.first.bin.lmer1,
+    dat.moral.numbers.for.first.bin.lmer2
+)
+
+dat.moral.numbers.for.first.bin.lmer1.results <-
+    extract.results.from.model(dat.moral.numbers.for.first.bin.lmer1)
+```
+
+```{r first-special-glmer-print}
+dplyr::bind_rows(
+    dat.moral.numbers.for.first.bin.lmer1.results %>%
+        process.glmm.table(),
+    dat.moral.numbers.for.first.raw.lmer1.results %>%
+        process.glmm.table()
+) %>%
+    fix_zero_p_values(p) %>% 
+    kable(
+        caption = "GLMM result investigating the status of the first victim.", 
+        booktabs = TRUE) %>%
+    pack_rows(
+        index = c(
+            "binary ratings" = nrow(dat.moral.numbers.for.first.bin.lmer1.results),
+            "raw ratings" = nrow(dat.moral.numbers.for.first.raw.lmer1.results)
+        )
+    ) %>% 
+    kableExtra::kable_classic_2()
+```
+
+We next assessed whether the first victim had a special status, asking whether people would be more likely to kill 10 people than to kill a single person. However, these predictions were disconfirmed. As shown in Tables \ref{tab:descriptives_first_victim} and \ref{tab:glmer-print2}, participants were significant more willing to kill 1 or 2 individuals than 10 individuals if this would save 40 individuals.
+

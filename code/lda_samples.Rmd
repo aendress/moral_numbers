@@ -1,0 +1,2206 @@
+---
+title: "The Perceptual Natur e of Visual Working Memory - Analysis of verbal responses"
+author: |
+    | Ansgar Endress
+    | City, University of London
+bibliography:
+- /Users/endress/ansgar.bib
+#csl: /Users/endress/csl_files/science.csl    
+csl: /Users/endress/csl_files/apa.csl    
+output:
+    pdf_document:
+        latex_engine: xelatex
+        # citation_package: natbib
+        includes:
+            in_header: /Users/endress/src/latex/ansgar.sty
+        toc: true
+        number_sections: true
+        keep_tex: true
+        fig_caption: true
+    html_document:
+        theme: spacelab      
+        number_sections: yes
+        df_print: paged
+        toc: yes
+        toc_float: yes
+        fig_caption: true
+    html_notebook:
+        theme: spacelab      
+        number_sections: yes
+        toc: yes
+        toc_float: yes
+        fig_caption: true
+# editor_options: 
+#   markdown: 
+#     wrap: 72
+---
+
+```{r setup, echo = FALSE, include=FALSE}
+rm (list=ls())
+
+options (digits = 3)
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE, 
+    # Print warnings to console rather than the output file
+    warning = FALSE,  
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+```
+
+# Generic preparation, presumably to be merged with main file
+
+```{r general-parameters-to-be-merged-with-main-file}
+
+# Set seed to Cesar's birthday
+set.seed (1207100)
+```
+
+```{r define-parameters-for-analysis-of-verbal-responses}
+# Parameters for analysis of verbal justifications
+
+CORRECT.SPELLING.MISTAKES <- TRUE
+REMOVE.IRRELEVANT.RESPONSES <- TRUE
+
+# Combine all responses into a single response per subject? 
+KEEP.RESPONSES.SEPARATE.FOR.TOPIC.MODELS <- TRUE
+
+# Make responses more consistent, for example by replacing middle with center since
+# different participants used different terms to refer to the same entity
+MAKE.SUBSTITUTIONS.FOR.CONSISTENCY <- TRUE
+
+# Should repeated words be removed? 
+REMOVE.REPEATED.WORDS <- FALSE
+
+# Irrelevant response categories in classfication by human participants
+BAD.RESPONSE.CATEGORIES <- c("General or irrelevant statement", 
+                             "Refers to previous response", 
+                             "Response justification")
+
+
+
+
+# STEM WORDS
+LEMMATIZE.WORDS <- TRUE
+
+# Shall we run the analysis before or after collocation detection? 
+#DATA.SET.FOR.ANALYSIS <- "pre.colloc.replacement"
+DATA.SET.FOR.ANALYSIS <- "post.colloc.replacement"
+
+# Data frame with stop words
+#DAT.CUSTOM.STOP.WORDS <- data.frame (word = c("try", "also", "can", "much"))
+DAT.CUSTOM.STOP.WORDS <- NULL
+# More restrict list with 175 entries
+DAT.STOP.WORDS <- dplyr::bind_rows (
+    DAT.CUSTOM.STOP.WORDS,
+    data.frame (word = quanteda::stopwords("en")))
+
+
+# Minimal number of occurrence of terms across documents. Can be NULL
+#MIN.N.DOCS.PER.TERM.TF.IDF <- 50 
+MIN.N.DOCS.PER.TERM.TF.IDF <- NULL
+#MIN.N.DOCS.PER.TERM.TOPICMODEL <- 2
+MIN.N.DOCS.PER.TERM.TOPICMODEL <- NULL
+
+
+# Function filtering words by the raw number of occurrences 
+# Filter by raw number
+#MIN.N.OCC.PER.TERM.FILTER.FUNC <- function (n) n >= 10
+# Remove by quantile; this doesn't work for the skewed distribution
+#MIN.N.OCC.PER.TERM.FILTER.FUNC <- function (n) n >= quantile (n, .1)
+MIN.N.OCC.PER.TERM.FILTER.FUNC <- NULL
+
+
+# Make a new list of spelling mistakes that haven't been corrected 
+# automatically
+FIND.MISSPELLINGS.AGAIN <- FALSE
+
+
+
+
+# SAVE.JUSTIFICATIONS.TO.TEXT <- "NEVER"
+# SAVE.JUSTIFICATIONS.TO.TEXT <- "BEFORE.SPELLING.CORRECTION"
+SAVE.JUSTIFICATIONS.TO.TEXT <-  "AFTER.SPELLING.CORRECTION"
+
+
+```
+
+```{r recall-load-libraries, include = FALSE, message = TRUE, warning = TRUE}
+
+# check this
+#http://www.ats.ucla.edu/stat/r/dae/melogit.htm
+#http://www.sagepub.com/upm-data/38503_Chapter6.pdf
+# Read in a random collection of custom functions
+# Read in a random collection of custom functions
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+
+librarian::shelf(
+    tidyverse,
+    knitr,
+    kableExtra,
+    stringr,
+    rlang,
+    
+
+    # data wrangling
+    lubridate,
+    
+    # dealing with text
+    # textmineR
+    textstem,
+    textclean,
+    tidytext,
+    tm,
+    SnowballC,
+    topicmodels,
+    textmineR,
+
+
+    # topic model
+    ## Spelling conversion
+    quanteda,
+    quanteda.textstats,
+    quanteda.dictionaries,
+    ## STM
+    stm,
+
+    
+    # other 
+    gutenbergr,
+
+    # spelling checking
+    hunspell)
+
+
+
+# unclear what this is good for
+# drlib)
+
+```
+
+```{r helper-functions-general}
+apply.substitution.rules <- function (str = ., substitution.rules){
+    
+    for (s.rule in substitution.rules){
+        
+        str <- map_chr (str,
+                        ~ gsub (s.rule$pattern,
+                                s.rule$replacement, 
+                                .x, 
+                                perl = s.rule$perl))
+    }
+    
+    return (str)
+}
+
+
+count.with.totals <- function (dat = ., extra.grouping.factor, ...){
+    # Create counts separately for the grouping factors defined by extra.grouping.factor and ....
+    # Create an additional count separately for all levels of extra.grouping.factor and collapsing across all other factors
+    # This total count is indicated by the level "combined" in the column corresponding to extra.grouping.factor
+    
+    extra.grouping.factor <- enquo (extra.grouping.factor)
+    
+    dplyr::bind_rows(
+        dat %>%
+            dplyr::count(!!extra.grouping.factor, ..., sort = TRUE),
+        dat %>%
+            dplyr::count(..., sort = TRUE) %>%
+            mutate (!!extra.grouping.factor := "combined"),
+    )
+    
+}
+
+```
+
+I used the textclean packages to preprocess the responses. Text cleaning involved (1) converting all strings to lower case, (2) replacing contractions with their expanded forms, (3) replacing internet slang with standard English words, (3) replacing emojis with the corresponding words, (4) removing hashtags, (5) replacing word elongations (e.g., "looong") with their standard English correspondences, (6) replacing ordinals with their text equivalent, (7) replacing numbers with their text equivalent, (7) removing dates and times as well as all punctuation.
+
+```{r helper-functions-text-data}
+
+#' bind_cols_fill (x, y)
+#'
+#' @Description
+#' bind_col for two data frames of unequal lengths. The resulting data frame is padded with NA's
+#'
+#' @param x Left data frame
+#' @param y Right data frame 
+#'
+#' @return Combined data frame
+#' 
+bind_cols_fill <- function (x, y){
+    
+    dplyr::full_join (
+        x %>% 
+            dplyr::mutate (tmp.row = dplyr::row_number ()),
+        y %>% 
+            dplyr::mutate (tmp.row = dplyr::row_number ()),
+        by = "tmp.row"
+    ) %>% 
+        dplyr::select (-tmp.row)
+    
+}
+
+
+#' reformat_kwic_table (kwic.table, min.occurrences){
+#'
+#' @Description
+#' Separately count the number of occurrences of preceding and following contexts from a quanteda kwic table
+#' and bind the context with their counts into a data frame
+#'
+#' @param kwic.table kwic table with columns pre, post and keyword. Default: .
+#' @param min.occurrences minimum number of ocurrences of a context. Default: 0
+#'
+#' @return Combined data frame
+#' 
+reformat_kwic_table <- function (kwic.table = ., min.occurrences = 0){
+
+    kwic.table %>% 
+        tidyr::pivot_longer(names_to = "direction",
+                            values_to = "context",
+                            -keyword) %>% 
+        group_by (keyword, direction, context) %>% 
+        summarize (N = n()) %>% 
+        ungroup %>% 
+        dplyr::filter (N >= min.occurrences) %>% 
+        dplyr::mutate (context = str_c (context, " (N=", N, ")")) -> kwic.table.long
+    
+    kwic.table.long %>% 
+        pull (keyword) %>% 
+        unique %>% 
+        sort %>% 
+        map (
+            ~ bind_cols_fill (
+                kwic.table.long %>% 
+                    dplyr::filter (keyword == .x) %>%  
+                    dplyr::filter (direction == "pre") %>% 
+                    dplyr::arrange(-N) %>% 
+                    dplyr::select(-direction, -keyword, -N) %>% 
+                    dplyr::rename (pre = context),
+                kwic.table.long %>% 
+                    dplyr::filter (keyword == .x) %>%  
+                    dplyr::filter (direction == "post") %>% 
+                    dplyr::arrange(-N) %>% 
+                    dplyr::select(-direction, -keyword, -N) %>% 
+                    dplyr::rename (post = context)
+            ) %>% 
+                mutate (keyword = .x, .before = 1)
+        ) %>% 
+        bind_rows() %>% 
+        mutate(across(where(is.character), ~ str_replace_na(.x, ""))) 
+
+}
+
+
+#' Filter Out Self-Collocations from a Data Frame
+#'
+#' Removes rows from a data frame where the two terms making up the
+#' collocation are identical (e.g., filtering out "bank bank" but keeping
+#' "river bank"). This function assumes the collocation column is a string
+#' where the two components are separated by a space (e.g., "word1 word2").
+#'
+#' @param dat A data structure (e.g., \code{data.frame} or \code{tibble})
+#'   containing the collocation column. Defaults to the pipe placeholder \code{.}
+#'   for pipeline compatibility.
+#' @param colloc_col The unquoted name of the column in \code{dat} that
+#'   contains the collocation strings. Uses \strong{non-standard evaluation (NSE)}.
+#'   Defaults to \code{collocation}.
+#'
+#' @return The original data frame \code{dat}, filtered to exclude all rows
+#'   where the first and second terms of the collocation are the same.
+#'
+#' @importFrom rlang enquo
+#' @importFrom dplyr mutate select filter
+#' @importFrom tidyr separate
+#' @export
+#'
+#' @examples
+#' data_with_collocs <- data.frame(
+#'   freq = c(10, 5, 20),
+#'   colloc = c("time management", "data data", "market share")
+#' )
+#'
+#' # Filtering out the self-collocation "data data"
+#' filter_self_collocations(data_with_collocs, colloc_col = colloc)
+#'
+#' # Example using the default column name 'collocation' in a pipeline
+#' if (requireNamespace("dplyr", quietly = TRUE)) {
+#'   dplyr::tibble(collocation = c("big data", "key key")) |>
+#'     filter_self_collocations()
+#' }
+filter_self_collocations <- function(dat = ., colloc_col = collocation){
+    
+    colloc_col <- rlang::enquo(colloc_col)
+    
+    # This is somewhat baroque as "separate" does not work on collocation objects
+    dat %>% 
+        dplyr::mutate(
+            data.frame(collocation = !!colloc_col) %>% 
+                tidyr::separate(collocation, into = c("compound1", "compound2"))  %>% 
+                dplyr::mutate (is_no_duplicate = (compound1 != compound2)) %>% 
+                dplyr::select(is_no_duplicate)
+        ) %>% 
+        dplyr::filter(is_no_duplicate) %>% 
+        dplyr::select(-is_no_duplicate)
+}
+
+
+```
+
+```{r helper-functions-language-processing-new}
+
+
+#' Run Spell Check on a Specified Column of a Data Frame
+#'
+#' Checks the spelling of text within a specified column of a data frame,
+#' returning a structured output of potential mistakes and suggested corrections.
+#' It uses the **`hunspell`** package for efficient spell checking.
+#'
+#' @param dat A data structure (e.g., \code{data.frame} or \code{tibble}).
+#'   Defaults to the pipe placeholder \code{.} for pipeline compatibility.
+#' @param response_col The unquoted name of the column in \code{dat} that
+#'   contains the text to be spell-checked. This argument uses
+#'   \strong{non-standard evaluation (NSE)} and must be a single column.
+#'   Defaults to \code{response}.
+#'
+#' @return A \strong{data frame (tibble)} with the following columns:
+#'   \itemize{
+#'     \item \code{id}: The row index from the original \code{dat} where the mistake was found.
+#'     \item \code{mistake}: The misspelled word identified by \code{hunspell}.
+#'     \item \code{suggestion}: A character string of comma-separated suggested
+#'           corrections for the \code{mistake}.
+#'   }
+#'
+#' @importFrom rlang enquo
+#' @importFrom dplyr pull mutate
+#' @importFrom hunspell hunspell hunspell_suggest
+#' @importFrom purrr map_dfr map_chr
+#' @importFrom glue glue_collapse
+#' @export
+#'
+#' @examples
+#' # Requires installation of packages: dplyr, hunspell, purrr, glue, rlang
+#' if (requireNamespace("dplyr", quietly = TRUE) &&
+#'     requireNamespace("hunspell", quietly = TRUE)) {
+#'
+#'   text_data <- data.frame(
+#'     ID = 1:2,
+#'     text_to_check = c(
+#'       "The cat sat on the mat.",
+#'       "This is a mistke and anther one."
+#'     )
+#'   )
+#'
+#'   # Check the 'text_to_check' column
+#'   run_spell_check(text_data, response_col = text_to_check)
+#'
+#'   # Example using the default column name 'response' in a pipeline
+#'   dplyr::tibble(response = "An exmpl with a typo.") |>
+#'     run_spell_check()
+#' }
+run_spell_check <- function(dat = ., response_col = response){
+    
+    response_col <- rlang::enquo(response_col)
+    
+    dat %>% 
+        dplyr::pull(!!response_col) %>% 
+        # returns a vector of potential typos 
+        hunspell::hunspell (.) %>% 
+        purrr::map_dfr(
+            ~ data.frame(mistake = .x), 
+            # Add row numbers/row names to data frame
+            .id = "id") %>% 
+        dplyr::mutate(suggestion = hunspell_suggest(mistake)) %>% 
+        dplyr::mutate(suggestion = map_chr(suggestion,
+                                     ~ glue::glue_collapse(.x, ",")))
+ 
+    
+}
+
+
+
+#' Find Typos That No Longer Exist in the Original Data
+#'
+#' This function compares a list of previously identified mistakes (typos)
+#' against the current version of the original text data. It is primarily
+#' used to identify typos that have already been corrected in the source
+#' data (\code{dat_data}) but are still present in a separate corrections/log file
+#' (\code{dat_corrections}).
+#'
+#' For each mistake in \code{dat_corrections}, the function checks if that
+#' specific mistake string is *not* present in the corresponding row of the
+#' \code{response_col} in \code{dat_data}.
+#'
+#' @param dat_data The current version of the data frame or tibble containing
+#'   the original text responses. Defaults to the pipe placeholder \code{.}
+#'   for pipeline compatibility.
+#' @param dat_corrections A data frame generated by a function like
+#'   \code{\link{run_spell_check}}, which must contain an \code{id} column
+#'   (row index from \code{dat_data}) and a \code{mistake} column (the typo string).
+#' @param response_col The unquoted name of the column in \code{dat_data} that
+#'   contains the text responses. Uses \strong{non-standard evaluation (NSE)}.
+#'   Defaults to \code{response}.
+#'
+#' @return A \strong{unique character vector} of "unattested" typo strings (words
+#'   that were once flagged but are no longer found in the source data).
+#'   Returns \code{NULL} if all typos in \code{dat_corrections} are still present
+#'   in the source data.
+#'
+#' @importFrom rlang enquo
+#' @importFrom dplyr pull slice filter
+#' @importFrom purrr map_lgl
+#' @importFrom stringr str_detect
+#' @seealso \code{\link{run_spell_check}}, \code{\link{seq_along_rows}}
+#' @export
+#'
+#' @examples
+#' # Assume original data has had a typo corrected.
+#' original_data <- data.frame(id = 1:2, text = c("This is a mistke.", "Another typo."))
+#' # Assume corrections log was based on a previous run.
+#' corrections_log <- data.frame(id = c(1, 2), mistake = c("mistke", "typo"))
+#'
+#' # Create a new data frame where the first typo is corrected
+#' current_data <- data.frame(id = 1:2, text = c("This is a mistake.", "Another typo."))
+#'
+#' # Check which typos in the log are now gone from the current data
+#' find_unattested_typos(
+#'   dat_data = current_data,
+#'   dat_corrections = corrections_log,
+#'   response_col = text
+#' )
+#' # Expected output: "mistke"
+find_unattested_typos <- function(dat_data = ., dat_corrections, response_col = response){
+    
+    response_col <- rlang::enquo(response_col)
+    
+    # Index of unattested typos
+    v_index <- seq_along_rows(dat_corrections) %>% 
+        purrr::map_lgl(
+            ~ str_detect (
+                dat_data %>% 
+                    dplyr::slice(dat_corrections[.x,]$id) %>% 
+                    dplyr::pull(!!response_col),
+                
+                dat_corrections %>% 
+                    dplyr::slice(.x) %>% 
+                    dplyr::pull(mistake),
+                negate = TRUE
+            )
+        ) 
+ 
+    if (any(v_index )){
+        # Return list of unattested typos
+        dat_corrections %>% 
+            dplyr::filter(v_index) %>% 
+            dplyr::pull(mistake) %>% 
+            unique
+        
+    } else {
+        
+        NULL
+            
+    }
+            
+       
+}
+
+
+#' Replace Multi-Word Collocations with Underscored Terms
+#'
+#' Takes a data frame of text responses and replaces specific multi-word
+#' expressions (collocations) found in a reference list with a single
+#' token joined by an underscore (e.g., "social anxiety" becomes
+#' "social_anxiety"). This is a vital preprocessing step for
+#' many forms of text analysis (e.g., Topic Modeling) as it preserves the
+#' semantic integrity of phrases.
+#'
+#' @param dat_data A data frame (e.g., \code{data.frame} or \code{tibble})
+#'   containing the text column to be processed. Defaults to the pipe
+#'   placeholder \code{.} for pipeline compatibility.
+#' @param dat_collocs A data frame containing the list of collocations to be
+#'   replaced. This frame must have a column named \code{collocation}
+#'   (as an un-tokenized string, e.g., "word one").
+#' @param response_col The unquoted name of the column in \code{dat_data} that
+#'   contains the text to be processed. Uses \strong{non-standard evaluation (NSE)}.
+#'   Defaults to \code{response}.
+#' @param response_col_replaced The unquoted name for the new column that will
+#'   store the processed text. If \code{NULL} (the default), the new column will
+#'   be automatically named by appending \code{.colloc.replaced} to the name
+#'   of \code{response_col}.
+#'
+#' @return The original data frame \code{dat_data} with one new column added:
+#'   \code{response_col_replaced}, containing the text with collocations
+#'   replaced by underscore-joined tokens.
+#'
+#' @details
+#' The replacement is performed iteratively using \code{purrr::reduce} and
+#' \code{stringr::str\_replace\_all}. The function ensures that only whole
+#' word boundaries (\code{\\b}) are matched to prevent partial replacements.
+#'
+#' @importFrom rlang enquo quo_name sym
+#' @importFrom dplyr mutate select
+#' @importFrom purrr reduce
+#' @importFrom stringr str_replace str_replace_all str_c fixed
+#' @seealso \code{\link{split_df_by_row}}
+#' @export
+#'
+#' @examples
+#' # Requires: dplyr, purrr, stringr, and the helper function split_df_by_row
+#' if (requireNamespace("dplyr", quietly = TRUE) &&
+#'     requireNamespace("purrr", quietly = TRUE) &&
+#'     requireNamespace("stringr", quietly = TRUE)) {
+#'
+#'   text_data <- data.frame(
+#'     ID = 1:3,
+#'     text = c("The social anxiety was high.", "I love free speech.", "This anxiety is bad.")
+#'   )
+#'   # NOTE: You would normally get this from a collocation detection process
+#'   collocs_to_replace <- data.frame(collocation = c("social anxiety", "free speech"))
+#'
+#'   # Define the required helper function for the example
+#'   split_df_by_row <- function(dat = .) split(dat, seq_len(nrow(dat)))
+#'
+#'   # Replace the collocations, creating the default output column name
+#'   replace_collococations(
+#'     dat_data = text_data,
+#'     dat_collocs = collocs_to_replace,
+#'     response_col = text
+#'   )
+#' }
+replace_collococations <- function(dat_data = ., dat_collocs, response_col = response, response_col_replaced = NULL){
+    
+    replace_collococations_inner <- function(x = ., dat_colloc){
+        
+        purrr::reduce(
+            .x = split_df_by_row(dat_colloc),
+            .f = \(current_colloc, current_string) str_replace_all(current_string, current_colloc$pattern, current_colloc$replacement),
+            .init = x
+        )
+    }
+    
+    # Deal with column names
+    response_col <- rlang::enquo(response_col)
+    
+    if(is.null(response_col_replaced)){
+        
+        # Convert the symbol to a string and concatenate the suffix.
+        response_col_replaced <- paste0(
+            rlang::quo_name(response_col),
+            ".colloc.replaced")
+        
+        # Turn the new string back into a symbol/expression.
+        response_col_replaced <- rlang::sym(response_col_replaced)
+        
+    } else {
+    
+        response_col_replaced <- rlang::enquo(response_col_replaced)
+    }
+    
+    # Prepare data data frame so it can be used for replacement
+    dat_collocs <- dat_collocs %>% 
+        as.data.frame %>% 
+        dplyr::mutate(
+            # Escape white space in collocations so they can be found later 
+            collocation_pattern = str_replace(collocation, "\\s+", fixed("\\\\s")),
+            # Wrap word markers around it
+            collocation_pattern = str_c ("\\b", collocation_pattern, "\\b"), 
+            
+            # Replace white space with _ for the processed text
+            collocation_replacement = str_replace(collocation, "\\s+", fixed("_"))
+        ) %>% 
+        dplyr::select(collocation_pattern, collocation_replacement) 
+    
+    dat_data %>% 
+        dplyr::mutate(!!response_col_replaced := replace_collococations_inner(
+            !!response_col,
+            dat_collocs))
+        
+}
+
+
+
+```
+
+```{r helper-functions-textmineR}
+
+
+clean_text_vector <- function(x = ., return.data.frame = FALSE, col.names = c("id", "text")){
+    
+    x <- x %>% 
+        as.character %>% 
+        str_to_lower() %>%  # convert all the string to low alphabet
+        textclean::replace_contraction() %>% # replace contraction to their multi-word forms
+        textclean::replace_internet_slang() %>% # replace internet slang to normal words
+        textclean::replace_emoji() %>% # replace emoji to words
+        # The next two try to extract emojis from plain text
+        #textclean::replace_emoticon() %>% # replace emoticon to words
+        #textclean::replace_hash(replacement = "") %>% # remove hashtag
+        textclean::replace_word_elongation() %>% # replace informal writing with known semantic replacements
+        textclean::replace_ordinal(remove = FALSE) %>% # remove ordinals
+        textclean::replace_number(remove = FALSE) %>% # remove number
+        textclean::replace_date(replacement = "") %>% # remove date
+        textclean::replace_time(replacement = "") %>% # remove time
+        str_remove_all(pattern = "[[:punct:]]") %>% # remove punctuation
+        str_remove_all(pattern = "[^\\s]*[0-9][^\\s]*") %>% # remove mixed string n number
+        str_squish() %>% # reduces repeated whitespace inside a string.
+        str_trim() # removes whitespace from start and end of string
+    
+    if (return.data.frame){
+        x <- x %>% 
+            as.data.frame %>%
+            rownames_to_column %>% 
+            setNames(col.names)
+    }
+
+    return (x)
+}
+
+
+get_final_log_likelihood <- function (lda.model = .) {
+    
+    # log_likelihood is a data frame with columns iteration and 
+    # log_likelihood,
+    # Extract the log_likelihood for the last iteration
+    
+    if (!is (lda.model, "lda_topic_model"))
+        stop ("Argument must be of class lda_topic_model")
+    
+    lda.model %>% 
+        pluck ("log_likelihood") %>% 
+        slice_tail %>% 
+        pluck ("log_likelihood")
+    
+}
+
+get_lda_model_summary <- function (lda.model = ., M = 15, n.digits = 3){
+    
+    if (!is (lda.model, "lda_topic_model"))
+        stop ("Argument must be of class lda_topic_model")
+
+    
+    # get M top terms with the highest phi. 
+    # phi representing a distribution of words over topics. 
+    # Words with high phi have the most frequency in a topic.
+    .top.terms <- lda.model %>% 
+            pluck ("phi") %>% 
+            GetTopTerms(phi = .,
+                        M = M, 
+                        return_matrix = FALSE)
+    
+    # Probabilistic coherence
+    .probabilistic.coherence <- lda.model %>% 
+            pluck ("coherence") %>% 
+            enframe ("Topic", "Coherence")
+
+    # Theta is a <# document> x <# topic matrix>
+    .topic.prevalence <- (100 *
+        colSums(lda.model$theta) / 
+        sum(lda.model$theta))  %>% 
+        # Convert named vector into two column tibble
+        enframe ("Topic", "Prevalence")
+    
+    # Hellinger distances among topics
+    .hellinger.distance.topics <- lda.model %>% 
+        pluck ("phi") %>% 
+        CalcHellingerDist %>% 
+        as.dist
+    
+    list (
+        summary.table = full_join (
+            .probabilistic.coherence %>% 
+                mutate (across (where (is.numeric),
+                                ~ as.character(round (.x, n.digits)))),
+            .topic.prevalence %>% 
+                mutate (across (where (is.numeric),
+                                ~ as.character(round (.x, n.digits))))
+        ) %>% 
+            full_join(., 
+                      .top.terms %>% 
+                          dplyr::summarize (across (everything(), glue::glue_collapse, ', ')) %>% 
+                          pivot_longer (everything(), 
+                                        names_to = "Topic", 
+                                        values_to = "Top Terms")),
+        summary.numeric = full_join (
+                .probabilistic.coherence,
+                .topic.prevalence),
+        top.terms = .top.terms,
+        hellinger.distance.topics = .hellinger.distance.topics)
+}
+    
+
+labelTopics.to.data.frame <- function (dat = .){
+    
+    map (grepv ("topicnums", 
+                names (dat),
+                invert = TRUE),
+         ~ dat %>% 
+             pluck (.x) %>% 
+             as.data.frame %>% 
+             mutate (Topic = dplyr::row_number(),
+                     Measure = .x,
+                     .before = 1)
+    ) %>% 
+        bind_rows() %>% 
+        arrange (Topic) %>% 
+        mutate (Measure = str_replace(Measure,
+                                      c ("prob", "frex", "lift", "score"),
+                                      c ("Highest Probability", "FREX", "Lift", "Score"))) %>% 
+        dplyr::rename_with (~ str_replace (.x, "V", "Term "), 
+                            dplyr::starts_with ("V"))
+    
+}
+
+```
+
+
+
+```{r justifications-load-coca-corpus, include = FALSE, eval = FALSE}
+
+dat.coca.5k.freq <- openxlsx::read.xlsx (
+    "../data/corpora/coca_wordFrequency_5k_lemmas.xlsx",
+    sheet = "1 lemmas", 
+    colNames = TRUE) %>% 
+    dplyr::select (lemma, freq) %>% 
+    purrr::transpose (.) %>% 
+    map (~ list(.x$freq) %>% 
+             set_names(.x$lemma)) %>% 
+    unlist %>% 
+    enframe ("word", "freq")
+
+
+if (LEMMATIZE.WORDS){
+    dat.coca.5k.freq <- 
+        dat.coca.5k.freq %>% 
+        #mutate (word = tm::stemDocument(word))
+        mutate (word = textstem::lemmatize_strings (word))
+}
+
+dat.coca.5k.freq <- 
+        dat.coca.5k.freq %>%
+    group_by(word) %>% 
+    summarize (freq = sum (freq)) %>% 
+    ungroup %>% 
+    mutate (rel.freq = freq / sum (freq))
+
+
+```
+
+
+# Pre-processing of justification data
+
+```{r load-data-exp11}
+
+# Replication of Experiment 10
+# Experiment 10: Vivid vs. neutral scenarios, with more ratios in the asymptotic phase and incommensurate deaths and a single severity scale
+# Here we use higher ratios than in Exp 8
+
+# We first load the file 
+dat.moral.numbers.exp11.strat <- 
+    read.csv2(
+        file.path("..", "data", 
+               "exp11+(replication+of+exp10,+vivid+vs.+neutral)_December+4,+2025_00.20.csv"),
+        header = TRUE,
+        sep = ",",
+        stringsAsFactors = FALSE) %>% 
+    dplyr::mutate(runID = "exp11") %>% 
+    dplyr::filter(finished == 1) %>% 
+    dplyr::rename(c(
+        "ResponseId" = "X_recordId",
+        "strategies" = "QID3613_TEXT")) %>% 
+    dplyr::select(ResponseId, strategies)
+        
+
+
+``` 
+
+
+
+
+## Consistent spelling
+
+Spelling was converted to American English spelling using the quanteda package (https://rdrr.io/github/kbenoit/quanteda.dictionaries/man/data_dictionary_uk2us.html)
+
+```{r justifications-spelling-conversion}
+
+dat.moral.numbers.exp11.strat <- dat.moral.numbers.exp11.strat %>% 
+    dplyr::mutate(
+        strategies =
+            # Create tokens
+            quanteda::tokens(strategies) %>% 
+            # Convert to US spelling
+            quanteda::tokens_lookup(., 
+                                    quanteda.dictionaries::data_dictionary_uk2us, 
+                                    # Don't remove unknown items
+                                    exclusive = FALSE,
+                                    # don't dictionary keys to upper case
+                                    capkeys = FALSE) %>%
+            # Otherwise, this will return numbers
+            as.list () %>% 
+            purrr::map_chr(glue::glue_collapse, " ") 
+    )
+
+
+```
+
+## Spelling check
+
+I then applied the spell checker from hunspell package  (https://cran.r-project.org/web/packages/hunspell/vignettes/intro.html). Before applying the spell checker, a number of manually spotted errors were corrected. The remaining potential misspellings are given in Table \ref{tab:justifications-spell-checking}.
+
+```{r justifications-manual-typo-correction}
+
+
+substitution.rules.typos <- list (
+    # Remove ellipsis
+    list ("\\\\\\s*n", " ", TRUE),
+    list ("\\sve\\b", " have", FALSE),
+    list ("\\box", "box", TRUE),
+    list ("sam\\s+colo", "same colo", TRUE),
+    list ("knwnothing", "know nothing", FALSE),
+    list ("placce", "place", FALSE),
+    list ("i\\@m", "I am", FALSE),
+    list ("\\bguested\\b", "guessed", FALSE),
+    list ("poitons", "positions", FALSE),
+    list ("\\bmu\\s+mind\\b", "my mind", FALSE),
+    list ("\\bremeber", "remember", FALSE),
+    list ("\\bdiff\\s+", "different ", FALSE),
+    list ("\\btrou\\b", "through", FALSE),
+    list ("\\bmabey\\s+mu\\b", "maybe my", FALSE),
+    list ("dissapeared", "disappeared", FALSE),
+    list ("\\bdifficultlt\\b", "difficult", FALSE),
+    list ("\\bi\'m\\b", "I am", FALSE),
+    list ("\\bwasnt\\b", "was not", FALSE),
+    list ("\\bdont\\b", "do not", FALSE),
+    list ("\\bdidnt\\b", "did not", FALSE),
+    list ("\\bi'd\\b", "I would", FALSE),
+    list ("\\bi've\\b", "I have", FALSE),
+    list ("\\brigt\\b", "right", FALSE),
+    list ("\\brted\\b", "red", FALSE),
+    list ("\\bchoosen\\b", "chosen", FALSE),
+    list ("\\bwerent\\b", "were not", FALSE),
+    list ("\\barent\\b", "are not", FALSE),
+    list ("\\bclolour\\b", "color", FALSE),
+    list ("\\bpoition\\b", "position", FALSE),
+    list ("\\bnd\\b", "second", FALSE),
+    list ("\\b2second\\b", "second", FALSE)
+    ) %>%
+    rename_list_items (c("pattern", "replacement", "perl"))
+
+if (CORRECT.SPELLING.MISTAKES){
+    dat.moral.numbers.exp11.strat %>% 
+        mutate (strategies = apply.substitution.rules (
+            strategies,
+            substitution.rules.typos)) -> dat.moral.numbers.exp11.strat
+}
+```
+
+```{r justifications-spell-checking}
+
+
+dat.moral.numbers.exp11.strat %>% 
+    run_spell_check(strategies)
+
+if (FIND.MISSPELLINGS.AGAIN){
+    # Find potential mis-spellings, and save them to a file
+    # We will then manually inspect them and load a file with corrections (if any)
+    dat_potential_mispellings <- dat.moral.numbers.exp11.strat %>% 
+        run_spell_check(strategies)
+
+    save.data.frame(dat_potential_mispellings, "../data")
+    
+} else {
+    
+    if (CORRECT.SPELLING.MISTAKES){
+        # Load file with corrections
+        # Columns:
+        # - id: line number in dat.moral.numbers.exp11.strat 
+        # - mistake: potential typo in dat.moral.numbers.exp11.strat 
+        # - suggestionn: correction for the typoe
+        # 
+        # !!! These corrections and their line were aligned with the typos on July 6th, 2022 !!!
+        # !!! Don't exclude any further responses or the alignment will need to be redone. !!!
+        
+        dat_spelling_corrections <- read.csv2(
+            file.path("..", "data", "dat_potential_mispellings.txt"),
+                      header = TRUE, sep = "\t") 
+        
+        # Find typos that are not found in dat.moral.numbers.exp11.strat
+        # Make sure that these are just those typos already manually corrected above
+        v_unattested_typos <- 
+            find_unattested_typos(dat.moral.numbers.exp11.strat, 
+                                  dat_spelling_corrections, 
+                                  strategies)
+            
+        if(!is.null(v_unattested_typos)){
+
+            warning ("Typos ", 
+                     knitr::combine_words(v_unattested_typos),
+                     " have not been found. Make sure that they have been corrected beforehand.")
+        }
+            
+            
+        # Now actually correct the typos
+        split_df_by_row(dat_spelling_corrections) %>%
+            # Process df row by row
+            purrr::walk(~ {
+                
+                # Note <<- for global assignment
+                dat.moral.numbers.exp11.strat[.x$id,]$strategies <<- 
+                    str_replace_all(dat.moral.numbers.exp11.strat[.x$id,]$strategies,
+                                    .x$mistake,
+                                    .x$suggestion
+                    )
+            }
+            )
+    }
+    
+    # Now run hunspell again
+   dat_potential_mispellings_remaining <- dat.moral.numbers.exp11.strat %>% 
+       run_spell_check(strategies)
+
+ 
+   dat_potential_mispellings_remaining  %>% 
+       distinct (mistake) %>% 
+       kable (caption = "Remaining potential mistakes",
+              escape = TRUE, booktabs = TRUE) %>% 
+       kableExtra::kable_styling(latex_options = c("striped", 
+                                                   "hold_position")) %>% #, "scale_down")) %>% 
+       kableExtra::kable_classic()
+   
+#     save.data.frame (dat.potential.mispellings.remaining)
+   
+}
+```
+
+
+
+
+
+`r clearpage ()`
+
+
+```{r justifications-clean-strategiess}
+
+dat.moral.numbers.exp11.strat <- dat.moral.numbers.exp11.strat %>% 
+    # lemmatize lemmatizeds written ordinals (second) with numerals (2); run remove ordinals once more afterwards
+    mutate (strategies.cleaned = clean_text_vector (strategies)) %>% 
+    mutate (strategies.cleaned = textstem::lemmatize_strings (strategies.cleaned)) %>% 
+    mutate (strategies.cleaned = textclean::replace_ordinal (strategies.cleaned, remove = FALSE)) %>% 
+    mutate (strategies.cleaned = textclean::replace_number (strategies.cleaned, remove = FALSE)) 
+    
+
+```
+
+
+```{r justifications-remove-stop-words}
+
+# Remove stop words
+walk (DAT.STOP.WORDS$word,
+      function (SW) {
+          # Note the global assignment <<- 
+          dat.moral.numbers.exp11.strat <<- 
+              dat.moral.numbers.exp11.strat %>% 
+              mutate (strategies.cleaned = str_remove_all(strategies.cleaned, paste0("\\b", SW, "\\b")))
+          
+          
+      }
+)
+
+
+# Remove extra space 
+dat.moral.numbers.exp11.strat <- dat.moral.numbers.exp11.strat %>% 
+    mutate (strategies.cleaned = str_squish(strategies.cleaned))
+
+```
+
+I next removed repeated words. ~As I replaced color and position terms with a single token, repeated occurrences of these tokens reflect color or position terms; for example, the (replaced) token "positionterm positionterm" reflects single position terms such as "top left". ~
+
+
+```{r justifications-remove-repeated-words}
+# Some of the repeated words are "positionterm positionterm" (e.g., top left)
+
+if (REMOVE.REPEATED.WORDS){
+    
+    dat.moral.numbers.exp11.strat <- dat.moral.numbers.exp11.strat %>% 
+        dplyr::mutate(strategies.cleaned = remove.repeated.words(strategies.cleaned)) 
+}
+
+
+```
+
+I next combined all strategiess of each participants into a single document per set-size. I did not separately analyze change and no change trials because participants could not know the trial category before completing the trial.
+
+
+
+```{r justifications-create-dfs-with-one-row-per-word-pre-collocations}
+
+
+l_moral_numbers_strategies_1row_per_word <- list (
+    # Pre-collocation replacement version
+    pre.colloc.replacement = dat.moral.numbers.exp11.strat %>% 
+        # one row per word 
+        tidytext::unnest_tokens(word, strategies.cleaned) %>% 
+        # Remove stop words
+        # tidytext::stop_words has column called word
+        anti_join(DAT.STOP.WORDS)
+)
+
+
+```
+
+`r clearpage ()`
+
+# Detecting collocations 
+After cleaning the responses, I first detect collocations (i.e., words that occur together significantly more often than expected by chance), using quanteda package [@quanteda] (see https://ladal.edu.au/coll.html for a tutorial). 
+
+
+```{r justifications-collocations-detect-collocations}
+
+tokens_moral_numbers_strategies_1row_per_word <- 
+    l_moral_numbers_strategies_1row_per_word$pre.colloc.replacement %>% 
+    dplyr::pull(word) %>% 
+    list %>% 
+    quanteda::as.tokens (.)
+
+dat_moral_numbers_strategies_bigrams <- tokens_moral_numbers_strategies_1row_per_word %>% 
+    quanteda::tokens_select(pattern = "[a-z]", 
+                            valuetype = "regex",
+                            case_insensitive = TRUE, 
+                            padding = TRUE) %>% 
+    quanteda.textstats::textstat_collocations(min_count = 30, 
+                                              size = 2,
+                                              tolower = FALSE) %>% 
+    dplyr::filter(z >= qnorm (.0005, lower.tail = FALSE)) %>% 
+    # We exclude collocations repeating the same term. They can arise at the junction of two participants
+    filter_self_collocations
+
+#dat_moral_numbers_strategies_bigrams
+
+
+
+```
+
+```{r justifications-collocations-print-collocations}
+
+dat_moral_numbers_strategies_bigrams %>% 
+    as.data.frame %>% 
+    tibble::remove_rownames() %>% 
+    dplyr::select (collocation, lambda, z) %>% 
+    knitr::kable (caption = "Collocation detected at a threshold of p = .005.",
+                  col.names = c("Collocation", "$\\Lambda$", "$Z$"),
+                  booktabs = TRUE, escape = FALSE, longtable = TRUE) %>% 
+    kableExtra::kable_styling(latex_options =
+                                  c("hold_position")) %>% 
+    kableExtra::kable_classic()    
+
+    
+
+
+
+```
+
+As shown in Table \ref{tab:justifications-collocations-print-collocations}, there were `r nrow (dat_moral_numbers_strategies_bigrams)` associated with a $Z$ value of at least `r qnorm (.0005, lower.tail = FALSE)` (corresponding to a two-tailed p-value of .001). Table \ref{tab:justifications-collocations-print-compounds-in-context} shows the most frequent collocations in their context of the most frequent preceding and following two words.
+
+"Bright_color" was mentioned as a target of attention. "Change_color" and "color_change" were used in the context of response justifications and statements mentioning that participants were looking for color changes. "color_configuration" and "configuration_color" seemed to used in statements explaining that participants were either looking at the overall configuration or only a subset of it, though not all contexts are easily interpretable. "Easy_remember" seemed to occur in statements about task difficulty. "Focus_one" was used in statements explaining whether or not participants focused on a particular square. "Focus_positionterm" and "look_positionterm", "positionterm_screen" were used when participants explained that they looked at specific spatial locations in the array, often explaining that they did not focus on a specific square but rather at a general region of the screen. "Memorize_color" and "remember_color" were used in context explaining that participants tried to remember the items by looking at the overall screen, spatial locations, and sometimes individual squares. The context of the other collocations was not immediately interpretable. 
+
+Taken together, the contexts of these collocations suggests that participants tried to remember items by looking at the entire screen, spatially defined parts of it and sometimes individual items. 
+
+
+```{r justifications-collocations-replace-compound-tokens-manual-all-responses, eval = FALSE}
+
+
+
+dat.moral.numbers.exp11.strat <- dat.moral.numbers.exp11.strat %>% 
+    replace_collococations(
+        dat_collocs = dat_moral_numbers_strategies_bigrams,
+        response_col = strategies.cleaned)
+
+
+```
+
+```{r justifications-check-number-of-words-in-collocations-and-compounds}
+       
+
+# Check the number of components in compound
+if (
+    dat.moral.numbers.exp11.strat %>% 
+    tidytext::unnest_tokens(word, strategies.cleaned.colloc.replaced) %>% 
+    dplyr::select(word) %>% 
+    dplyr::distinct() %>% 
+    dplyr::filter(str_detect (word, "_")) %>% 
+    dplyr::mutate(is.collocation.with.more.than.two.compounds = 
+            str_count(word, "_") > 1) %>% 
+    dplyr::pull(is.collocation.with.more.than.two.compounds) %>% 
+    any) {
+    
+    stop ("Some bigrams have more than two components")
+}
+    
+    
+
+```
+
+
+
+
+
+```{r justifications-create-dfs-with-one-row-per-word-post-collocations}
+
+
+l_moral_numbers_strategies_1row_per_word$post.colloc.replacement <-
+    dat.moral.numbers.exp11.strat %>%
+    # one row per word 
+    tidytext::unnest_tokens(word, strategies.cleaned.colloc.replaced) %>% 
+    # Remove stop words
+    # tidytext::stop_words has column called word
+    dplyr::anti_join(DAT.STOP.WORDS)
+    
+
+tokens_moral_numbers_strategies_colloc_replaced <- 
+    l_moral_numbers_strategies_1row_per_word$post.colloc.replacement %>% 
+    dplyr::pull (word) %>% 
+    list %>% 
+    quanteda::as.tokens()
+
+
+
+```
+
+
+```{r justifications-collocations-print-compounds-in-context}
+
+
+
+quanteda::kwic(
+    tokens_moral_numbers_strategies_colloc_replaced,
+    pattern = dat_moral_numbers_strategies_bigrams %>% 
+        pull (collocation) %>% 
+        str_replace_all("\\s+", "_"),
+    window = 2) %>%
+    as.data.frame() %>% 
+    dplyr::select(-docname, -to, -from, -pattern)  %>% 
+    reformat_kwic_table (min.occurrences = 2) %>% 
+    kable.packed ("keyword",
+                  col.names = c("Preceding", "Following"),
+                  caption = "Collocations in preceding and following context. Counts of context occurrences are done separately for the preceding and following context.", booktabs = TRUE, longtable = TRUE)  %>% 
+    kableExtra::add_header_above(c("Context" = 2), bold = TRUE) %>% 
+    kableExtra::kable_styling(bootstrap_options = "striped", latex_options = c("striped", "scale_down", "repeat_header")) %>% 
+    kableExtra::kable_classic_2()
+    
+    
+
+```
+
+`r clearpage ()``
+
+# Frequency measures (raw frequency, tf-idf, tf-icf)
+## Raw frequency 
+
+```{r justifications-counts-print, fig.cap="Most frequent words"}
+
+
+dat_moral_numbers_strategies_counts <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+    ungroup %>% 
+    # Create counts separately for set.size and words, and one collapsing across words
+    count.with.totals (word) 
+
+
+
+dat_moral_numbers_strategies_counts %>% 
+    dplyr::arrange (-n) %>% 
+    dplyr::top_n(25) %>% 
+    #dplyr::mutate(word = reorder_within(word, n, set.size)) %>%
+    ggplot(aes(reorder (word, n), n, fill = word)) +
+    geom_col(alpha = 0.8, show.legend = FALSE) +
+    scale_x_reordered() +
+    coord_flip() +
+    theme(strip.text=element_text(size=11)) +
+    labs(x = NULL, y = "Number of occurrences across documents",
+         title = "Most frequent words and collocations across responses"
+    )
+#     knitr::kable (caption = "Counts of words in the justifications",
+#            booktabs = TRUE) %>% 
+#     kableExtra::kable_classic_2()
+# 
+
+
+```
+
+I first inspected the 25 most frequent words across responses. As seen in Figure \ref{fig:justifications-counts-print}, the most frequent words were included words related to visual attention (focus, see, look), generic memory terms (memorize, remember),  terms related to specific colors or positions in the display as well as various words describing the displays (square, configuration). 
+
+Table \ref{tab:justifications-counts-see-frequent-items-in-context-combined-set-sizes} shows the most frequent words in their context of the most frequent preceding and following two words. "Color" occurred in a variety of contexts, including statements that participants tried to memorize them, strategies such as pronouncing color names, focusing on the screen, areas of the screen, or specific colors, and response justifications. "Focus" was used in context indicating attention to the entire screen, spatially defined parts of it, classes of colors or individual colors or subsets of squares; participants also indicated that they "focused" to memorize the images. "Positionterm" was generally used in the context of other position terms, presumably reflecting expressions such as "top left". To the extent that the contexts of "remember" were interpretable, they indicated that participants tried to remember the items by looking at the entire screen, portions of it, subsets of squares, and that they sometimes "started" at certain positions. "Square" was used in a variety of contexts that generally reflected the strategies above. 
+
+```{r justifications-counts-see-frequent-items-in-context-combined-set-sizes}
+
+quanteda::kwic(
+    tokens_moral_numbers_strategies_colloc_replaced,
+    pattern = dat_moral_numbers_strategies_counts %>% 
+        dplyr::arrange (-n) %>% 
+        dplyr::top_n(5) %>% 
+        pull (word),
+    window = 2) %>%
+    as.data.frame() %>%
+    dplyr::select(-docname, -to, -from, -pattern) %>% 
+    ungroup -> kwic.moral_numbers_strategies_counts
+
+
+# kwic.moral_numbers_strategies_counts %>% 
+#     group_by(pre, keyword, post) %>% 
+#     #dplyr::distinct() %>%
+#     summarize (n = n()) %>%
+#     group_by (keyword) %>%
+#     slice_max (n, n = 10) %>%
+#     dplyr::select(-n) %>%
+#     dplyr::arrange (keyword) %>%
+#     kable.packed ("keyword",
+#                   caption = "Preceding and following context for the most frequent 5 words across set-sizes", 
+#                   col.names = c("Preceding", "Following"),
+#                   booktabs = TRUE, longtable = TRUE)  %>% 
+#     kableExtra::add_header_above(c("Context" = 2), bold = TRUE) %>% 
+#     kableExtra::kable_styling(bootstrap_options = "striped", latex_options = c("striped", "scale_down", "repeat_header")) %>% 
+#     kableExtra::kable_classic_2()
+
+
+kwic.moral_numbers_strategies_counts %>% 
+    reformat_kwic_table (min.occurrences = 2) %>%
+    kable.packed ("keyword",
+                  col.names = c("Preceding", "Following"),
+                  caption = "Preceding and following context for the most frequent 5 words across set-sizes. Counts of context occurrences are done separately for the preceding and following context.", booktabs = TRUE, longtable = TRUE)  %>%
+    kableExtra::add_header_above(c("Context" = 2), bold = TRUE) %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", latex_options = c("striped", "scale_down", "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+
+```{r justifications-counts-see-frequent-items-in-context-combined-set-sizes-extract-frequent-contexts, fig.cap = "Counts of context words", fig.height = 20, fig.width = 8}
+
+# Extract contexts for tabulating frequency
+dat_moral_numbers_strategies_counts.contexts <- 
+    kwic.moral_numbers_strategies_counts %>% 
+    pivot_longer(c(pre, post), names_to = "context.direction", values_to = "context") %>% 
+    # We could use individual words instead
+    # tidytext::unnest_tokens(word, context) %>% 
+    # count(context.direction, keyword, word, sort = TRUE) %>% 
+    count(context.direction, keyword, context, sort = TRUE) %>% 
+    group_by (context.direction, keyword) %>% 
+    slice_max(n, n=20) %>% 
+    ungroup 
+
+dat_moral_numbers_strategies_counts.contexts %>%     
+    plyr::dlply ("context.direction",
+                 function (.dat) .dat %>%  
+                     group_by (keyword) %>% 
+                     dplyr::arrange (-n) %>% 
+                     dplyr::top_n(10) %>% 
+                     #mutate(word = reorder_within(word, n, keyword)) %>%
+                     #ggplot(aes(reorder (word, n), n, fill = word)) +
+                     mutate(context = reorder_within(context, n, keyword)) %>%
+                     ggplot(aes(reorder (context, n), n, fill = context)) +
+                     geom_col(alpha = 0.8, show.legend = FALSE) +
+                     facet_wrap(~ keyword, scales = "free") +
+                     scale_x_reordered() +
+                     coord_flip() +
+                     theme(strip.text=element_text(size=11)) +
+                     labs(x = NULL, y = "Number of occurrences") +
+                     ggtitle (unique (.dat$context.direction))
+    ) %>% 
+    gridExtra::grid.arrange(grobs = ., ncol = 1)
+
+
+
+```
+
+
+`r clearpage ()`
+
+## tf-idf
+```{r justifications-tf-idf, fig.cap = "Highest tf-idf words"}
+
+
+dat_moral_numbers_strategies_tf.idf <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+    ungroup %>% # Separate by set size and change/no change later by group_split XXX
+    # Count can be used with multiple arguments
+    count.with.totals(ResponseId, word) %>% 
+    group_by (word) %>% 
+    mutate (n.docs = n()) %>%  
+    ungroup %>% 
+    # Filter terms that do not occur in at least 50 responses 
+    filter (n.docs >= MIN.N.DOCS.PER.TERM.TF.IDF) %>% 
+    # arguments: term column, document column, counts
+    tidytext::bind_tf_idf(word, ResponseId, n) %>%
+    # Add average tf_idf across responses 
+    group_by(word) %>% 
+    mutate (tf_idf.m = mean (tf_idf)) %>% 
+    ungroup
+    
+v.moral_numbers_strategies_tf.idf.selected.words <- 
+    dat_moral_numbers_strategies_tf.idf  %>% 
+    group_by(word) %>% 
+    summarize (tf_idf.m = mean (tf_idf)) %>% 
+    arrange (desc(tf_idf.m)) %>% 
+    dplyr::top_n (25) %>% 
+    pull (word)
+    
+
+
+dat_moral_numbers_strategies_tf.idf  %>%  
+    filter (word %in% v.moral_numbers_strategies_tf.idf.selected.words) %>% 
+    # reorder word by tf_idf within each story/facet
+    # requires scale_x_reordered_below
+    #mutate(word = reorder_within(word, tf_idf.m, set.size)) %>%
+    ggplot(aes(x = reorder (word, tf_idf), y = tf_idf)) +
+    geom_violin (alpha = .5,
+                 fill = "#5588CC",
+                 col="#5588CC") +
+    # This would be necessary for facets
+    scale_x_reordered() +
+    stat_summary(fun.data=mean_se, 
+                 #fun.args = list (mult=sqrt (nlevels2(.$filename)-1)), 
+                 geom="pointrange", color="#cc556f") + 
+    coord_flip() +
+    theme(strip.text=element_text(size=11)) +
+    labs(x = NULL, y = "tf-idf",
+         title = "Highest tf-idf terms across responses",
+         subtitle = "(Terms occurring in fewer than 50 responses have been excluded.")
+```
+
+
+
+I next calculated the standard tf-idf measure for the particiant responses, using the tidytext package. This measure reflects the frequency of a term in a "document" (here a participant response; $f_{t,d}/\sum_{t^\prime}f_{t^\prime,d}$), penalized by the logarithm of the inverse frequency of the term across documents (i.e., $log \frac{|D|}{|{d \in D: t \in d}|}$). After excluding terms occurring in fewer than 50 responses, Figure \ref{fig:justifications-tf-idf} reveals that the highest tf-idf terms related to generic memory terms, the oveerall configuration of colors, spatial locations on the screen or specific colors or classes of colors (e.g., dark, bright).
+
+`r clearpage ()`
+
+## tf-icf
+```{r justifications-tf-inverse-corpus-frequency, fig.cap = "Highest tf-icf terms"}
+
+dat_moral_numbers_strategies_tf.icf <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+    ungroup %>% # Separate by set size and change/no change later by group_split XXX
+    # Count can be used with multiple arguments
+    count(ResponseId, word, sort = TRUE) %>%
+    group_by (ResponseId) %>% 
+    # Denominator: Total number of terms in document
+    mutate (tf = n / sum (n)) %>% 
+    group_by (word) %>% 
+    mutate (n.docs = n()) %>% 
+    ungroup %>% 
+    # Filter terms that do not occur in at least 25 responses 
+    filter (n.docs >= MIN.N.DOCS.PER.TERM.TF.IDF) %>% 
+    left_join (., 
+               dat.coca.5k.freq %>% 
+                   mutate (icf = -log(rel.freq)) %>% 
+                   dplyr::select(word, icf),
+               by = "word") %>% 
+    # Replace unattested words with the lowest frequency in coca
+    dplyr::mutate (icf = tidyr::replace_na(icf, -log (min (dat.coca.5k.freq$rel.freq)))) %>% 
+    mutate (tf_icf = tf * icf) %>% 
+    # Add average tf_icf across responses 
+    group_by(word) %>% 
+    mutate (tf_icf.m = mean (tf_icf)) %>% 
+    ungroup
+
+v.moral_numbers_strategies_tf.icf.selected.words <- 
+    dat_moral_numbers_strategies_tf.icf  %>% 
+    group_by (word) %>% 
+    summarize (tf_icf.m = mean (tf_icf)) %>% 
+    arrange (desc(tf_icf.m)) %>% 
+    dplyr::top_n (25) %>% 
+    pull (word)
+    
+
+dat_moral_numbers_strategies_tf.icf %>%
+    filter (word %in% v.moral_numbers_strategies_tf.icf.selected.words) %>% 
+    # reorder word by tf_idf within each story/facet
+    # requires scale_x_reordered_below
+    #mutate(word = reorder_within(word, tf_idf, filename)) %>%
+    ggplot(aes(x = reorder (word, tf_icf), y = tf_icf)) +
+    geom_violin (alpha = .5,
+                 fill = "#5588CC",
+                 col="#5588CC") +
+    #facet_wrap(~ filename, scales = "free", ncol = 3) +
+    # This would be necessary for facets
+    #scale_x_reordered() +
+    stat_summary(fun.data=mean_se, 
+                 #fun.args = list (mult=sqrt (nlevels2(.$filename)-1)), 
+                 geom="pointrange", color="#cc556f") + 
+    coord_flip() +
+    theme(strip.text=element_text(size=11)) +
+    labs(x = NULL, y = "tf-idf",
+         title = "Highest tf-icf terms across responses",
+         subtitle = stringr::str_wrap("(Terms occurring in fewer than 50 responses have been excluded; the corpus frequency of unattested words was set to the minimum in the corpus.", 80))
+
+```
+
+
+However, given that participants are likely to use similar words to describe the trials, the document frequency in tf-idf is not necessarily meaningful. I thus calculated a variant of the tf-idf, but multiplying the frequency of a term in a participant's response with the logarithm of the inverse frequency of that term in the COCA corpus [@COCA]; the frequency of words not contained in this 5000 word corpus was set to the minimum frequency in that corpus. 
+
+As shown in Figure \ref{fig:justifications-tf-inverse-corpus-frequency}, the highest scoring terms are similar as in the tf-idf case, and are related to generic memory terms, the overall configuration of colors, spatial locations on the screen or specific colors or classes of colors (e.g., dark, bright). In addition to these terms, terms related to looking and focusing also emerge. 
+
+`r clearpage ()`
+
+# Topic modelling 
+
+The exploration of the frequency measures above suggest that participants in change detection experiments use strategies related to the overall encoding of the stimuli or to focusing on specific parts of the stimuli such as specific spatial locations, colors or color classes. Critically, the most frequent terms do not reveal any evidence for genuine memory strategies such as rehearsal (though informal inspection of the responses suggests that some participants tried to vocalize the color labels.) This confirms the result from the (human) classifications of the participant responses that most participants simply looked at the displays or parts of it. 
+
+To formally confirm these impressions, I will extract "topics" contained in the responses using natural languge processing. I will first use a Latent Dirichlet Allocation model fitted the textmineR package (see https://medium.com/swlh/topic-modeling-in-r-with-tidytext-and-textminer-package-latent-dirichlet-allocation-764f4483be73 for a tutorial). This model assumes that documents (i.e, participant responses) contain a mixture of topics; each topic as a contribution of $\gamma$ to a document (see Table \ref{tab:justifictions-lda-definitions}). Conversely, each topic is a collection of words, where each word has a contribution of $\phi$ to a topic. Following this, I will fit a structural topic model using the STM package [@STM] (see https://www.youtube.com/watch?v=evTuL-RcRpc and https://juliasilge.com/blog/sherlock-holmes-stm/ for tutorials. I use these two packages because they come with different diagnostic tools; such models are similar to LDA's but allow for different topic prevalences as a function of covariate variables.
+
+Given the frequency of the term "square", we excluded it as an additional stop word in the topic models.
+
+```{r justifictions-lda-definitions}
+tibble::tribble (
+    ~"Variable (LDA)", ~"Variable (STM)", ~Meaning,
+    "$\\Gamma$", "$\\Theta$", "Contribution of a topic to a document",
+    
+    "$\\Phi$", "$\\beta$", "Contribution of word to topic",
+    
+    "$\\alpha$", "$\\alpha$", "Prior for the per-document topic distribution; low values lead to few topics per document and high values to many topics per document." ,
+    
+    "$\\beta$", "$\\beta$", "Prior for the per-topic word distribution; low values lead to few words per topic and high values to many words per topic"
+
+) %>% 
+    knitr::kable (col.names = c("LDA", "STM", ""),
+                  caption = "Variables used in topci models", booktabs = TRUE, longtable = TRUE, escape = FALSE)  %>%
+    kableExtra::add_header_above(c("Variable" = 2, "Meaning" = 1), bold = TRUE) %>%
+    kableExtra::kable_styling(full_width = TRUE, 
+                              bootstrap_options = "striped", 
+                              latex_options = c("striped", "scale_down", "repeat_header")) %>%
+    kableExtra::column_spec(3, width = "30em") %>% 
+    kableExtra::kable_classic_2()
+
+```
+
+```{r justifications-prepare-data-for-topic-models-create-df}
+# Creates dat_moral_numbers_strategies_cleaned.for.topic.models
+# This data frame is used in both topic models
+
+if (DATA.SET.FOR.ANALYSIS == "post.colloc.replacement"){
+    
+    dat_moral_numbers_strategies_cleaned.for.topic.models <- dat.moral.numbers.exp11.strat %>%
+        mutate (strategies.cleaned = strategies.cleaned.colloc.replaced) %>% 
+        dplyr::select(ResponseId, strategies.cleaned)
+    
+} else {
+    
+    
+    dat_moral_numbers_strategies_cleaned.for.topic.models <- dat.moral.numbers.exp11.strat %>%
+        #mutate (strategies.cleaned = strategies.cleaned.colloc.replaced) %>% 
+        dplyr::select(ResponseId, strategies.cleaned)
+    
+}
+
+
+
+```
+
+```{r justifications-prepare-data-for-topic-models-filter-by-frequencies}
+
+# Filter terms with low frequency if required 
+if (!is.null (MIN.N.DOCS.PER.TERM.TOPICMODEL) | 
+    !is.null (MIN.N.OCC.PER.TERM.FILTER.FUNC)) {
+    
+    
+    # Create frequency counts
+    dat_moral_numbers_strategies_cleaned.for.topic.models.counts.for.filtering <-
+        dat_moral_numbers_strategies_cleaned.for.topic.models %>% 
+        tidytext::unnest_tokens(word, strategies.cleaned) %>% 
+        # Create total count of occurrences and number of different documents in which the a word occurs
+        group_by (ResponseId, word) %>% 
+        summarize (N = n ()) %>% 
+        group_by  (word) %>% 
+        summarize (n.occurrence = sum (N),
+                   n.docs = n ()) %>% 
+        ungroup
+    
+    # Filter by document frequency 
+    if (!is.null (MIN.N.DOCS.PER.TERM.TOPICMODEL)){
+        
+        # Create list of items to be filtered because they don't occur in a sufficient number of documents
+        if (KEEP.RESPONSES.SEPARATE.FOR.TOPIC.MODELS){
+            dat_moral_numbers_strategies_cleaned.for.topic.models.counts.for.filtering %>% 
+                filter (n.docs < MIN.N.DOCS.PER.TERM.TOPICMODEL) %>% 
+                pull (word) -> v.words.insufficient.doc.freq.topic.model
+        } else {
+            dat_moral_numbers_strategies_cleaned.for.topic.models.counts.for.filtering %>% 
+                filter (n.docs < 2) %>% 
+                pull (word) -> v.words.insufficient.doc.freq.topic.model
+        }
+        
+        # Now remove these terms
+        dat_moral_numbers_strategies_cleaned.for.topic.models %>% 
+            mutate (strategies.cleaned = str_remove_all (strategies.cleaned, v.words.insufficient.doc.freq.topic.model)) %>% 
+            mutate (strategies.cleaned = str_squish (strategies.cleaned)) -> dat_moral_numbers_strategies_cleaned.for.topic.models 
+        
+    }
+    
+    # Filter by overall frequency 
+    if (!is.null (MIN.N.OCC.PER.TERM.FILTER.FUNC)){
+        
+        # Create list of items to be filtered because they don't occur in a sufficiently often in total
+        dat_moral_numbers_strategies_cleaned.for.topic.models.counts.for.filtering %>% 
+            filter (MIN.N.OCC.PER.TERM.FILTER.FUNC (n.occurrence)) %>% 
+            pull (word) -> v.words.insufficient.overall.freq.topic.model
+        
+        # Now remove these terms
+        dat_moral_numbers_strategies_cleaned.for.topic.models %>% 
+            mutate (strategies.cleaned = str_remove_all (strategies.cleaned, v.words.insufficient.overall.freq.topic.model)) %>% 
+            mutate (strategies.cleaned = str_squish (strategies.cleaned)) -> dat_moral_numbers_strategies_cleaned.for.topic.models 
+        
+    }
+}
+```
+
+
+## Topic modeling using textmineR
+
+
+```{r justifications-lda-document-term-matrix}
+
+# Create document-term matrix
+# This creates a matrix with <# documents rows> and <# words> columns containing the counts
+# of each word in the different documents.
+dtm_moral_numbers_strategies <- textmineR::CreateDtm(
+        # character vector of documents
+        doc_vec = dat_moral_numbers_strategies_cleaned.for.topic.models$strategies.cleaned,
+        # document names
+        doc_names = dat_moral_numbers_strategies_cleaned.for.topic.models$ResponseId,
+        # minimum and maximum n-gram length
+        #ngram_window = c(1,3),
+        ngram_window = c(1,1),
+        # stopwords from tm
+        stopword_vec = DAT.STOP.WORDS$word, #stopwords("en"), # Already excluded
+        # lowercase - this is the default value
+        lower = TRUE, 
+        # punctuation - this is the default
+        remove_punctuation = TRUE, 
+        # numbers - this is the default
+        remove_numbers = TRUE, 
+        # lemmatization
+        #stem_lemma_function = function(x) SnowballC::wordStem(x, "porter"),
+        stem_lemma_function = function(x) textstem::lemmatize_strings(x),
+        # Turn off status bar for this demo
+        verbose = FALSE 
+        # default is all available cpus on the system
+        #                  cpus = 2
+    )
+    
+
+MIN.N.DOCS.PER.TERM.TOPICMODEL.ACTUAL <- ifelse(
+    KEEP.RESPONSES.SEPARATE.FOR.TOPIC.MODELS & !is.null(MIN.N.DOCS.PER.TERM.TOPICMODEL),
+    MIN.N.DOCS.PER.TERM.TOPICMODEL,
+    2
+)
+
+# Remove words that do not occur in at least 2 participants
+# We removed this before
+term_frequencies <- as.integer(Matrix::colSums(dtm_moral_numbers_strategies))
+dtm_moral_numbers_strategies <- 
+    dtm_moral_numbers_strategies[, term_frequencies > MIN.N.DOCS.PER.TERM.TOPICMODEL.ACTUAL]
+
+
+# 2. Remove empty documents (rows) that may have resulted from term removal.
+#    Coerce rowSums to integer for reliable comparison.
+dtm_row_sums <- as.integer(Matrix::rowSums(dtm_moral_numbers_strategies))
+dtm_moral_numbers_strategies <- 
+    dtm_moral_numbers_strategies[dtm_row_sums > 0, ]
+
+# 49 docs, 198 terms
+```
+
+```{r justifications-find-number-of-topics, include=TRUE, message=FALSE, warning=FALSE}
+
+lda.n.topic.metrics <- ldatuning::FindTopicsNumber(
+    quanteda::as.dfm (dtm_moral_numbers_strategies),
+    topics = seq(from = 2, to = 15, by = 1),
+    # Griffith leads to crashes:
+    #https://github.com/nikita-moor/ldatuning/issues/21
+    #metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"),
+    metrics = c("CaoJuan2009", "Arun2010", "Deveaud2014"),
+    method = "Gibbs",
+    control = list(seed = 77),
+    mc.cores = 10,
+    verbose = TRUE
+)
+
+ldatuning::FindTopicsNumber_plot(lda.n.topic.metrics)
+
+# This suggests 3 topics
+best.k.lda.moral_numbers_strategies_chosen <- 5
+    
+
+
+```
+
+An LDA requires specifying the desired number of topics. I first select the optimal number of topics using the ldatuning see https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html), and chose `r best.k.lda.moral_numbers_strategies_chosen` topics.
+
+
+```{r justifications-lda-topic-modeling}
+
+lda_moral_numbers_strategies <- textmineR::FitLdaModel(
+    dtm = dtm_moral_numbers_strategies,
+    # number of topic
+    k = best.k.lda.moral_numbers_strategies_chosen, 
+    # At least 500 iterations recommended
+    iterations = 1000,
+    burnin = 180,
+    # Prior for topics over documents
+    alpha = 0.1,
+    # Prior for words over topics
+    beta = 0.05,
+    # Do you want to optimize alpha every 10 Gibbs iterations? Defaults to FALSE
+    optimize_alpha = KEEP.RESPONSES.SEPARATE.FOR.TOPIC.MODELS,
+    # Do you want to calculate the likelihood every 10 Gibbs iterations?
+    # Useful for assessing convergence. Defaults to FALSE.
+    calc_likelihood = TRUE,
+    # Do you want to calculate probabilistic coherence of topics after the model is trained? 
+    # Defaults to TRUE.
+    calc_coherence = TRUE,
+    # Do you want to calculate R-squared after the model is trained? 
+    # Defaults to FALSE.
+    # Set to FALSE to avoid error
+    calc_r2 = FALSE,
+    cpus = 10 
+)
+
+lda_moral_numbers_strategies$final_log_likelihood <- 
+    lda_moral_numbers_strategies %>% 
+    get_final_log_likelihood
+
+# If calc_likelihood = TRUE, we get a log likelihood every 10 iterations
+# <model>$log_likelihood is then a data frame with the columns iteration and log_likelihood
+# This can then be plotted
+# plot(mod_lda_5$log_likelihood,type = "l")
+
+# Get the prevalence of each topic
+lda_moral_numbers_strategies$prevalence <- colSums (lda_moral_numbers_strategies$theta) / sum(lda_moral_numbers_strategies$theta) * 100
+```
+
+After convergence, the model had a log likelihood of `r lda_moral_numbers_strategies$final_log_likelihood` and an $R^2$ of `r lda_moral_numbers_strategies$r2`, where the variance is due to the occurrences of terms over documents.
+
+### Model evaluation
+
+I will now extract the top terms for each topic, their probabilistic coherence as well as the topic prevalence.
+
+#### Definition of probabilistic coherence
+
+Let $t_i$ ($i \in \{1, \ldots, N\}$) be the $N$ top terms in decreasing order of frequency (i.e., $t_1$ is the top term). Then the probabilistic coherence is defined as
+
+$$
+C_P = \frac{(N-2)!2!}{N!} \sum_{i=1}^{N-1} \sum_{j=i+1}^N P(t_j | t_i) - P(t_j)
+$$
+
+
+where $P(.)$ is the probability of a word occurring in a document. For any ordered pair $t_i, t_j$, the measure $P(t_j | t_i) - P(t_j)$ indicates how much more likely $t_j$ is to occur in a document already containing $t_i$ compared to the raw frequency. These scores are then averaged across all ordered pairs. In the extreme case where word occurrences are statistically independent of one another, $P(t_j | t_i) = P(t_j)$, the probabilistic coherence is zero. In the extreme cases where words systematically co-occur (i.e., $P(t_j | t_i)  \approx 1$) and words are rare (ie.g, $P(t_j) \approx 0$), the probability coherence is 1. 
+
+#### Definition of topic prevalence
+
+$\Theta_{t,d}$ is the contribution of a topic $t$ to document $d$, with a total of $D$ documents. Then the prevalence is defined as
+
+$$
+P_t = 100 \% \times \frac{\sum_{d=1}^D \Theta_{t,d}}{\sum_{t=1}^T \sum_{d=1}^D \Theta_{t,d}}
+$$
+
+#### Definition of $R^2$
+
+The quality of the model can be assessed using $R^2$. The variance is calculated from the occurrence of tokens in documents. See https://drive.google.com/file/d/0Bz2enPyUvnKIQmtDTEswbzdUMU0/view?resourcekey=0-u0fMJOytxc7Jbci1mqMvXw for a derivation
+
+#### Actual calculations
+
+
+
+```{r justifications-lda-topic-modelling-summary}
+
+# get 5 top terms with the highest phi. phi representing a distribution of words over topics. Words with high phi have the most frequency in a topic.
+
+lda.moral_numbers_strategies_summary <- lda_moral_numbers_strategies %>% 
+    get_lda_model_summary (M = 5)
+
+lda.moral_numbers_strategies_summary$summary.table %>% 
+    kable (caption = "Top Terms with the highest probabilities in each topic ($\\Phi$), Probablistic Coherence and Topic Prevalence",
+           booktabs = TRUE) %>% 
+    kableExtra::kable_styling(full_width = TRUE, 
+                              bootstrap_options = "striped", 
+                              latex_options = c("striped", "scale_down", "repeat_header")) %>%
+    kableExtra::column_spec(4, width = "30em") %>% 
+    kableExtra::kable_classic_2()
+    
+    
+
+```
+
+```{r justifications-lda-plot-metrics}
+lda.moral_numbers_strategies_summary$summary.numeric %>% 
+    pivot_longer(-1) %>% 
+  ggplot(aes(x = factor(Topic,levels = unique(Topic)), 
+             y = value, 
+             group = 1)) +
+  geom_point() + geom_line() +
+  facet_wrap(~name,scales = "free_y",nrow = 2) +
+  theme_minimal() +
+  labs(title = "Best topics by coherence and prevalence score",
+       x = "Topics", y = "Value")
+
+```
+
+```{r justifications-lda-label-topics, eval = FALSE}
+# Doesn't work, do we need it? 
+
+# This functions extracts documents with the highest theta, and then terms that are more frequent in these documents than in the general corpus
+
+lda_moral_numbers_strategies$labels <- textmineR::LabelTopics(
+    # documents by topics
+    assignments = lda_moral_numbers_strategies$theta, 
+    # document term matrix
+    dtm = dtm_moral_numbers_strategies,
+    # Number of n-gram labels
+    M = 2)
+
+lda_moral_numbers_strategies$labels
+```
+
+
+```{r justifications-lda-plot-top-terms, fig.cap = "Top 10 terms with the highest probabilities in each topic ($\\Phi$)."}
+
+lda_moral_numbers_strategies %>% 
+    pluck ("phi") %>% 
+    as.data.frame() %>% 
+    rownames_to_column("topic") %>% 
+    pivot_longer(-1, names_to = "term", values_to = "phi") %>% 
+    # choose 10 words with highest beta from each topic
+    group_by(topic) %>%
+    mutate (phi.Z = scale (phi)) %>% 
+    top_n(10, phi) %>% 
+    ungroup() %>%
+    # plot the topic and words for easy interpretation
+    arrange(topic,-phi) %>% 
+    mutate(term = reorder_within(term, phi, topic)) %>%
+    ggplot(aes(term, phi, fill = factor(topic))) +
+    geom_col(show.legend = FALSE) +
+    labs (x = "Term", y = TeX ("$\\Phi$")) + 
+    facet_wrap(~ topic, scales = "free", labeller = labeller (topic = ~ str_replace(.x, "t_", "Topic "))) +
+    coord_flip() +
+    scale_x_reordered()
+
+```
+
+
+```{r justifications-lda-visualize-contents-in-topics, fig.cap = "Top 40 terms with the highest probabilities in each topic ($\\Phi$)."}
+
+
+lda_moral_numbers_strategies %>% 
+    pluck ("phi") %>% 
+    as.data.frame() %>% 
+    rownames_to_column("topic") %>% 
+    pivot_longer(-1, names_to = "term", values_to = "phi") %>% 
+    mutate (color = RColorBrewer::brewer.pal(8,"Dark2")[cut (phi, breaks  = 8, labels = FALSE)]) %>% 
+    group_by(topic) %>%
+    mutate(angle = 90 * sample(c(0, 1), n(), replace = TRUE, prob = c(100, 0))) %>% 
+    # last argument: variable with respect to which ordering occurs
+    top_n(40, phi) %>%
+    arrange (-phi) %>% 
+    ungroup() %>%
+    ggplot(aes(label = term, 
+               size = phi,
+               color = color,
+               angle = angle
+    )) +
+    ggwordcloud::geom_text_wordcloud(shape = "circle", eccentricity = 1, rm_outside = FALSE) +
+    scale_size_area(max_size = 8) +
+    #theme_minimal() + 
+    facet_wrap(~ topic, scale = "free", labeller = labeller (topic = ~ str_replace(.x, "t_", "Topic "))) +
+    labs(title = "Highest word probabilities for each topic")
+
+```
+
+
+As shown in Figure \ref{fig:justifications-lda-plot-metrics}, the topic prevalence scores were `r knitr::combine_words (lda.moral_numbers_strategies_summary$summary.numeric$Prevalence)`, respectively. The topic coherence scores (operationalized as the average difference between the conditional frequency of a term in a document and the prior frequency) is relatively low, presumably due to the fact that participants described very similar displays and thus used similar terms in many responses. 
+
+Inspection of Table \ref{tab:justifications-lda-topic-modelling-summary} and Figures \ref{fig:justifications-lda-plot-top-terms} and \ref{fig:justifications-lda-visualize-contents-in-topics} suggest that the first topic reflects a strategy where participants focus on specific colors or spatial locations; the second topic reflects a strategy where participants focus on specific spatial locations. The third topic seems to reflect a relatively generic strategy, where participants focus on and try to remember the configuration of colors. The automatically extracted topics are thus consistent with the main categories that emerged from a manual classification. 
+
+$\Phi$ is the contribution of a word to a topic. We can treat the $\Phi$'s as probability distributions over words, and compare the distributions using the [Hellinger Distance](https://en.wikipedia.org/wiki/Hellinger_distance).
+
+```{r justifications-lda-dendogram, fig.cap = "LDA dendogram (unused)"}
+hclust_moral_numbers_strategies <- 
+    # Use distance between distributions of words to calculate similarity of topics
+    lda.moral_numbers_strategies_summary$hellinger.distance.topics %>% 
+    hclust ("ward.D")
+    
+
+hclust_moral_numbers_strategies$labels <- 
+    c(hclust_moral_numbers_strategies$labels %>% 
+          str_replace_all("^t\\_", "Topic "))
+
+
+plot(hclust_moral_numbers_strategies, xlab="")
+
+```
+
+
+`r clearpage ()`
+
+
+
+## Topic modeling using STM
+
+```{r justifications-prepare-data-for-stm, include = FALSE}
+
+# Turns our data frame into something that can be used by STM. 
+# The first line in $documents reflects the indices in the $vocabulary, the second the counts
+
+stm::textProcessor(
+    documents = dat_moral_numbers_strategies_cleaned.for.topic.models$strategies.cleaned,
+    metadata = dat_moral_numbers_strategies_cleaned.for.topic.models,
+    # Already done but doesn't hurt
+    lowercase = TRUE,
+    # Already done
+    removestopwords = FALSE,
+    # Not useful here
+    removenumbers = FALSE,
+    # Already done 
+    removepunctuation = FALSE,
+    # Don't stem
+    stem = FALSE,
+    wordLengths = c(2, Inf),
+    language = "en",
+    onlycharacter = FALSE,
+    striphtml = FALSE,
+    customstopwords = NULL,
+    custompunctuation = NULL) -> stm.input.textProcessor_moral_numbers_strategies
+
+stm::prepDocuments(stm.input.textProcessor_moral_numbers_strategies$documents, 
+                   stm.input.textProcessor_moral_numbers_strategies$vocab, 
+                   stm.input.textProcessor_moral_numbers_strategies$meta) -> stm.input.prepDocuments_moral_numbers_strategies
+```
+
+```{r justifications-search-best-number-of-topics-for-stm, warnings = FALSE, fig.cap = "Semantic coherence and exclusivity scores for different candidate numbers of topics for the structural topic model."}
+
+stm::searchK (stm.input.prepDocuments_moral_numbers_strategies$documents,
+              stm.input.prepDocuments_moral_numbers_strategies$vocab,
+              # Use  Lee and Mimno (2014) algorithm
+              K = 2:15,
+              # We could let the prevalence vary with the set size, but the effect turned out not to be significant
+              #prevalence =~ set.size,
+              data = stm.input.prepDocuments_moral_numbers_strategies$meta,
+              init.type = "Spectral",
+              proportion = .5,
+              cores = 10) -> best.k.stm_moral_numbers_strategies
+
+# plot (best.k.stm_moral_numbers_strategies)
+
+best.k.stm_moral_numbers_strategies$results %>% 
+    mutate (across (everything (), unlist)) %>%
+    mutate (K = factor (K)) %>% 
+    ggplot (aes (x = semcoh, y = exclus, col = K, fill = K)) +
+    geom_point() + 
+    geom_text(aes (label = K, size = 16)) +
+    theme (legend.position = "none")
+
+if (KEEP.RESPONSES.SEPARATE.FOR.TOPIC.MODELS){
+    best.k.stm.chgdet.justification.chosen <- 4
+} else {
+    best.k.stm.chgdet.justification.chosen <- 6
+}
+
+```
+
+To select an appropriate number of topics, I follow [@Roberts2014], inspect both semantic coherence and exclusivity of the topics (see [@STM] for a formal definition), and visual inspect the resulting candidate topics. As shown in Figure \ref{fig:justifications-search-best-number-of-topics-for-stm}, this exploration suggests that a model with `r best.k.stm.chgdet.justification.chosen` topics would be optimal. I next fitted a structural topic model. I initially allowed the topic prevalence to vary with the set-size. However, as the effect of the set-size was not significant (as evaluated by STM's `estimateEffect` function), I removed this dependency from the model.
+
+```{r justifications-stm-calculate-using-dfm, include = FALSE, eval = FALSE}
+# This is the code for using a document term matrix. I don't use it any longer but leave it here for reference
+
+dat_moral_numbers_strategies_dfm <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+    ungroup %>% 
+    dplyr::count(ResponseId, word, sort = TRUE) %>%
+    # Create document-feature matrix 
+    # Arguments: documents, features, counts
+    tidytext::cast_dfm(ResponseId, word, n)
+
+# Create structural topic model
+topic_model <- stm::stm(dat_moral_numbers_strategies_dfm, K = best.k.stm.chgdet.justification.chosen, init.type = "Spectral")
+```
+
+
+```{r justifications-stm-calculate, include = FALSE}
+
+# Instead of using the native format of documents/vocabulary to stm::stm, we could use a term document matrix 
+# from tidytext or quanteda. However, this does not work with searchK below. 
+# Using term document matrices, the code would be (see https://juliasilge.com/blog/sherlock-holmes-stm/)
+
+# # dfm 
+# dat_moral_numbers_strategies_dfm <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+#     ungroup %>% 
+#     dplyr::count(filename, word, sort = TRUE) %>%
+#     # Create document-feature matrix 
+#     # Arguments: documents, features, counts
+#     tidytext::cast_dfm(filename, word, n)
+# 
+# # sparce matric
+# dat_moral_numbers_strategies_sparse <- l_moral_numbers_strategies_1row_per_word[[DATA.SET.FOR.ANALYSIS]] %>% 
+#     ungroup %>% 
+#     dplyr::count(story, word, sort = TRUE) %>%
+#     # Create sparse matrix
+#     # Arguments: documents, features, counts
+#     tidytext::cast_sparse(filename, word, n)
+# 
+# # Create structural topic model
+# topic_model <- stm::stm(dat_moral_numbers_strategies_dfm, K = best.k.stm.chgdet.justification.chosen, init.type = "Spectral")
+
+
+
+topic.model.stm_moral_numbers_strategies <- stm::stm (
+    documents = stm.input.prepDocuments_moral_numbers_strategies$documents,
+    vocab = stm.input.prepDocuments_moral_numbers_strategies$vocab,
+    K = best.k.stm.chgdet.justification.chosen,
+    # We could let the prevalence vary with the set size, but the effect turned out not to be significant
+    #prevalence =~ set.size, 
+    data = stm.input.prepDocuments_moral_numbers_strategies$meta, 
+    init.type = "Spectral") 
+```
+
+
+I next inspected the words most closely associated with each topic. STM provides four measures quantifying this association: 
+
+* The topic-word probability $\beta$
+* FREX. FREX is the weighted harmonic mean of the word’s rank in terms of exclusivity and frequency. (In searchK, the weight is  set to 0.7 here to favor exclusivity.)
+    - see ?semanticCoherence and ?exclusivity
+* Lift. Lift weights words by dividing by their frequency in other topics, therefore giving higher weight to words that appear less frequently in other topics. see Taddy (2013).
+* Score. Score divides the log frequency of the word in the topic by the log frequency of the word in other topics. 
+
+### Word-topic probability ($\beta$) and related measures
+
+```{r justifications-stm-show-words-associated-with-topics}
+
+# FREX
+# * FREX is the weighted harmonic mean of the word’s rank in terms of exclusivity and frequency. Weight is  set to 0.7 here to favor exclusivity.
+# * See ?semanticCoherence and ?exclusivity
+
+# Lift
+# *  Liftw eights words by dividing by their frequency in other topics, therefore giving higher weight to words that appear less frequently in other topics. see Taddy (2013).
+
+# score
+# score divides the log frequency of the word in the topic by the log frequency of the word in other topics. 
+
+# https://rdrr.io/cran/stm/man/calcfrex.html
+# https://rdrr.io/cran/stm/man/calclift.html
+
+
+    
+# Use labelTopics instead
+# summary (topic.model.stm_moral_numbers_strategies)
+
+stm::labelTopics (
+    model = topic.model.stm_moral_numbers_strategies, 
+    # Select topics
+    topics = NULL, 
+    # Desired number of words
+    n = 40, 
+    frexweight = 0.5) -> topic.labels.model.stm_moral_numbers_strategies
+
+
+topic.labels.model.stm_moral_numbers_strategies %>% 
+    labelTopics.to.data.frame %>% 
+    dplyr::select (Topic, Measure, str_c ("Term ", 1:5)) %>% 
+    mutate (Topic = str_c ("Topic ", Topic)) %>% 
+    filter (Measure %in% c ("Highest Probability", "FREX")) %>% 
+    kable.packed("Topic", 
+                 caption = "Top terms for the topics in terms of the highest term-per-topic probability ($\\beta/\\Phi$) and FREX, i.e. the weighted harmonic mean of the word’s rank in terms of exclusivity and frequency.",
+                 booktabs = TRUE) %>% 
+    kableExtra::kable_classic_2()
+    
+
+```
+
+
+As shown in Table \ref{tab:justifications-stm-show-words-associated-with-topics} and Figures \ref{fig:justifications-stm-plot-beta} and \ref{fig:justifications-stm-visualize-contents-in-single-topic}, Topic 1 reflected a strategy focusing on spatial locations on the screen. Topic 2 reflected a holistic strategy, whereby participants look at the entire configuration of colors and either try to notice or report a color change. Topic 3 has no dominant terms, but seems to reflect a generic memory strategy. The meaning of Topic 4 is somewhat unclear, but it seems to reflect a filtering strategy whereby participants focus on one color or location. As shown in Figure \ref{fig:justifications-stm-plot-topic-prevalence}, all for topics are fairly widespred across responses. 
+
+
+
+```{r justifications-stm-plot-beta, fig.cap = "Top terms with the highest topic-term probability ($\\beta/\\Phi$)"}
+# Beta: Contribution of word topic
+tidy(topic.model.stm_moral_numbers_strategies, 
+     matrix = "beta") %>% 
+    group_by(topic) %>%
+    # last argument: variable with respect to which ordering occurs
+    top_n(10, beta) %>%
+    ungroup() %>%
+    mutate(topic = paste0("Topic ", topic),
+           term = reorder_within(term, beta, topic)) %>%
+    ggplot(aes(term, beta, fill = as.factor(topic))) +
+    geom_col(alpha = 0.8, show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free_y") +
+    coord_flip() +
+    scale_x_reordered() +
+    labs(x = NULL, y = TeX ("$\\beta$"),
+         title = "Highest word probabilities for each topic",
+         subtitle = "Different words are associated with different topics")
+```
+
+
+```{r justifications-stm-visualize-contents-in-single-topic}
+
+# par(mfrow=c(2,2),  # for 2 row, 2 cols
+#     mar = rep(0,4))
+# stm::cloud(topic.model.stm_moral_numbers_strategies, 
+#            main = "xxx",
+#       topic = 1, scale = c(2, 0.25), colors = RColorBrewer::brewer.pal(8,"Dark2"))
+# stm::cloud(topic.model.stm_moral_numbers_strategies, 
+#       topic = 2, scale = c(2, 0.25))
+# stm::cloud(topic.model.stm_moral_numbers_strategies, 
+#       topic = 3, scale = c(2, 0.25))
+# stm::cloud(topic.model.stm_moral_numbers_strategies, 
+#       topic = 4, scale = c(2, 0.25))
+
+
+tidy(topic.model.stm_moral_numbers_strategies, 
+     matrix = "beta") %>% 
+    mutate (color = RColorBrewer::brewer.pal(8,"Dark2")[cut (beta, breaks  = 8, labels = FALSE)]) %>% 
+    group_by(topic) %>%
+    mutate(angle = 90 * sample(c(0, 1), n(), replace = TRUE, prob = c(100, 0))) %>% 
+    # last argument: variable with respect to which ordering occurs
+    top_n(40, beta) %>%
+    arrange (-beta) %>% 
+    ungroup() %>%
+    mutate(topic = paste0("Topic ", topic)) %>%
+    ggplot(aes(label = term, 
+               size = beta,
+               color = color,
+               angle = angle
+    )) +
+    ggwordcloud::geom_text_wordcloud(shape = "circle", eccentricity = 1, rm_outside = FALSE) +
+    scale_size_area(max_size = 8) +
+    #theme_minimal() + 
+    facet_wrap(~ topic, scale = "free") +
+    labs(title = "Highest word probabilities for each topic")
+
+```
+
+```{r justifications-stm-visualize-contents-across-two-topics, fig.cap = "Comparison of Topics 1 and 2 and 3 and 4. Unused"}
+par (mfcol = c(2,1),
+     mar = c(.5, 0, 0, 0))
+
+plot (topic.model.stm_moral_numbers_strategies, 
+     type = "perspectives", 
+     topics = c(1,2),
+     xlim = c(0,1))
+
+plot (topic.model.stm_moral_numbers_strategies, 
+     type = "perspectives", 
+     topics = c(1,3),
+     xlim = c(0,1)) 
+```
+
+```{r justifications-stm-visualize-relations-among-topics, fig.cap = "Correlations among topics. Unused"}
+
+plot (stm::topicCorr (topic.model.stm_moral_numbers_strategies))
+
+```
+
+### Topic document probabilities ($\gamma$) and related measures
+
+```{r justifications-stm-show-documents-associated-with-topics, fig.cap = "Quotes for the different topics.", fig.height = 14}
+
+stm::findThoughts (topic.model.stm_moral_numbers_strategies, 
+              # It would be nicer to have the complete text here before stop word removal etc
+              texts = dat_moral_numbers_strategies_cleaned.for.topic.models$strategies.cleaned[-stm.input.textProcessor_moral_numbers_strategies$docs.removed],
+              # Not sure what this does
+              topics = NULL,
+              # Number of docs to display
+              n = 5) -> topic.model.stm.moral_numbers_strategies_quotes
+
+map (topic.model.stm.moral_numbers_strategies_quotes$docs,
+     ~ ggplotify::as.ggplot ( 
+         function () {
+             #par (mar = c(0, 0, 0, 0))
+             stm::plotQuote(.x, 
+                            width = 60,
+                            text.cex = .5,
+                            main = NULL)
+         })) -> yyy
+
+
+
+ggpubr::ggarrange (
+    plotlist = yyy,
+    nrow = 2, ncol = 2,
+    labels = str_c ("Topic ", 1:4))
+    #common.legend = TRUE, legend="bottom",
+    #legend.grob = plot.circle.combined.within.recency.legend)
+
+
+```
+
+```{r justifications-stm-plot-topic-prevalence, fig.cap = "Topic prevalence. The terms shown are those with the highest FREX score. UNUSED", eval = FALSE}
+
+plot (topic.model.stm_moral_numbers_strategies, 
+      type = "summary",
+      topics = NULL,
+      topic.names = NULL,
+      n = 5, 
+      width = 60,
+      xlim = c(0, 1))
+
+```
+
+```{r justifications-stm-plot-gamma, fig.cap = "Topic-per-document distribution for STM ($\\gamma$). Numbers in parenthesis are documents with a $\\gamma$ value of at least .3."}
+# Gamma: Contribution of topic to document
+td_gamma <- tidy(topic.model.stm_moral_numbers_strategies, 
+                 # Internal name in STM: theta
+                 matrix = "gamma",                    
+                 document_names = stm.input.textProcessor_moral_numbers_strategies$meta$responseID)
+
+
+td_gamma_docs_per_topic <- 
+    td_gamma %>% 
+    filter (gamma > .3) %>% 
+    group_by(topic) %>% 
+    summarize (n.docs.per.topic = n()) %>% 
+    ungroup %>% 
+    mutate (label = paste0("Topic ", topic, " (N = ", n.docs.per.topic, ")")) %>% 
+    dplyr::select (-starts_with("n")) %>% 
+    deframe
+    
+
+td_gamma %>% 
+    group_by(topic) %>% 
+    mutate (gamma.m = mean (gamma)) %>% 
+    ungroup %>% 
+    ggplot(aes(gamma, fill = as.factor(topic))) +
+    geom_histogram(alpha = 0.8, show.legend = FALSE) +
+    geom_vline (aes(xintercept = gamma.m),col='red', size = 1, lty = 3)+
+    facet_wrap(~ topic, ncol = 2,
+               labeller = labeller (topic = td_gamma_docs_per_topic)) +
+    labs(title = "Distribution of document probabilities for each topic",
+         subtitle = "Each topic is associated with 10 participants",
+       y = "Number of stories", x = expression(gamma))
+
+```
+
+
+
+# Other packages 
+* https://cran.r-project.org/web/views/NaturalLanguageProcessing.html
+* textstem has lemmatize_words 
+    - https://cran.r-project.org/web/packages/textstem/README.html

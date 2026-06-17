@@ -1,0 +1,222 @@
+<experiment>
+  <scenario>
+    <label>desertAqueduct.moral</label>
+    <title>Aqueduct in the desert</title>
+    <text>
+      Settlements in the Burning Barren desert are supplied with water through a series of aqueducts.[br]
+      One day, the main supplies to the Sandharbor settlement and the Blackfield settlement have a leak but there is only one repair crew available. The inhabitants of both Sandharbor and Blackfield will die if nothing is done. However, the crew has two options:
+    </text>
+    <option1>
+      Switch the supply meant for the Midcross settlement to the Sandharbor settlement. This would kill the n_victims1 residents of Midcross but save the n_saved1 people in Sandharbor.
+    </option1>
+    <option2>
+      Switch the supply meant for the Dullspring settlement to the Blackfield settlement. This would kill the n_victims2 residents in Dullspring but save the n_saved2 people in Blackfield.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>trainBomb.moral</label>
+    <title>Bomb on the Train</title>
+    <text>
+      Intelligence services have detected two coordinated terrorist attacks using bombs on trains, one heading towards the Kaxraz station and one heading towards the Izzook station. The front cars are cargo cars, which is where the bomb is located. The rear cars contain passengers. Once the trains reach their respective destinations to deliver the cargo, the bombs will explode killing everybody in the station, but the rear cars will stick out of the station so the passengers will be fine. [br]
+      The intelligence services have one drone available which can be sent to bomb one of the trains, before it reaches its destination, at the cost of killing all the passengers. This leaves the intelligence agency two choices:
+    </text>
+    <option1>
+      Send a drone to bomb the train headed for Khaxraz. This would kill the n_victims1 passengers on the train but save the n_saved1 people at the station.
+    </option1>
+    <option2>
+      Send a drone to bomb the train headed for Izzook. This would kill the n_victims2 passengers on the train but save the n_saved2 people at the station.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>fumingHospital.moral</label>
+    <title>Fuming Hospital</title>
+    <text>
+      In a hospital complex with buildings of different sizes, there are deadly corrosive fumes rising through the central ventilation system due to an accident in one of the laboratories in the middle of the night. The corrosive fumes were found in two separate vents heading towards the Evergreen and Clearview buildings, respectively. If nothing is done, then the Evergreen and Clearview buildings will be exposed to the deadly fumes. These buildings house patients of the hospital complex. [br]
+      The control engineer can redirect one of the fumes by running to a junction in the ventilation system and opening and closing specific vents, but there is not enough time to redirect both fumes. This leaves the engineer with two options:
+    </text>
+    <option1>
+      Redirect the fumes heading towards the Evergreen building to the Harmony Grove building,. This would kill the n_victims1 patients in the Harmony Grove but save the n_saved1 patients in the Evergreen building.
+    </option1>
+    <option2>
+      Redirect the fumes heading towards the Clearview building to the Summer Stone building. This would kill the n_victims2 patients in the Summer Stone building but save the n_saved2 patients in the Clearview building.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>blitz.moral</label>
+    <title>Blitz</title>
+    <text>
+      Two enemy fighter planes are approaching in a night strike. The government received intelligence that the planes target the settlements of Namden and Wuwu. [br]
+      The electronic warfare division can hack the enemy guidance systems to redirect the attacks to another settlement. However, it has only one antenna powerful enough to interfere with the guidance system and can only redirect one of the attacks in time. This gives the electronic warfare division two options:
+    </text>
+    <option1>
+      Redirect the attack approaching the Namden settlement to the settlement of Ocrin. This will kill n_victims1 people in Ocrin but save n_saved1 people in Namden.
+    </option1>
+    <option2>
+      Redirect the attack approaching the Wuwu settlement to the settlement of Vrelda. This will kill n_victims2 people in Vrelda but save n_saved2 people in Wuwu.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>powerHospital.moral</label>
+    <title>Hopsital Power Outage</title>
+    <text>
+      During a city-wide power outage, the local hospital needs to rely on backup generators to keep patients on life support alive. The only electrical engineer on site receives a warning that the generators for the Spring Forest and East Valley buildings are overheating and will lose power in the next 5 minutes. The engineer has just enough time to run to a switching station to replace the failing generators with power destined to other buildings. This leaves the engineer with two options:
+    </text>
+    <option1>
+      Use the generator for the Highland building to keep the Spring Forest building powered. This would kill n_victims1 patients in the Highland building but save n_saved1 patients in the Spring Forest building.
+    </option1>
+    <option2>
+      Use the generator for the Hopedale building to keep the East Valley building powered. This would kill n_victims2 patients in the Hopedale building but save n_saved2 patients in the East Valley building.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>suppliesSpace.moral</label>
+    <title>Space Supplies</title>
+    <text>
+      In the year 3050, humans have colonized multiple planets. However, they still rely on oxygen tanks which are periodically shipped from Earth. [br]
+      One day, the transporters destined for the planets Phithitis and Reawei explode en route, leaving these planets without oxygen. If nothing is done, the populations of Phithitis and Reawei will die as a result. [br]
+      The planets Otroa and Hurilia have just received their oxygen shipments, but the shipments have not been distributed yet, and the transporters need extensive maintenance before their next mission. However, in a nearby space station, there is a fast transporter that could reach these planets in time to pick up their oxygen and ferry it to Phithitis or Reawei. This leaves the space agency with two options:
+    </text>
+    <option1>
+      Order the fast transporter to pick up the oxygen from Otrao and to ship it to Phithitis. This would kill the n_victims1 citizens on Otroa but will save the n_saved1 citizens on Phithitis.
+    </option1>
+    <option2>
+      Order the fast transporter to pick up the oxygen from Hurilia and to ship it to Reawei. This would kill the n_victims2 citizens on Hurilia but will save the n_saved2 citizens on Reawei.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>valleysFlooding.moral</label>
+    <title>Flooding Valleys</title>
+    <text>
+      Four towns are located in the valleys of the Whitgus mountains. During the spring snow melt, the valleys are protected from floods by a system of dams that are badly maintained. One day, the dams protecting the Leefside and Llyne valleys collapse. If nothing is done, then the Leefside and Llyne valleys will be flooded and the inhabitants will die.  The remaining dams have manually operated floodgates. The governor of the mountain district can airlift an operator to open the floodgates, which would redirect the water to other valleys. However, there is only one high altitude helicopter available, so only one dam can be reached in time. This leaves the governor with two options:
+    </text>
+    <option1>
+      Airlift the operator to redirect the flood heading towards Leefside Valley to Frostford Valley. This would kill n_victims1 people in the Frostford Valley but save n_saved1 people in the Leefside Valley.
+    </option1>
+    <option2>
+      Airlift the operator to redirect the flood heading towards Llyne Valley to Bleakburn Valley. This would kill n_victims2 people in the Bleakburn Valley but save n_saved2 people in the Llyne Valley.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>factoryBomb.moral</label>
+    <title>Bomb Disposal in a Factory</title>
+    <text>
+      One night during construction in a car factory complex, two unexploded bombs from a previous war are discovered in the Ivory and Astral buildings just as the night shift is about to end and the workers from the day shift are about to enter the factory complex. The construction accidentally started the timers of the bombs. If nothing is done, the bombs will explode in 10 min, when the factory is packed with the day shift workers. The only other option is to explode the bombs now when the night shift workers are still in the factory. However, there is only one demining squad available. This leaves the demining squad two options:
+    </text>
+    <option1>
+      Explode the bomb in the Ivory building. This would kill n_victims1 workers from the night shift but save n_saved1 workers from the day shift.
+    </option1>
+    <option2>
+      Explode the bomb in the Astral building. This would kill n_victims2 workers from the night shift, but save n_saved2 workers from the day shift.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>plagueZoklid.moral</label>
+    <title>Zoklid Plague</title>
+    <text>
+      While using drones to monitor the army of emperor Kheogezia conquering another country, an air force officer sees that the emperor has released two Zoklid swarms to attack two different settlements. [br]
+      Zoklids are dangerous insects. If nothing is done, the Zoklid swarms will reach the inhabited settlements of Onpahis and Nova Mistral respectively. The officer can send a drone to release pesticides over one of the swarms, though the quantity of pesticide needed will affect the area underneath which is occupied by another settlement. The people exposed to the pesticide will develop critical health problems and die. This leaves the officer with two options:
+    </text>
+    <option1>
+      Release the pesticides over the swarm headed for Onaphis. This would kill n_victims1 people in the settlement underneath but save the n_saved1 people in Onaphis.
+    </option1>
+    <option2>
+      Release the pesticides over the swarm headed for Nova Mistral. This would kill n_victims2 people in the settlement underneath but save the n_saved2 people Nova Mistal.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>sacrificeHuman.moral</label>
+    <title>Human Sacrifice</title>
+    <text>
+      For his imperial cult, the king of the Chirfiqa demands human sacrifices once a year. He typically burns two villages to the ground and kills all its residents, but if enough volunteers are sacrificed in the capital, a village is spared. This year, the villages Fiorn and Liory are chosen to provide the sacrifice. [br]
+      An intelligence officer who is abhorred by the prospect of burning down villages has detected a group of villagers from each village who have fled in an attempt to hide in the capital. Should they arrive at the capital they would survive. The officer can follow the tracks of the escaped villagers in order to detain them, however given the time constraints only one of the two groups can be detained. This leaves the officer with two options:
+    </text>
+    <option1>
+      Detain the villagers fleeing Fiorn. This would kill the n_victims1 escapees but save the n_saved1 residents of Fiorn.
+    </option1>
+    <option2>
+      Detain the villagers fleeing from Liory. This would kill the n_victims2 escapees but save the n_saved2 residents of Liory.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>treatmentPolicy.moral</label>
+    <title>Treatment Policy</title>
+    <text>
+      Hyena's Ears is a deadly disease that can be treated with the drug Abacavelam. Unfortunately, the diagnosis is unreliable, resulting in some healthy patients being misdiagnosed as having Hyena's Ears. Giving Abacavelam to healthy people kills them. [br]
+      The local health department has just learned that both the Bayview District and the Lakewood District have outbreaks of Hyena's Ears. However, the health department has only one mobile clinic that can deliver the Abacavelam in time. This leaves the health department with two options:
+    </text>
+    <option1>
+      Send the mobile clinic to provide Abacavelam to citizens of the Bayview District. This would kill n_victims1 misdiagnosed patients but save n_saved1 Hyena's Ears patients.
+    </option1>
+    <option2>
+      Send the mobile clinic to provide Abacavelam to citizens of the Lakewook District. This would kill n_victims2 misdiagnosed patients but save n_saved2 Hyena's Ears patients.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+  <scenario>
+    <label>forcedSiege.moral</label>
+    <title>Forced Siege</title>
+    <text>
+      While watching the army of Emperor Hyikra via drones conquer another country, the intelligence agency sees that he has forced the men to serve as soldiers in his army by taking their families hostage. These slave soldiers have no choice but to follow Hyikra's orders to save their families. Hyikra divides the slave soldiers into two armies. He orders the first army to burn down the settlement of Onaphis, while sending the second army to burn down the settlement of Kipwik. [br]
+      The intelligence agency has one drone at their disposal to drop a bomb on one of the marching armies of slave soldiers. This leaves the intelligence agency with two options:
+    </text>
+    <option1>
+      Send the drone to bomb the slave soldiers heading to Onaphis. This would kill n_victims1 slave soldiers but save n_saved1 people in Onaphis.
+    </option1>
+    <option2>
+      Send the drone to bomb the slave soldiers heading to Kipwik. This would kil n_victims2 slave soldiers but save n_saved2 people in Kipwik.
+    </option2>
+    <question>
+      If you were faced with this choice, would you choose option 1 or option 2?
+    </question>
+    <nchoices>6</nchoices>
+  </scenario>
+</experiment>
+<!--Comments:
+    Switched the format of the choice to be as follow:
+    Action sentence. Negative consequence, follow by the positive consequence.
+    For example:
+    Redirect the fumes heading towards the Evergreen building to the Harmony Grove building. This would kill the n_victims1 patients in the Evergreen building but save the n_saved1 patients in the Evergreen building.
+    When phrasing the options, should I said "This will kill n_victims people" or "This would kill n_victims people"?-->

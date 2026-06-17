@@ -1,0 +1,44 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[0] Config.pm:331> INFO - Logfile is 'moral_numbers.blg'
+[41] biber-darwin:342> INFO - === Fri May  8, 2026, 17:49:40
+[52] Biber.pm:421> INFO - Reading 'moral_numbers.bcf'
+[125] Biber.pm:1002> INFO - Found 94 citekeys in bib section 0
+[138] Biber.pm:4487> INFO - Processing section 0
+[145] Biber.pm:4678> INFO - Looking for bibtex file '/Users/endress/ansgar.bib' for section 0
+[339] bibtex.pm:1713> INFO - LaTeX decoding ...
+[4206] bibtex.pm:1519> INFO - Found BibTeX data source '/Users/endress/ansgar.bib'
+[4767] Biber.pm:4678> INFO - Looking for bibtex file 'r_packages.bib' for section 0
+[4768] bibtex.pm:1713> INFO - LaTeX decoding ...
+[4774] bibtex.pm:1519> INFO - Found BibTeX data source 'r_packages.bib'
+[4919] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[4919] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[4919] Biber.pm:4307> INFO - Sorting list 'apa/apasortcite//global/global/global' of type 'entry' with template 'apa' and locale 'en-US'
+[4919] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
+[5050] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[5050] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[5050] Biber.pm:4307> INFO - Sorting list 'apa/global//global/global/global' of type 'entry' with template 'apa' and locale 'en-US'
+[5050] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
+[5117] bbl.pm:676> INFO - Writing 'moral_numbers.bbl' with encoding 'UTF-8'
+[5191] bbl.pm:779> INFO - Output to moral_numbers.bbl
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 1258, warning: 1 characters of junk seen at toplevel
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 13019, warning: 1 characters of junk seen at toplevel
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 16864, warning: 1 characters of junk seen at toplevel
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 28040, warning: undefined macro "focal"
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 28040, warning: undefined macro "colors"
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 28041, warning: undefined macro "codable"
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 31951, warning: 1 characters of junk seen at toplevel
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 36801, warning: 1 characters of junk seen at toplevel
+[5191] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 38663, warning: undefined macro "verbatim"
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 40225, warning: undefined macro "k0005"
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 41903, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 43279, warning: possible runaway string started at line 43275
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 45229, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 47330, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 48397, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 60349, warning: undefined macro "filling"
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 60349, warning: undefined macro "in"
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 60929, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 67334, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 67347, warning: 1 characters of junk seen at toplevel
+[5192] Biber.pm:132> WARN - BibTeX subsystem: /var/folders/f2/g01k87bx59n554trw64kvhnr0000gn/T/biber_tmp_7072/96a3105446c6051955a50015c35085a3_18673.utf8, line 91045, warning: possible runaway string started at line 90950
+[5192] Biber.pm:134> INFO - WARNINGS: 21

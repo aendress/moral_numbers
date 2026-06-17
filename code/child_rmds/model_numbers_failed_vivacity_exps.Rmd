@@ -1,0 +1,266 @@
+Several attempts to increase the salience of victim deaths were unsuccessful. In Experiment F5, dilemmas included an additional sentence intended to help participants vividly imagine the victims’ deaths; in Experiment F6, this sentence was presented in bold face. However, since both victims and beneficiaries died from the same causes, the manipulation failed. In Experiment F7, we introduced qualitatively different causes of death, but participants rated both as similarly severe.
+
+#### Experiment F5: Replication of Experiment 1b with neutral and vivid choices 
+
+
+In Experiment F5, we change the scenarios more salient by making the victims more salient. In addition, we did added 14 rather than 10 number conditions. Specifically, in the vivid condition, we added a sentence to the neutral scenario to make the death of the victims more salient:
+
+>  Settlements in the Burning Barren desert are supplied with water through a series of aqueducts. You are the control engineer in charge of these aqueducts.
+> The main supply to the Sandharbor settlement has a leak. The inhabitants will die if nothing is done. However, you can remotely switch the supply to the Midcross settlement for Sandharbor, which would kill the inhabitants of Midcross.
+> *Before you decide, picture the painful death from dehydration the n_victims inhabitants of Midcross would face due to your decision, a death that can take up to a week.*
+
+However, given that both the victims and the beneficiaries died from the same cause, the manipulation was unlikely to be effective, and wasn't.
+
+In Experiment F5b, we added more scenarios in the asymptotic phase of the curve; additionally, we printed the sentences making the victims more salient in bold face.
+
+
+
+`r clearpage()`
+
+##### Fits
+
+###### Bootstrap fits
+
+```{r exp5-fit-bootstrap}
+l.exp5.Z.vivid <- dat.moral.numbers.bootstrap.2param.summary %>%
+    dplyr::filter(experimentID == "exp5", blocks == "all") %>%
+    dplyr::ungroup() %>%
+    make.Z.value.against.control(group = vivacity, controlCond = "neutral")
+
+l.exp5b.Z.vivid <- dat.moral.numbers.bootstrap.2param.summary %>%
+    dplyr::filter(experimentID == "exp5b", blocks == "all") %>%
+    dplyr::ungroup() %>%
+    make.Z.value.against.control(group = vivacity, controlCond = "neutral")
+
+l.exp5ab.Z.vivid <- dat.moral.numbers.bootstrap.2param.summary %>%
+    dplyr::filter(experimentID == "exp5ab", blocks == "first") %>%
+    dplyr::ungroup() %>%
+    make.Z.value.against.control(group = vivacity, controlCond = "neutral")
+```
+
+We used `r N_BOOTSTRAP` bootstrap samples to estimate the *w* and *a* parameters in Experiment 5 (see Table \ref{tab:exp5ab6-bootstrap-fits-print}). Relative to the sampling distribution in the moral condition, the estimates in the vivid condition had *Z* values of `r knitr::combine_words(l.exp5.Z.vivid)`, respectively, in Experiment F5, and *Z* values of `r knitr::combine_words(l.exp5b.Z.vivid)` in Experiment F5b. Combining both experiments yields *Z* values of `r knitr::combine_words(l.exp5ab.Z.vivid)`
+
+`r clearpage()`
+
+#### Experiment F6: Replication of Experiment 1b with neutral and vivid choices (2)
+
+We again pit vivid against neutral versions of the experiment. Compared to Experiment F5, in Experiment F6,
+
+-   The neutral scenarios are presented in 3rd person voice, while the vivid scenarios are 1st person scenarios.
+-   The neutral versions contain sentences to make the victims more salient. These sentences are in bold face.
+-   The neutral version uses questions of the type "Would it be morally acceptable to..." while the vivid version uses questions of the type "Is it morally acceptable to..."
+
+In addition to these changes, we improved some of the scenarios: \* The "Human Sacrifice" scenario was rewritten to make clearer that those who are sacrificed would not die in the absence of an intervention. \* The "Train Bomb" scenario was slightly shortened. \* The "Toxins in Water" was slightly shortened. \* The "Fuming Hospital" scenario was streamlined. \* The "Zoklid Plague" scenario was slightly clarified. \* The "Hospital Power Outage" was streamlined.
+
+
+
+```{r exp5ab6-fit-plot, fig.cap = "Fit to a psychometric function for between-subject averages for Exp 5 (both blocks) and Exp 5b combined (1 block onlye). (Left) and Experiment 6 (Right, both blocks)"}
+list(
+    dplyr::bind_rows(
+        dat.moral.numbers %>%
+            dplyr::filter(experimentID == "exp5"),
+        dat.moral.numbers %>%
+            dplyr::filter(experimentID == "exp5b")
+    ) %>%
+        dplyr::mutate(experimentID = stringr::str_replace(experimentID, "exp5.*$", "exp5ab")) %>%
+        # dplyr::filter(first.scenario.type == vivacity) %>%
+        create.fit.plot(
+            dat.fit = get_dat_fit_for_plot(experimentID == "exp5ab", blocks == "all",
+                                           fit_type = FIT_FOR_FIGURE, n_fit_params = 2
+            ),
+            group = vivacity
+        ),
+    dat.moral.numbers %>%
+        dplyr::filter(experimentID == "exp6") %>%
+        create.fit.plot(
+            dat.fit = get_dat_fit_for_plot(experimentID == "exp6", blocks == "all",
+                                           fit_type = FIT_FOR_FIGURE, n_fit_params = 2
+            ),
+            group = vivacity
+        )
+) %>%
+    ggpubr::ggarrange(
+        plotlist = .,
+        ncol = 2, nrow = 1, labels = "auto",
+        common.legend = TRUE
+    )
+```
+
+`r clearpage()`
+
+##### Fits
+
+We fit the one and two parameter model to the data for Experiment F6.
+
+
+###### Bootstrap fits
+
+```{r exp6-fit-bootstrap}
+# Z values for the w and a parameters for the vivid version with respect to the neutral version
+
+l.exp6.Z.vivid <- dat.moral.numbers.bootstrap.2param.summary %>%
+    dplyr::filter(experimentID == "exp6", blocks == "all") %>%
+    dplyr::ungroup() %>%
+    make.Z.value.against.control(group = vivacity, controlCond = "neutral")
+```
+
+We used `r N_BOOTSTRAP` bootstrap samples to estimate the *w* and *a* parameters in Experiment 6 (see Table \ref{tab:exp5ab6-bootstrap-fits-print}). Relative to the sampling distribution in the moral condition, the estimates in the vivid condition had *Z* values of `r knitr::combine_words(sapply(l.exp6.Z.vivid, round, 3))`, respectively, in Experiment F6.
+
+```{r exp5ab6-bootstrap-fits-print}
+dplyr::bind_rows(
+    # Experiment F5: combined exp5 + exp5b, first block only
+    dat.moral.numbers.bootstrap.2param.summary %>%
+        dplyr::filter(experimentID == "exp5ab", blocks == "first") %>%
+        dplyr::ungroup() %>%
+        add_z_relative_to_baseline(vivacity) %>%
+        dplyr::mutate(experimentID = "F5"),
+    # Experiment F6: both blocks
+    dat.moral.numbers.bootstrap.2param.summary %>%
+        dplyr::filter(experimentID == "exp6", blocks == "all") %>%
+        dplyr::ungroup() %>%
+        add_z_relative_to_baseline(vivacity) %>%
+        dplyr::mutate(experimentID = "F6")
+) %>%
+    dplyr::mutate(cond = vivacity) %>%
+    dplyr::select(
+        experimentID, cond,
+        dplyr::ends_with("_N"),
+        dplyr::ends_with("_M"),
+        dplyr::ends_with("_mc_error"),
+        dplyr::matches("_pi\\."),
+        dplyr::matches("_Z(_p)*$")
+    ) %>%
+    dplyr::select(-dplyr::any_of("a_N")) %>%
+    dplyr::mutate(dplyr::across(dplyr::ends_with("_Z_p"), fix_zero_p_values)) %>%
+    knitr::kable(
+        caption = "Two-parameter bootstrap fits for Experiments F5 (first block only) and F6 (both blocks). Bootstrap mean, MC error, 95\\% percentile interval, Z score vs.\\ 1, and associated $p$ value are shown for both the $w$ and $\\alpha$ parameters.",
+        col.names = c(
+            "Experiment", "Condition", "N",
+            rep(c(" ", " ", "lower", "upper", " ", " "), 2)
+        ),
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::add_header_above(c(" " = 3, "M" = 1, "MC Error" = 1, "95% PI" = 2, "Z" = 1, "p" = 1, "M" = 1, "MC Error" = 1, "95% PI" = 2, "Z" = 1, "p" = 1), bold = FALSE) %>%
+    kableExtra::add_header_above(c(" " = 3, "$w$" = 6, "$\\\\alpha$" = 6), bold = FALSE, align = "c", escape = FALSE) %>%
+    kableExtra::kable_classic_2()
+```
+
+#### Experiment F7: Replication of Experiment 1b with neutral and vivid choices and incommensurate scenarios
+
+We again pit vivid against neutral versions of the experiment. In Experiment F7,
+
+-   The neutral scenarios are presented in 3rd person voice, while the vivid scenarios are 1st person scenarios.
+-   The neutral versions contain sentences to make the victims more salient. These sentences are in bold face.
+-   In the vivid version, the deaths of the victims and the saved are incommensurate; in the neutral version, they are of the same kind.
+-   To make sure that the vividness manipulation worked, we asked participants to rate the horrificness of the deaths of the victims and saved
+-   We used a different slightly different set of scenarios (see \@ref(app:scenarios))
+-   We included an actual attention check
+
+* However, it turned out that a considerable proportion of participants did not consider the deaths of the victims as more severe than the deaths of the beneficiaries. As a result, the experiment was abandoned. 
+
+```{r exp7-check-attention-check}
+dat.moral.numbers.exp7.failed.attention.check <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp7") %>%
+    dplyr::select(experimentID, ResponseId, passed.attention.check) %>%
+    dplyr::distinct() %>%
+    dplyr::filter(!passed.attention.check)
+
+if (nrow(dat.moral.numbers.exp7.failed.attention.check) > 0) {
+    dat.moral.numbers <- dplyr::anti_join(
+        dat.moral.numbers,
+        dat.moral.numbers.exp7.failed.attention.check,
+        by = c("experimentID", "ResponseId")
+    )
+}
+```
+
+In Experiment F7, `r nrow(dat.moral.numbers.failed.attention.check %>% dplyr::filter(experimentID == "exp7"))` participants were excluded because they failed the attention check.
+
+##### Severity ratings
+
+```{r exp7-calculate-severity-differences}
+# Difference between severity of victim and saved deaths collapsed across scenarios
+dat.moral.numbers.exp7.severity.d.m.by.subj <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp7") %>%
+    dplyr::filter(stringr::str_detect(question, "severity")) %>%
+    tidyr::pivot_wider(
+        id_cols = c(experimentID, first.scenario.type, ResponseId, scenarioID, vivacity),
+        names_from = question,
+        values_from = rating.raw
+    ) %>%
+    dplyr::mutate(d_severity = make_diff_score(severity_victims, severity_saved)) %>%
+    dplyr::group_by(experimentID, first.scenario.type, ResponseId, vivacity) %>%
+    dplyr::summarize(d_severity = mean(d_severity))
+
+# Difference between severity of victim and saved deaths separately for each scenario
+dat.moral.numbers.exp7.severity.d.m.by.scenarios <- dat.moral.numbers %>%
+    dplyr::filter(experimentID == "exp7") %>%
+    dplyr::filter(stringr::str_detect(question, "severity")) %>%
+    tidyr::pivot_wider(
+        id_cols = c(experimentID, first.scenario.type, ResponseId, scenarioID, vivacity),
+        names_from = question,
+        values_from = rating.raw
+    ) %>%
+    dplyr::mutate(d_severity = make_diff_score(severity_victims, severity_saved)) %>%
+    dplyr::group_by(experimentID, scenarioID, vivacity) %>%
+    dplyr::summarize(d_severity = mean(d_severity))
+```
+
+```{r exp7-severity-plot-by-subjects-scenarios-raw, fig.cap = "Horrificness ratings in Experiment F7 for the deaths of the victims and the saved, respectively. (a) Averages by participants. (b) Averages by scenarios."}
+ggpubr::ggarrange(
+    dat.moral.numbers.exp7.severity.d.m.by.subj %>%
+        #format_exp_info(wrap = TRUE) %>%
+        ggplot2::ggplot(ggplot2::aes(x = vivacity, y = d_severity)) %>%
+        violin_plot_template(yintercept = 0) +
+        ggplot2::scale_y_continuous(TeX("Horrificness $\\frac{Victims - Saved}{Victims + Saved}$")) + # , limits = 0:1) +
+        ggplot2::labs(
+            x = "Vivacity",
+            title = "By participants"
+        ),
+    dat.moral.numbers.exp7.severity.d.m.by.scenarios %>%
+        #format_exp_info(wrap = TRUE) %>%
+        # dplyr::mutate(experimentID = stringr::str_to_sentence(experimentID)) %>%
+        # dplyr::mutate(experimentID = stringr::str_replace(experimentID, "victims", "harm")) %>%
+        # dplyr::mutate(vivacity = stringr::str_to_title(vivacity)) %>%
+        ggplot2::ggplot(ggplot2::aes(x = vivacity, y = d_severity)) %>%
+        violin_plot_template(yintercept = 0) +
+        ggplot2::scale_y_continuous(TeX("Horrificness $\\frac{Victims - Saved}{Victims + Saved}$")) + # , limits = 0:1) +
+        ggplot2::labs(
+            x = "Vivacity",
+            title = "By scenarios"
+        ) +
+        ggplot2::geom_label(ggplot2::aes(label = scenarioID)),
+    ncol = 2, nrow = 1, labels = "auto",
+    common.legend = TRUE
+)
+```
+
+Our critical manipulation involved the scenarios where the death of the victims was presented in vivid terms and scenarios where the death of the victims was described in the same neutral terms as that of the saved persons. To assess whether this manipulation was successful, we asked if the death of the victims was rated as more horrific than that of the saved ones by calculating the difference score $\frac{\text{horrificness}_{victims} - \text{horrificness}_{saved}}{\text{horrificness}_{victims} + \text{horrificness}_{saved}}$. As shown in Figure \ref{fig:exp7-severity-plot-by-subjects-scenarios-raw}, the difference score was higher in the vivid condition than in the neutral condition.
+
+```{r exp7-calculate-severity-proportion-of-positive-differences-per-subject}
+# Proportion of scenarios where the severity of victim deaths is greater than that of saved deaths separately
+# for vivid scenarios only
+dat.moral.numbers.exp7.severity.p.victims.greater.saved <- dat.moral.numbers %>%
+    #dplyr::filter(experimentID == "exp7") %>%
+    dplyr::filter(vivacity == "vivid") %>%
+    dplyr::filter(stringr::str_detect(question, "severity")) %>%
+    tidyr::pivot_wider(
+        id_cols = c(experimentID, first.scenario.type, ResponseId, scenarioID),
+        names_from = c(question),
+        values_from = rating.raw
+    ) %>%
+    dplyr::mutate(d_severity_sign = factor(sign(severity_victims - severity_saved))) %>%
+    dplyr::count(experimentID, first.scenario.type, ResponseId, d_severity_sign, .drop = FALSE) %>%
+    dplyr::group_by(experimentID, first.scenario.type, ResponseId) %>%
+    dplyr::mutate(freq = n / sum(n))
+```
+
+We next focused on the vivid condition, and asked to what extent participants consider the victim's deaths as more severe than those of the saved people. For each participant and scenario, we calculated the sign of difference in horrific ratings for victim vs. saved death. For each participant, we then calculated the proportions of positive, negative or zero differences. There were only few participants with high proportions of positive difference. Further, many participants predominantly rated the deaths of the victims and those of the saved people as equally horrific.
