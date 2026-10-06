@@ -1,0 +1,2281 @@
+---
+title: "Moral decision making in the menstrual cycle"
+author: |
+    | Ansgar D. Endress
+    | City, University of London 
+bibliography:
+- /Users/endress/ansgar.bib
+#csl: /Users/endress/csl_files/science.csl
+csl: /Users/endress/csl_files/apacite.csl
+output:
+  pdf_document:
+    citation_package: natbib
+    includes:
+#      in_header: ansgar.sty
+    toc: true
+    number_sections: true
+    keep_tex: true
+    fig_caption: true
+    highlight: tango    
+  html_notebook:
+    theme: spacelab      
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango    
+  html_document:
+    theme: spacelab      
+    number_sections: yes
+    df_print: paged
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango    
+keywords: Keywords
+abstract: ""
+---
+
+```{r deal-with-environment, echo = FALSE, include = FALSE, eval = FALSE}
+# https://rstudio.github.io/renv/
+# renv::init(project = "../")
+#renv::snapshot()
+# renv::restore()
+
+```
+
+```{r extract-code, eval = FALSE}
+# Extract code to run on the command line, which is much faster than in the GUI
+
+knitr::purl("moral_numbers.Rmd", output = "moral_numbers_extracted.R")
+
+```
+
+```{r setup, echo = FALSE, include = FALSE}
+rm(list = ls())
+
+options(digits = 3,
+        knitr.kable.NA = '')
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE, 
+    # Print warnings to console rather than the output file
+    warning = FALSE,  
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+
+```
+
+```{r set-parameters, echo = FALSE, include=FALSE}
+
+DATA.DIR <- "../data/"
+OUTPUT.DIR <- "output/"
+
+TRIALS.PER.EXP <- c(exp1 = 12,
+                    exp1b = 10,
+                    exp2a = 24,
+                    exp2b = 24,
+                    exp2c = 24,
+                    exp2d = 24,
+                    exp3 = 12,
+                    exp3b = 12,
+                    exp3c = 12,
+                    exp3d = 12,
+                    exp4 = 2 * 10,
+                    exp5 = 2 * 14,
+                    exp5b = 1 * 14,
+                    exp6 = 2 * 14,
+                    exp7 = 72,
+                    # 2 blocks X 12 trials X 2 questions
+                    exp8 = 2 * 12 * 2,
+                    # 1 blocks X 10 trials X 2 questions
+                    exp9a = 1 * 10 * 2,
+                    # 2 blocks X 12 trials X 2 questions
+                    exp10 = 2 * 12 * 2,
+                    exp99 = 12)
+
+REMOVE.INCOMPLETE.SUBJ <- TRUE
+REMOVE.CONSTANT.SUBJ <- FALSE
+# Remove participants with completion times differing by more than 3SD from the median
+REMOVE.FAST.SLOW.SUBJ <- TRUE
+# We run only the binary GLMMS
+RUN.RAW.GLMMS <- FALSE
+
+# Recalculate even the time consuming stuff
+# If FALSE, things like bootstrap fits are read from a file 
+RECALCULATE.EVERYTHING <- FALSE
+
+# Maximal ratio on the x axis for plots with fits
+# MAX.RATIO.FOR.ZOOM <- Inf
+MAX.RATIO.FOR.ZOOM <- 100
+
+# Analyze ratios only up to this threshold
+#MAX.RATIO.FOR.ANALYSIS <- Inf
+MAX.RATIO.FOR.ANALYSIS <- 100
+
+
+N.BOOTSTRAP <- 1000
+
+# Which phase categorization do we use?
+MENSTRUAL.PHASE.COLUMN <- c(
+    "menses.current.phase.4phases",
+    "menses.current.phase.2phases",
+    "menses.current.phase.2phases.restricted")[3]
+
+```
+
+
+```{r load-libraries, include = FALSE, message = TRUE, warning = TRUE}
+
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+librarian::shelf(
+    knitr,
+    glue,
+    kableExtra,
+    gridExtra,
+    mgsub, # For mgsub, i.e., multiple parallel substitutions
+    tidytext, # For reorder_within
+    cowplot,
+    ggpubr,
+    ggthemes,
+    RColorBrewer,
+    xlsx,
+    MuMIn, # For AICc
+    broom,
+    broom.mixed,
+    tictoc,
+    future,
+    "furrr", # Parallel version of purrr
+    XML,
+    xml2,
+    janitor,
+    assertthat,
+    Hmisc,
+    bootstrap,
+    caret,
+    purrr,
+    rJava,
+    rcompanion,
+    rlang,
+    rstatix,
+    stringr,
+    ggcorrplot,
+    #renv,
+    #lmtest, 
+    #performance,
+    #nonnest2,
+    #data.table
+    #patchwork # See https://ggplot2-book.org/arranging-plots.html
+)
+
+# Add environment
+# https://rstudio.github.io/renv/
+
+future::plan(multisession, workers = future::availableCores() - 1)
+
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
+# Set default theme
+#theme_set(theme_linedraw(14))
+#theme_set(cowplot::theme_minimal_grid(14))
+theme_set(ggthemes::theme_clean(14))
+theme_update(legend.position = "bottom",
+             legend.justification = "center")
+
+# # Palettes form https://www.datanovia.com/en/blog/top-r-color-palettes-to-know-for-great-data-visualization/
+# # display.brewer.all(colorblindFriendly = TRUE)
+# #display.brewer.pal(n = 3, name = 'Set2')
+# v.violin.palette <- RColorBrewer::brewer.pal(n = 3, name = "Set2")
+
+```
+
+```{r helper-functions}
+
+process.glmm.table %<a-% {
+    . %>% 
+        rownames_to_column("Effect") %>%
+        add_column(CI = NA, .before = "ci.lower") %>%
+        dplyr::mutate_at (c("ci.lower", "ci.upper"), 
+                   function(X) signif (X, 3)) %>%
+        dplyr::mutate(CI = paste (ci.lower, ci.upper, 
+                            sep = ", ")) %>% 
+        dplyr::select(-c("ci.lower", "ci.upper")) 
+}
+
+
+
+get.number.ratio <- function(rrr = ., return.factor = TRUE) {
+ 
+    rrr.str <- dplyr::case_when(
+        # Whole numbers 
+        rrr == as.integer(rrr) ~ paste0(rrr, ":1"),
+        rrr == 3/2 ~ "3:2",
+        rrr == 4/3 ~ "4:3",
+        TRUE ~ NA_character_
+    )
+       
+
+    if(return.factor){
+        rrr.str <- factor(rrr.str)
+    }
+    
+    rrr.str
+    
+}
+  
+summarize.first.by.subj.then.by.overall %<a-% { 
+    . %>% 
+        group_by(ResponseId, n.saved, n.victims, number.range, number.ratio) %>% 
+        summarize_at (vars(contains("rating")),
+                      mean) %>% 
+        group_by(n.saved, n.victims, number.range, number.ratio) %>% 
+        summarize_at (vars(contains("rating")),
+                      list(~length(.), ~mean(.), ~se(.))) %>% 
+        dplyr::select(!matches ("rating"),
+                       contains ("raw"),
+                       contains ("bin")) %>% 
+        dplyr::select(-rating.bin_length) %>% 
+        dplyr::rename("N" = "rating.raw_length") 
+}
+
+
+get.rating.mean.se <- function(dat = .){
+    
+    .df.m <- dat %>% 
+        summarize_at(vars(contains("rating")), mean) %>% 
+        gather(rating.type, rating.m, contains("rating"))
+
+        .df.se <- dat %>% 
+        summarize_at(vars(contains("rating")), se) %>% 
+        gather(rating.type, rating.se, contains("rating"))
+
+    dplyr::left_join(.df.m, .df.se)
+}
+
+
+separate.multiple.field.value.pairs <- function(dat = ., col = condition.name, field.sep = "\\.", key.sep = ":"){
+    
+    col <- dplyr::enquo(col)
+    
+    v.new.col.names <-  dat %>% 
+        pull (!!col) %>% 
+        str_split(field.sep, simplify = TRUE) %>% 
+        as.data.frame  %>% 
+        dplyr::mutate(across(everything (), ~ str_remove(.x, paste0(key.sep, ".*$")))) %>% 
+        distinct %>% 
+        as.list() %>% 
+        unlist 
+    
+    dat %>%
+        dplyr::mutate(!!col := purrr::map(!!col,
+                                    ~ str_split(.x, field.sep, simplify = TRUE) %>% 
+                                        as.data.frame  %>% 
+                                        dplyr::mutate(across(everything (), ~ str_remove(.x, paste0("^.*", key.sep)))) %>% 
+                                        set_names (v.new.col.names))) %>% 
+        tidyr::unnest(!!col) 
+
+    
+    
+    
+}            
+
+
+
+convert.dates.and.calculate.duration %<a-% {
+    . %>% 
+        dplyr::mutate(across(dplyr::ends_with("Date"), 
+                         ~ as.POSIXct(.x, tz = "GMT", format = "%m/%d/%Y %H:%M"))) %>% 
+        dplyr::mutate(duration = difftime (endDate,
+                                           startDate,
+                                           units = "mins")) 
+}
+
+make.Z.value.against.control <- function(dat = ., group = decisionType, controlCond = "moral", return.list = TRUE){
+    
+    group <- enquo(group)
+    
+    dat <- dat %>% 
+        dplyr::ungroup()
+    
+    if(nrow(dat) != 2){
+        stop("There are more than two conditions, double check your selection")
+    }
+    
+    controlRow <- which((dat %>%
+                             dplyr::pull(!!group)) %in% c(controlCond))
+    
+    
+    # If the control condition is the second row, keep the order
+    # If it's in the first row, switch the order
+    row.order <- cyclic.shift(1:2, 2 - controlRow)
+
+    dat <- dat[row.order,]
+    
+    dat.means <- dat %>% 
+        dplyr::summarize(across(where(is.numeric), ~ -diff(.x))) %>% 
+        dplyr::select(ends_with("_M")) %>% 
+        dplyr::rename_all(~ str_remove(.x, "_M$")) 
+    
+    dat.SDs <- dat %>% 
+        dplyr::filter(!!group == controlCond) %>% 
+        dplyr::select(ends_with("_SD")) %>% 
+        dplyr::rename_all(~ str_remove(.x, "_SD"))
+    
+    if(!identical(
+        names(dat.means),
+        names(dat.SDs))){
+        stop("Columns for means and SD's don't match.")
+    }
+    
+    if(return.list){
+        
+        (dat.means / dat.SDs) %>% 
+            as.vector()
+        
+    } else {
+        
+        dat.means / dat.SDs
+        
+    }
+}
+
+
+```
+
+```{r helper-functions-model-definition}
+discriminability.fnc <- function(w, n1, n2, ratio = NULL, a = NULL){
+    
+    if (!is.null (ratio)) {
+        
+        n1 <- ratio 
+        n2 <- rep (1, length (ratio))
+    }
+    
+    if (any (n1 < n2)){
+        stop ("n1 must be greater than n2.")
+    }
+
+    
+    # a is the relative weight of n2 vs. n1
+    if (!is.null (a)){
+        if (min(a) > 1) {
+            # Scale n2, but don't make it greater than n1
+            
+            n2 <- pmin (n1, n2 * a)
+            
+        } else {
+            # Scale n1
+            # Scaling n1 with 1/a is equivalent to scaling
+            # n2 with a
+            
+            n1 <- n1 / a
+        }
+        
+    }
+    
+    # This is the fit according to Pica et al. (2004) and Halberda et al. (2008). It gives the estimation uncertainty.
+    # Their equation has a factor of .5 before erfc, but we need to multiply pnorm (..., lower.tail = FALSE) with 2 as it reflects only 1 tail.
+    
+    # Similarly from ?pnorm
+    # erfc <- function(x) 2 * pnorm(x * sqrt(2), lower = FALSE
+
+# This is the non-simplified version            
+    # .estimation.uncertainty <- 1 - (2 * .5) * pnorm(
+    #     sqrt(2) * (n1 - n2) / 
+    #         (sqrt (2) * w * sqrt (n1^2 + n2^2)),
+    #     lower.tail = FALSE)
+# Canceling redundant factors
+    .estimation.uncertainty <- 1 - pnorm(
+        (n1 - n2) / 
+            (w * sqrt (n1^2 + n2^2)),
+        lower.tail = FALSE)
+    
+        
+    return (.estimation.uncertainty)
+}
+
+acceptability.fnc <- function(w, n1, n2, ratio = NULL, a = NULL){
+    
+    .estimation.uncertainty <- discriminability.fnc (
+        w = w, n1 = n1, n2 = n2, ratio = ratio, a = a)
+    
+    # Convert estimation uncertainty to surprisal
+    .surprisal <- -log2(.estimation.uncertainty)
+    
+    # Return the complement of surprisal as a measure of 
+    # Uncertainty
+    1 - .surprisal
+    
+}
+
+generate.bootstrap.samples <- function(dat = ., subj.col = ResponseId, n.samples = 1000){
+    
+    subj.col <- dplyr::enquo(subj.col)
+    
+    furrr::future_imap(1:n.samples,
+                       ~ dat %>% 
+                           dplyr::group_by(ResponseId) %>% 
+                           dplyr::group_nest() %>% 
+                           dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                           tidyr::unnest(cols = c(data)),
+                       .options = furrr_options(seed = TRUE))
+}
+
+# Boot library is annoying for grouped data
+bootstrap.weber.ratio <- function(dat = ., fit.a = FALSE, fit.w = TRUE, start.w = .6, start.a = 1, w.chosen = NULL){
+    
+    
+    if ((!fit.a) & (fit.w)){
+        # Fit w only
+        tryCatch(
+            nls(rating.bin ~ acceptability.fnc (w, 
+                                                n.saved, n.victims),
+                data = dat %>% 
+                    dplyr::group_by(ResponseId) %>% 
+                    dplyr::group_nest() %>% 
+                    dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                    tidyr::unnest(cols = c(data)) %>% 
+                    dplyr::group_by(n.saved, n.victims) %>% 
+                    dplyr::summarize(rating.bin = mean(rating.bin),
+                                     .grpoups = "drop"),
+                start = list(w = start.w)) %>% 
+                coef() %>% 
+                t() %>% 
+                data.frame,
+            error = function(e) data.frame (w = NA))
+        
+    } else if ((fit.a) & (fit.w)){
+        # Fit a and w
+        tryCatch(
+            nls(rating.bin ~ acceptability.fnc (w,
+                                                n.saved, n.victims,
+                                                a = a),
+                data = dat %>% 
+                    dplyr::group_by(ResponseId) %>% 
+                    dplyr::group_nest() %>% 
+                    dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                    tidyr::unnest(cols = c(data)) %>% 
+                    dplyr::group_by(n.saved, n.victims) %>% 
+                    dplyr::summarize(rating.bin = mean(rating.bin),
+                                     .grpoups = "drop"),
+                start = list(w = start.w, a = start.a)) %>%
+                coef() %>%
+                t() %>%
+                data.frame,
+            error = function(e) data.frame (w = NA, a = NA))
+        
+    } else if ((fit.a) & (!fit.w)){
+        # Fit a and set w to w.chosen
+        
+        if(is.null(w.chosen)){
+            stop("w.chosen must be set if fit.a is TRUE and fit.w is FALSE.")
+        }
+        
+        tryCatch(
+            nls(rating.bin ~ acceptability.fnc (w = w.chosen,
+                                                n.saved, n.victims,
+                                                a = a),
+                data = dat %>% 
+                    dplyr::group_by(ResponseId) %>% 
+                    dplyr::group_nest() %>% 
+                    dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                    tidyr::unnest(cols = c(data)) %>% 
+                    dplyr::group_by(n.saved, n.victims) %>% 
+                    dplyr::summarize(rating.bin = mean(rating.bin),
+                                     .grpoups = "drop"),
+                start = list(a = start.a)) %>%
+                coef() %>%
+                t() %>%
+                data.frame,
+            error = function(e) data.frame (a = NA))
+        
+    } else {
+        stop("Unkown parameter combination")
+    }
+}
+
+# This version is using broom and is more elegant but slower
+# Not updated to allow for settiing w to specific value
+bootstrap.weber.ratio.new <- function(dat = ., fit.a = FALSE, start.w = .6, start.a = 1){
+    
+    
+    if (!fit.a){
+        tryCatch(
+            nls(rating.bin ~ acceptability.fnc (w, 
+                                                n.saved, n.victims),
+                data = dat %>% 
+                    dplyr::group_by(ResponseId) %>% 
+                    dplyr::group_nest() %>% 
+                    dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                    tidyr::unnest(cols = c(data)) %>% 
+                    dplyr::group_by(n.saved, n.victims) %>% 
+                    dplyr::summarize(rating.bin = mean(rating.bin),
+                                     .grpoups = "drop"),
+                start = list(w = start.w)) %>% 
+                broom::tidy(),
+            error = function(e) data.frame(estimate = NA))
+    } else {
+        tryCatch(
+            nls(rating.bin ~ acceptability.fnc (w,
+                                                n.saved, n.victims,
+                                                a = a),
+                data = dat %>% 
+                    dplyr::group_by(ResponseId) %>% 
+                    dplyr::group_nest() %>% 
+                    dplyr::slice_sample(prop = 1, replace = TRUE) %>% 
+                    tidyr::unnest(cols = c(data)) %>% 
+                    dplyr::group_by(n.saved, n.victims) %>% 
+                    dplyr::summarize(rating.bin = mean(rating.bin),
+                                     .grpoups = "drop"),
+                start = list(w = start.w, a = start.a)) %>%
+                broom::tidy(),
+            error = function(e) data.frame(estimate = NA))
+    }
+}
+
+
+get.by.subj.weber.ratio <- function(subj, dat = ., fit.a = FALSE){
+  if (!fit.a){
+    tryCatch(
+      dat %>% 
+        dplyr::filter(ResponseId == subj) %>%
+        nls(
+          rating.bin ~ acceptability.fnc (w, 
+                                          n.saved, 
+                                          n.victims),
+          data = ., 
+          start = list(w = .6)) %>% 
+        coef,
+      error = function(e) NA)
+  } else {
+    tryCatch(
+      dat %>% 
+        dplyr::filter(ResponseId == subj) %>%
+        nls(
+          rating.bin ~ acceptability.fnc (w, 
+                                          n.saved, 
+                                          n.victims, 
+                                          a = a),
+          data = ., 
+          start = list(w = .6, a = 1.5)) %>% 
+        coef,
+      error = function(e) NA)
+  }
+}
+
+# Like get.by.subj.weber.ratio, but doesn't filter and returns data frames
+get.weber.ratio <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.chosen = NULL){
+    
+  if((!fit.a) & (fit.w)){
+      # Fit only w
+    tryCatch(
+      dat %>% 
+        nls(
+          rating.bin ~ acceptability.fnc (w, 
+                                          n.saved, 
+                                          n.victims),
+          data = ., 
+          start = list(w = .6)) %>% 
+          coef %>% 
+          t() %>% 
+          data.frame,
+      error = function(e) data.frame(w = NA))
+  } else if((fit.a) & (fit.w)){
+      # Fit both a and w
+      tryCatch(
+          dat %>% 
+              nls(
+                  rating.bin ~ acceptability.fnc (w, 
+                                          n.saved, 
+                                          n.victims, 
+                                          a = a),
+          data = ., 
+          start = list(w = .6, a = 1.5)) %>% 
+          coef %>% 
+          t() %>% 
+          data.frame,
+      error = function(e) data.frame(w = NA, a = NA))
+  } else if((fit.a) & (!fit.w)){
+      # Set w to value to w.chosen
+      
+      if(is.null(w.chosen)){
+          stop("w.chosen must be set if fit.a is TRUE and fit.w is FALSE.")
+      }
+      
+      tryCatch(
+          dat %>% 
+              nls(
+                  rating.bin ~ acceptability.fnc (w = w.chosen, 
+                                          n.saved, 
+                                          n.victims, 
+                                          a = a),
+          data = ., 
+          start = list(a = 2)) %>% 
+          coef %>% 
+          t() %>% 
+          data.frame,
+      error = function(e) data.frame(a = NA))
+      
+  } else {
+      stop("Unknown parameter configuration")
+  }
+}
+
+
+```
+
+```{r helper-functions-model-comparisons}
+
+model.comp.list.to.df <- function(l.model.comp = .){
+    lapply (l.model.comp,
+            function(.mod.comp) {
+                with (.mod.comp,
+                      data.frame(
+                          d.AIC = -diff (AIC),
+                          d.BIC = -diff (BIC),
+                          Chisq = Chisq[2],
+                          Df = Df[2],
+                          p.value = `Pr(>Chisq)`[2]
+                      ))
+            }) %>% 
+        dplyr::bind_rows(.id = "comparison")
+}
+
+
+#' get.dv.from.model (mod = .)
+#'
+#' @Description
+#' Extract the dependent variable from model `model`
+#'
+#' @param mod Fitted model of class lmerModLmerTest or glmerMod. Probably works for other classes as well
+#'
+#' @return Vector of the dependent variable
+#'
+#' @examples
+#' # not run
+#' # get.dv.from.model(myLmer)
+get.dv.from.model <- function(mod = .){
+    
+    if(!(class(mod) %in% c("lmerModLmerTest", 
+                           "glmerMod"))){
+        stop("Model needs to be of classs lmerModLmerTest or glmerMod")
+    }
+    
+    # From https://stackoverflow.com/questions/13217322/how-to-reliably-get-dependent-variable-name-from-formula-object
+    dv <- all.vars(formula(mod)[[2]])
+    
+    getData(mod) %>% 
+        dplyr::pull(dv)
+}
+
+#' r.zheng.agresti(mod = ., estimator = c("sample", "jackknife"))
+#'
+#' @Description
+#' Calculate Zheng & Agresti's correlation between the fitted values and the actual values
+#'
+#' @param mod Fitted model of class `lmerModLmerTest` or `glmerMod`. Probably works for other classes too.
+#' @param estimator Type of estimator: sample or jackknife (not implemented yet)
+#'
+#' @return Correlation between fitted values and actual values
+#'
+#' @examples
+#' # not run
+#' # r.zheng.agresti(myLmer)
+#' 
+#' @details 
+#' Zheng & Agresti proposed the correlation between the fitted values and the actual values as a goodness of fit measure.
+#' For linear regression, this coincides with R^2. 
+#' For low correlations, the sample estimator has a somewhat larger bias. In our case, this is conservative.
+#' Zheng, B. and A. Agresti. 2000. Summarizing the predictive power of a generalized linear model. Statistics in Medicine 19: 1771-1781.
+r.zheng.agresti <- function(mod = ., estimator = c("sample", "jackknife")){
+
+    if(!(class(mod) %in% c("lmerModLmerTest", 
+                           "glmerMod"))){
+        stop("Model needs to be of classs lmerModLmerTest or glmerMod")
+    }
+    
+    estimator <- match.arg(estimator)
+    
+    if(estimator == "sample"){
+        
+        cor(get.dv.from.model(mod),
+            fitted(mod))
+        
+    } else {
+        
+        # https://www.rdocumentation.org/packages/bootstrap/versions/2019.6/topics/jackknife
+        
+        # do something like, but the model needs to be refitted every time 
+        # x <- 1:10
+        # n <- length(x)
+        # x.jack.bias <- bootstrap::jackknife(1:10, mean)$jack.bias
+        # mean(x) - x.jack.bias
+        
+        stop("Not yet implemented.")
+        
+    }
+    
+} 
+
+# This is supposed to be a version of the j-test for GLMMs
+# Don't use it; models are singular for some reason
+j.test.glmer <- function (mod1, mod2){
+    
+    #mod1 <-  moral.numbers.ratio.vs.n.victims.bin.lmer1.ratio.only 
+    
+    if((class(mod1) != "glmerMod") || (class(mod2) != "glmerMod")){
+        stop("Models need to be of classs lmerModLmerTest")
+    }
+    
+    dat.mod1 <- getData(mod1)
+    dat.mod2 <- getData(mod2)
+    
+    if(!identical(dat.mod1, dat.mod2)){
+        
+        stop("Models are not fitted to the same data.")
+    }
+    
+    
+    fit.mod1 <- fitted(mod1)
+    fit.mod2 <- fitted(mod2)
+    
+    
+    mod1.augmented <- stats::update(mod1, ~ . + fit.mod2)
+    mod2.augmented <- stats::update(mod2, ~ . + fit.mod1)
+    
+    anova(mod1.augmented,
+          mod1)
+    
+    
+    anova(mod2.augmented,
+          mod2)
+    
+}
+
+generate.model.comp <- function(l.exps = ., rename.stuff.for.print = FALSE){
+    
+    dat.model.comp <- dplyr::left_join(
+        
+        # Calculate corrected AICs
+        l.exps %>% 
+            purrr::map_dfr(~ data.frame(AICc = MuMIn::AICc(.x$mod.target)),
+                           .id = "Predictor") %>% 
+            dplyr::distinct(),
+        
+        # Calculate r.zheng.agreesti
+        l.exps %>% 
+            purrr::map_dfr(~ data.frame(r.zheng.agresti = r.zheng.agresti(.x$mod.target)),
+                           .id = "Predictor") %>% 
+            dplyr::distinct(),
+        
+        by = "Predictor")
+
+
+    dat.model.comp <- dplyr::left_join(
+        dat.model.comp,
+    
+        # Compare single predictor models to full model    
+        l.exps %>% 
+            purrr::map_dfr(~ data.frame(
+                added.predictor = .x$added.predictor,
+                reduction.AICc = MuMIn::AICc(.x$mod.full, 
+                                             .x$mod.target) %>% 
+                    pull (AICc) %>% 
+                    diff,
+                p.value = anova(.x$mod.target,
+                                .x$mod.full) %>% 
+                    broom.mixed::tidy(.) %>% 
+                    dplyr::filter(term == ".x$mod.full") %>% 
+                    pull(p.value)),
+                .id = "Predictor") %>% 
+            tidyr::pivot_wider(id_cols = "Predictor",
+                               names_from = "added.predictor",
+                               values_from = c("reduction.AICc", "p.value"),
+                               names_vary = "slowest"),
+        
+        by = "Predictor")
+    
+    if(rename.stuff.for.print){    
+ 
+        dat.model.comp <- dat.model.comp %>% 
+            dplyr::mutate(Predictor = dplyr::case_when(
+                Predictor == "Ratio" ~ "Ratio",
+                Predictor == "n.net.saved" ~ "Utility",
+                Predictor == "n.victims" ~ "# victims",
+                TRUE ~ NA_character_)) %>% 
+            dplyr::rename_with(~ .x %>% 
+                                   str_replace("n.net.saved",
+                                               "Utility") %>% 
+                                   str_replace("n.victims",
+                                               "# Victims") %>% 
+                                   str_replace("reduction.",
+                                               "$\\\\Delta$") %>% 
+                                   str_replace("p.value",
+                                               "$p$"))
+    }
+    
+    dat.model.comp
+}
+
+```
+
+```{r helper-functions-plots}
+generate.tags <- function(tag.pos, all.tags = letters){
+    
+    # Generate a sequence of tags where tag.pos is TRUE
+    
+    tag.counter <- 0
+    
+    tags <- rep (NA, length (tag.pos))
+    for (i in which (tag.pos)){
+        
+        tag.counter <- tag.counter + 1
+        
+        tags[i] <- all.tags[tag.counter]
+    }
+    
+    tags    
+}
+
+
+grid.arrange.tag <- function(..., all.tags = letters, font.size = NULL, replace.label.fun = identity){
+    
+    original.args <- list(...)
+    
+    tags <- generate.tags(sapply (original.args,
+                                  is.ggplot),
+                          all.tags)
+    
+    modified.args <- mapply (
+        function(obj, tag) {
+            if (is.ggplot(obj)) {
+                if (is.null (font.size)){
+                    replace.label.fun (obj + labs(tag = tag))
+                } else {
+                    replace.label.fun (obj + labs(tag = tag) + theme(text = element_text(size=font.size)))
+                }
+            } else {
+                obj
+            }
+        },
+        original.args,
+        tags,
+        SIMPLIFY = FALSE)
+    
+    do.call (gridExtra::grid.arrange, modified.args)
+    
+}
+
+# violin_plot_template <- function(p = ., yintercept = 0, xlab = NULL){
+#     p + 
+#         geom_violin(alpha = .5, 
+#                     fill = v.violin.palette[3], 
+#                     col = v.violin.palette[3]) +
+#         geom_dotplot(binaxis = 'y', stackdir = 'center', dotsize = 1, fill = NA, color = v.violin.palette[1]) + 
+#         # scale_x_discrete("Response category",
+#         #                  labels = ~ str_wrap(.x, 15),
+#         #                  guide = guide_axis(angle = 60)) +
+#         labs(x = xlab) +
+#         stat_summary(fun.data = mean_cl_boot, 
+#                      #fun.args = list(mult=sqrt (nlevels2(.$filename)-1)), 
+#                      geom = "pointrange", color = v.violin.palette[2]) + 
+#         geom_hline (aes (yintercept = yintercept), lty = 1, lwd = .5)
+# }
+# 
+# 
+
+create.fit.plot <- function(dat = ., dat.fit, x.var = ratio, value.var = rating.bin, group.var = NULL, xlab = "Weber ratio", ylab = "Acceptability"){
+    
+    x.var <- enquo(x.var)
+    value.var <- enquo(value.var)
+    group.var <- enquo(group.var)
+    
+    
+    if(!rlang::quo_is_null(group.var)){
+        group.levels <- dat %>% 
+            pull(!!group.var) %>% 
+            levels2
+    }
+    
+
+    plot.fit <-  dat %>% 
+        dplyr::group_by(experimentID, ResponseId, !!group.var, !!x.var) %>% 
+        dplyr::summarize(!!value.var := mean(!!value.var),
+                         .grpoups = "drop") %>% 
+        dplyr::group_by(experimentID, !!group.var, !!x.var) %>% 
+        # dplyr::summarize(rating.m = mean(!!value.var),
+        #                  rating.se = se(!!value.var)) %>% 
+        # ggplot (aes(x = !!x.var, y = rating.m, ymin = rating.m - rating.se, ymax = rating.m + rating.se, col = !!group.var, group = !!group.var)) +
+        dplyr::summarize(rating = Hmisc::smean.cl.boot(!!value.var) %>% t %>% as.data.frame) %>% 
+        tidyr::unnest(rating) %>% 
+        ggplot (aes(x = !!x.var, y = Mean, ymin = Lower, ymax = Upper, col = !!group.var, group = !!group.var)) +        
+        
+        
+        geom_pointrange()
+    
+    if(rlang::quo_is_null(group.var)){
+    plot.fit <- plot.fit +
+        stat_function(#col = "red",
+                      #                   size = 2,
+                      fun = function(x) acceptability.fnc(
+                          w = dat.fit %>% 
+                              pull(w),
+                          a = switch(assertthat::has_name(dat.fit, "a") + 1,
+                                     NULL,
+                                     dat.fit %>% 
+                                         pull(a)),
+                          #a = 1.5,
+                          ratio = x))
+    
+    } else {
+        
+        # Get the current colors
+        v.current.colors <- ggplot_build(plot.fit )$data[[1]] %>% 
+            pull (colour) %>% 
+            unique()
+            
+        
+        plot.fit <- plot.fit +
+            #scale_color_manual(values = c("red", "blue")) +
+            stat_function(col = v.current.colors[1],
+                          #                   size = 2,
+                          fun = function(x) acceptability.fnc(
+                              w = dat.fit %>% 
+                                  dplyr::filter(!!group.var == group.levels[1]) %>% 
+                                  pull(w),
+                              a = switch(assertthat::has_name(dat.fit, "a") + 1,
+                                         NULL,
+                                         dat.fit %>% 
+                                             dplyr::filter(!!group.var == group.levels[1]) %>% 
+                                             pull(a)),
+                              #a = 1.5,
+                              ratio = x)) +
+            stat_function(col = v.current.colors[2],
+                          #                   size = 2,
+                          fun = function(x) acceptability.fnc(
+                              w = dat.fit %>% 
+                                  dplyr::filter(!!group.var == group.levels[2]) %>% 
+                                  pull(w),
+                              a = switch(assertthat::has_name(dat.fit, "a") + 1,
+                                         NULL,
+                                         dat.fit %>% 
+                                             dplyr::filter(!!group.var == group.levels[2]) %>% 
+                                             pull(a)),
+                              #a = 1.5,
+                              ratio = x)) 
+        
+    }
+        
+    plot.fit +
+        labs(x = xlab,
+             y = ylab) + 
+        theme(legend.title = element_blank())
+    
+
+}
+
+
+# Convert the summaries from the bootstrap fits to those that can be used by create.fit.plot    
+bootstrap.summary.to.fit.summary <- function(dat = .){
+    dat %>% 
+        tidyr::pivot_longer(ends_with("_M"),
+                            names_to = "term",
+                            values_to = "estimate") %>% 
+        dplyr::select(-matches("_")) %>% 
+        dplyr::mutate(term = str_remove(term, "_M$"))
+}
+
+create.predictor.comparison.plot <- function(dat = ., dat.fit = NULL, value.var = rating.bin, facet.var = NULL, col.var = NULL, ylab = NULL, legend = "bottom", add.fit = FALSE, return.plot = TRUE, add.p.saved.to.list = FALSE){
+    
+    
+    create.predictor.comparison.plot.inner.function <- function(dat = ., x.var, value.var = rating.bin, facet.var = NULL, col.var = NULL, xlab = NULL, ylab = NULL, yintercept, current.plot.margin){
+        
+        
+        x.var <- dplyr::enquo(x.var)
+        value.var <- dplyr::enquo(value.var)
+        facet.var <- dplyr::enquo(facet.var)
+        col.var <- dplyr::enquo(col.var)
+        
+
+        dat %>% 
+            dplyr::group_by(experimentID, ResponseId, !!facet.var, !!col.var, !!x.var) %>% 
+            dplyr::summarize(!!value.var := mean(!!value.var)) %>% 
+            ggplot (aes (x = !!x.var, y = !!value.var, col = !!col.var)) +
+            labs(x = xlab, y = ylab) +
+            #        theme_linedraw(14) + 
+            scale_x_continuous(xlab,
+                               #labels = ~ str_wrap(.x, 15),
+                               guide = guide_axis(angle = 60)) + 
+            #scale_y_continuous("Rating (raw)") +# , limits = 0:1) + 
+            stat_summary(fun.data = mean_cl_boot, 
+                         #fun.args = list(mult=sqrt (nlevels2(.$filename)-1)), 
+                         geom = "pointrange") + 
+            geom_hline(yintercept = yintercept, lty = 3) +
+            facet_grid(cols = vars(!!facet.var), scales = "free_y") + 
+            theme(legend.title = element_blank()) + 
+            theme(plot.margin = current.plot.margin)
+        
+        
+    }
+    
+    
+            
+    if(is.null(dat.fit) && add.fit){
+        stop("dat.fit needs to be specified when a fit is to be plotted.")    
+    }
+    
+    if(return.plot && (!add.p.saved.to.list)){
+        warning("When a plot is return, it will include a panel for the proportion of saved.")
+    }
+    
+    value.var <- dplyr::enquo(value.var)
+    facet.var <- dplyr::enquo(facet.var)
+    col.var <- dplyr::enquo(col.var)
+    
+    if (max(dat %>% pull(!!value.var)) <= 1){
+        yintercept <- .5
+    } else {
+        yintercept <- 3.5
+    }
+    
+    #Margin order: top, right, bottom, and left 
+    if(legend == "none"){
+        # Default margins
+        current.plot.margin <- theme_get()$plot.margin
+    } else {
+        # Bigger margins
+        current.plot.margin <- theme_get()$plot.margin * c(2, 1, 1, 2)
+    }
+    
+    # Create plot by ratio
+    if (add.fit) {
+        if(is.null(col.var)) {
+            plot.by.ratio <- dat %>% 
+                create.fit.plot(dat.fit = dat.fit, x.var = ratio, value.var = !!value.var, xlab = "Weber ratio", ylab = ylab) + 
+                theme(plot.margin = current.plot.margin)
+            
+        } else {
+            
+        plot.by.ratio <- dat %>% 
+            create.fit.plot(dat.fit = dat.fit, x.var = ratio, value.var = !!value.var, group.var = !!col.var, xlab = "Weber ratio", ylab = ylab) + 
+            theme(plot.margin = current.plot.margin)
+        }
+        
+        
+    } else {
+        plot.by.ratio <- dat %>% 
+            create.predictor.comparison.plot.inner.function(x.var = ratio, value.var = !!value.var, facet.var = !!facet.var, col.var = !!col.var, xlab = "Weber ratio", ylab = ylab, yintercept = yintercept, current.plot.margin = current.plot.margin)
+    }
+    
+    # Create plot by proportion of saved
+    plot.by.p.saved <- dat %>% 
+        dplyr::mutate(p.saved = n.saved / n.total) %>% 
+        create.predictor.comparison.plot.inner.function(x.var = p.saved, value.var = !!value.var, facet.var = !!facet.var, col.var = !!col.var, xlab = "Proportion saved", ylab = ylab, yintercept = yintercept, current.plot.margin = current.plot.margin)
+    
+    
+    # Create plot by numbver of victims
+    plot.by.n.vicitms <- dat %>% 
+        create.predictor.comparison.plot.inner.function(x.var = n.victims, value.var = !!value.var, facet.var = !!facet.var, col.var = !!col.var, xlab = "Number of victims", ylab = ylab, yintercept = yintercept, current.plot.margin = current.plot.margin)
+    
+    
+    
+    # Craeate plot by utility (net number of saved)
+    p.by.n.net.saved <- dat %>% 
+        create.predictor.comparison.plot.inner.function(x.var = n.net.saved, value.var = !!value.var, facet.var = !!facet.var, col.var = !!col.var, xlab = "Utility", ylab = ylab, yintercept = yintercept, current.plot.margin = current.plot.margin)
+    
+    if (return.plot){
+        ggpubr::ggarrange(
+            plot.by.ratio,
+            plot.by.p.saved,
+            plot.by.n.vicitms,
+            p.by.n.net.saved,
+            nrow = 2,
+            ncol = 2,
+            labels = "auto",
+            common.legend = TRUE,
+            legend = legend)
+    } else {
+        
+        if (add.p.saved.to.list){
+            
+            list(plot.by.ratio = plot.by.ratio,
+                 plot.by.p.saved = plot.by.p.saved,
+                 plot.by.n.vicitms = plot.by.n.vicitms,
+                 p.by.n.net.saved = p.by.n.net.saved)
+            
+        } else {
+            
+            list(plot.by.ratio = plot.by.ratio,
+                 plot.by.n.vicitms = plot.by.n.vicitms,
+                 p.by.n.net.saved = p.by.n.net.saved)
+        }
+    }
+}
+
+
+```
+
+```{r themes}
+#From https://gist.github.com/jslefche/eff85ef06b4705e6efbc
+theme_black = function(base_size = 12, base_family = "") {
+  
+  theme_grey(base_size = base_size, base_family = base_family) %+replace%
+    
+    theme(
+      # Specify axis options
+      axis.line = element_blank(),  
+      axis.text.x = element_text(size = base_size*0.8, color = "white", lineheight = 0.9),  
+      axis.text.y = element_text(size = base_size*0.8, color = "white", lineheight = 0.9),  
+      axis.ticks = element_line(color = "white", size  =  0.2),  
+      axis.title.x = element_text(size = base_size, color = "white", margin = margin(0, 10, 0, 0)),  
+      axis.title.y = element_text(size = base_size, color = "white", angle = 90, margin = margin(0, 10, 0, 0)),  
+      axis.ticks.length = unit(0.3, "lines"),   
+      # Specify legend options
+      legend.background = element_rect(color = NA, fill = "black"),  
+      legend.key = element_rect(color = "white",  fill = "black"),  
+      legend.key.size = unit(1.2, "lines"),  
+      legend.key.height = NULL,  
+      legend.key.width = NULL,      
+      legend.text = element_text(size = base_size*0.8, color = "white"),  
+      legend.title = element_text(size = base_size*0.8, face = "bold", hjust = 0, color = "white"),  
+      legend.position = "right",  
+      legend.text.align = NULL,  
+      legend.title.align = NULL,  
+      legend.direction = "vertical",  
+      legend.box = NULL, 
+      # Specify panel options
+      panel.background = element_rect(fill = "black", color  =  NA),  
+      panel.border = element_rect(fill = NA, color = "white"),  
+      panel.grid.major = element_line(color = "grey35"),  
+      panel.grid.minor = element_line(color = "grey20"),  
+      panel.margin = unit(0.5, "lines"),   
+      # Specify facetting options
+      strip.background = element_rect(fill = "grey30", color = "grey10"),  
+      strip.text.x = element_text(size = base_size*0.8, color = "white"),  
+      strip.text.y = element_text(size = base_size*0.8, color = "white",angle = -90),  
+      # Specify plot options
+      plot.background = element_rect(color = "black", fill = "black"),  
+      plot.title = element_text(size = base_size*1.2, color = "white"),  
+      plot.margin = unit(rep(1, 4), "lines")
+      
+    )
+  
+}
+
+
+jgc <- function()
+{
+  gc()
+  rJava::.jcall("java/lang/System", method = "gc")
+}    
+
+write.xlsx2.gc <- function(...){
+    
+    # Java garbage collection  
+    jgc ()
+    xlsx::write.xlsx2 (...)
+}
+
+rename.terms <- function(dat = ., col = Effect){
+    
+    col <- enquo(col)
+    
+    dat %>% 
+        dplyr::mutate(!!col := map_chr(
+            !!col,
+            ~ mgsub::mgsub (
+                .x,
+                # c ("comparisonType" = "Experiment", 
+                #    "decisionType" =  "Domain", 
+                #    "first.scenario.type" = "First Domain", 
+                #    "ratioorder" = "Ratio Order")))) %>% 
+                pattern = c ("comparisonType",
+                            "decisionType",
+                            "first.scenario.type",
+                            "ratioorder",
+                            "block",
+                            ":"),
+                replacement = c ("Experiment: ", 
+                                 "Domain: ", 
+                                 "First Domain: ", 
+                                 "Ratio Order: ",
+                                 "Block: ",
+                                 " $\\\\times$ "),
+                ignore.case = TRUE))) %>% 
+        dplyr::mutate(!!col := str_to_title(!!col)) 
+}
+
+
+
+
+
+```
+
+
+```{r load-number-conditions, eval = FALSE}
+
+dat.number.conds <- bind_rows(
+    
+    
+    read.csv2(
+        paste0("../experiment9_verify_asymptote/number_conds_exp9a_counterbalancing_group1.csv"),
+        header = TRUE,
+        sep = ",",
+        stringsAsFactors = FALSE) %>%
+        # For compability with the earlier data frames; it will be recalculated anyhow
+        dplyr::mutate(ratio_saved_victims = as.character(ratio_saved_victims)) %>% 
+        dplyr::mutate(experimentID = "Experiment 9a", .before = 1) %>% 
+        dplyr::mutate(Group = "Group 2", .after = "experimentID")
+    
+) %>% 
+    dplyr::select(experimentID, Group, starts_with("n_")) %>% 
+    dplyr::mutate(ratio = n_saved / n_victims,
+                      #get.number.ratio(n_saved / n_victims, FALSE),
+                  .after = "n_total") %>% 
+    dplyr::mutate(ratio2 = n_saved2 / n_victims2,
+                      #get.number.ratio(n_saved2 / n_victims2, FALSE),
+                  .after = "n_total2") 
+
+```
+
+
+```{r load-data-exp99-briana}
+
+# Briana's experiments investigating moral decision making in the menstrual cycle
+# The structure of the data file is different, so we use a different process to load it. 
+
+# Compared to the original data from qualtrics, we corrected dates where participants clearly confused months and days.
+l.moral.numbers.exp99.briana <- dplyr::bind_rows(
+    # Version with misleading demographics section
+    read.csv2(
+        paste0(DATA.DIR,
+               "Moral+Numbers+(Exp+99+-+Briana+-+corrected)_September+11,+2024_15.36_updated_dates.csv"),
+        header = TRUE,
+        sep = ",",
+        skip = 1,
+        stringsAsFactors = FALSE) %>%
+        dplyr::mutate(experimentID = "exp99.briana") %>%
+        # rename some columns for consistence with other experiments
+        dplyr::rename(c(
+            "startDate" = "Start.Date",
+            "endDate" = "End.Date",
+            "status" = "Response.Type",
+            "progress" = "Progress",
+            "duration" = "Duration..in.seconds.",
+            "finished" = "Finished",
+            "recordedDate" = "Recorded.Date",
+            "ResponseId" = "Response.ID",
+            "attChk.acceptability" = "attChk.acceptability_1...attChk.acceptability...How.acceptable.is.it.to.kill.these.3.000.people.to.save.4.000.other.people.")) %>%
+        # rename some more columns for readability
+        dplyr::rename(c(
+            "age" = "age...Please.enter.your.age.",
+            "gender" = "gender...gender...Selected.Choice",
+            "gender.self.description" = "gender_6_TEXT...gender...Prefer.to.self.describe...Text",
+            "assigned.sex" = "assignedSex",
+            
+            "prereq.between.18.and.45" = "prereq18_45...between18_45",
+            "prereq.prev.hormon.use" = "prereq_prevhormone...previousHormoneuse",
+            "prereq.hormonal.cond" = "prereq_diagnosedhorm...diagnosedHormonalconditions",
+            "prereq.cycle.length.normal"  ="prereq_cyclelength...cyclelengthNormal")) %>%
+        # These are the columns for the previous menses
+        dplyr::rename_with(~
+                               str_replace(.x, "demo_.*Menstrual.Cycle.Information...", "menses."),
+                           dplyr::starts_with("demo_")),
+    
+    # Version with amended demgraphics section
+    
+    read.csv2(
+        paste0(DATA.DIR, 
+               "Moral+Numbers+(Exp+99+-+Briana+-+corrected,+corrected+demographics)_October+7,+2024_17.53.csv"),
+        header = TRUE,
+        sep = ",",
+        skip = 1,
+        stringsAsFactors = FALSE) %>% 
+        dplyr::mutate(experimentID = "exp99.briana") %>%
+        # rename some columns for consistence with other experiments
+        dplyr::rename(c(
+            "startDate" = "Start.Date",
+            "endDate" = "End.Date",
+            "status" = "Response.Type",
+            "progress" = "Progress",
+            "duration" = "Duration..in.seconds.",
+            "finished" = "Finished",
+            "recordedDate" = "Recorded.Date",
+            "ResponseId" = "Response.ID",
+            "attChk.acceptability" = "attChk.acceptability_1...attChk.acceptability...How.acceptable.is.it.to.kill.these.3.000.people.to.save.4.000.other.people.")) %>% 
+        # rename some more columns for readability 
+        dplyr::rename(c(
+            "age" = "age...Please.enter.your.age.",
+            "gender" = "gender...gender...Selected.Choice",
+            "gender.self.description" = "gender_6_TEXT...gender...Prefer.to.self.describe...Text",
+            "assigned.sex" = "assignedSex",
+            
+            "prereq.between.18.and.45" = "prereq18_45...between18_45",
+            "prereq.prev.hormon.use" = "prereq_prevhormone...previousHormoneuse",
+            "prereq.hormonal.cond" = "prereq_diagnosedhorm...diagnosedHormonalconditions",
+            "prereq.cycle.length.normal"  ="prereq_cyclelength...cyclelengthNormal")) %>% 
+        # These are the columns for the previous menses
+        dplyr::rename_with(~ 
+                               str_replace(.x, "demo_previousmenses\\.\\d_\\d...previousMenses...", "menses."),
+                           dplyr::starts_with("demo_")) %>% 
+        # Rename in line with previous version
+        # Years are the positions in the drop down list, convert to actual values
+        dplyr::mutate(dplyr::across(dplyr::matches("^menses\\.Year.*\\.cycle(s\\.ago)*$"),
+                                    ~ dplyr::case_when(
+                                        .x == 1 ~ 2024,
+                                        NA ~ NA_integer_))) %>% 
+        tidyr::unite("menses.Current.cycle...MM.DD.YY", 
+                     menses.Month...Current.cycle, 
+                     menses.Day...Current.cycle,
+                     menses.Year...Current.cycle,
+                     sep = "/", 
+                     remove = TRUE) %>% 
+        tidyr::unite("menses.Previous.cycle...MM.DD.YY", 
+                     menses.Month...Previous.cycle, 
+                     menses.Day...Previous.cycle,
+                     menses.Year...Previous.cycle,
+                     sep = "/", 
+                     remove = TRUE) %>% 
+        tidyr::unite("menses.Two.cycles.ago...MM.DD.YY", 
+                     menses.Month...Two.cycles.ago, 
+                     menses.Day...Two.cycles.ago,
+                     menses.Year...Two.cycles.ago,
+                     sep = "/", 
+                     remove = TRUE) %>% 
+        dplyr::rename(menses.Current.cycle.....of.Days = menses.Cycle.Length...Current.cycle) %>%         dplyr::rename(menses.Previous.cycle.....of.Days = menses.Cycle.Length...Previous.cycle) %>%
+        dplyr::rename(menses.Two.cycles.ago.....of.Days = menses.Cycle.Length...Two.cycles.ago) 
+    
+) %>% 
+    # Scenarios
+    # scenario.remoteTreatment.neutral.counterbalancing_group.1.n_saved.600.n_total.630.n_victims.30.ratio_saved_victims.20.acceptability_1...scenario.remoteTreatment.neutral.counterbalancing_group.1.n_saved.600.n_total.630.n_victims.30.ratio_saved_victims.20.acceptability...How.acceptable.is.it.to.kill.30.patients.in.the.hospital.to.save.600.people.in.the.village.
+    dplyr::rename_with(~ str_replace(.x, "^scenario.*?\\.{3}", ""),
+                       dplyr::starts_with("scenario")) %>% 
+    dplyr::rename_with(~ str_replace(.x, "\\.{3}.*$", ""),
+                       dplyr::starts_with("scenario")) %>% 
+    # EMCS
+    # EMCS_concertTicketpr...EMCSQ1_concertTicketpricing    
+    dplyr::rename_with(~ str_replace(.x, "^.*\\.{3}", ""),
+                       dplyr::starts_with("EMCS")) %>% 
+    dplyr::rename_with(~ str_replace(.x, "^EMCSQ\\d+", "EMCS"),
+                       dplyr::starts_with("EMCS")) %>%     
+    #  IWAH_closeness_1...IWAHQ1_closeness...People.in.my.community
+    # IWAH_closeness_2...IWAHQ1_closeness...People.in.my.country
+    # IWAH_closeness_3...IWAHQ1_closeness...People.all.over.the.world
+    dplyr::rename_with(~ str_replace(.x, "^.*?\\.{3}", ""),
+                       dplyr::starts_with("IWAH")) %>% 
+    dplyr::rename_with(~ str_replace(.x, "^IWAHQ\\d+", "IWAH"),
+                       dplyr::starts_with("IWAH")) %>% 
+    dplyr::rename_with(~ str_replace(.x, "\\.{3}People.*\\.", "\\."),
+                       dplyr::starts_with("IWAH")) %>% 
+    # Transform to long
+    tidyr::pivot_longer(dplyr::starts_with(c("scenario", "EMCS", "IWAH")),
+                        names_to = "condition.name",
+                        values_to = "rating",
+                        values_drop_na = TRUE) %>% 
+    # Add phases
+    dplyr::mutate(phase = dplyr::case_when(
+        stringr::str_starts(condition.name, "scenario") ~ "scenarios",
+        stringr::str_starts(condition.name, "EMCS") ~ "EMCS",
+        stringr::str_starts(condition.name, "IWAH") ~ "IWAH",
+        TRUE ~ NA_character_),
+        .before = "condition.name") %>% 
+    # Some more clean up
+    # Remove useless columns
+    dplyr::select(-dplyr::starts_with(c("Browser.info", "Consent.form", "DistributionChannel.", "UserLanguage", "progress", "first.scenario.type", "current.scenario.type"))) %>% 
+    # Keep only complete participants
+    dplyr::filter(finished == 1) %>% 
+    # Keep only participants who passed the attention check
+    #dplyr::filter(attChk.acceptability == 2)
+    # Split according to phase
+    split(.$phase)                                           
+```
+
+```{r analyze-EMCS-exp99-briana}
+dat.moral.numbers.exp99.briana.EMCS <- l.moral.numbers.exp99.briana$EMCS %>% 
+    # The ratings seem to be 1 and 2, transform to 0 and 1
+    dplyr::mutate(rating = rating - 1) %>% 
+    dplyr::group_by(ResponseId) %>% 
+    dplyr::summarise(EMCS.N = n(),
+                     EMCS.score = sum(rating),
+                     .groups = "drop")
+```
+
+```{r analyze-IWAH-exp99-briana}
+
+# From  Hamer et al. (2021). Identification with all humanity—A test of the factorial structure and measurement invariance of the scale in five countries
+
+# WAH was assessed with McFarland et al.’s (2012) original nine-item IWAH scale. Mean scores from iden- tification with “people all over the world” subscale constitute raw scores of IWAH. However, following Dunwoody and McFarland (2018), for a “purer” measure of IWAH, the mean of the IWAH items was regressed onto means of identifications with one’s community and nation items, and the standardised residual was used as the “pure” IWAH measure. 
+
+# From McFarland, S. G. (2010b). Personality and support for universal human rights: A review and test of a structural model. Journal of Personality, 78, 1735–1763. https://dx.doi.org/10.1111/j.1467-6494.2010.00668.x
+
+# "Because the three identifications are posi- tively correlated, and each one slightly with social desirability, the sum of the identification with all humanity items is regressed onto the other two identifications; the residual, which expresses the unique variance associated with identification with all humanity, is used as the IWAH score. "
+
+
+dat.moral.numbers.exp99.briana.IWAH <- l.moral.numbers.exp99.briana$IWAH %>% 
+    tidyr::separate_wider_delim(condition.name, delim = ".", names = c("item", "population")) %>% 
+    dplyr::group_by(ResponseId, population) %>% 
+    dplyr::summarize(IWAH.N = n(),
+                     rating = sum(rating),
+                     .groups = "drop") %>% 
+    tidyr::pivot_wider(id_cols = c(ResponseId, IWAH.N),
+                       names_prefix = "IWAH.",
+                       names_from = population,
+                       values_from = rating) %>% 
+    dplyr::mutate(IWAH.world.pure = rstandard(
+        lm(IWAH.world ~ IWAH.community + IWAH.country, 
+           data = .)) %>% 
+            unname)
+
+```
+
+```{r prepare-scenarios-exp99-briana}
+
+
+dat.moral.numbers.exp99.briana.scenarios <- 
+    # Combined with other phases of experiment
+    dplyr::left_join(
+        dplyr::left_join(
+            l.moral.numbers.exp99.briana$scenarios,
+            dat.moral.numbers.exp99.briana.EMCS,
+            by = "ResponseId"),
+        dat.moral.numbers.exp99.briana.IWAH,
+        by = "ResponseId") %>% 
+    # Extract trial information    
+    dplyr::mutate(tmp = purrr::map(condition.name,
+                                   ~ str_split_fixed (.x, "\\.", 3)[,-c(1)] %>% 
+                                       t %>% 
+                                       as.data.frame() %>% 
+                                       set_names (c("scenarioID", "condition.name"))),
+                  .keep = "unused") %>% 
+    tidyr::unnest(tmp) %>%
+    dplyr::mutate(vivacity = ifelse(str_starts(condition.name, "vivid"),
+                                    "vivid",
+                                    "neutral"),
+                  .after = "scenarioID") %>% 
+    dplyr::mutate(condition.name = str_remove(condition.name, "^vivid\\.")) %>%
+    dplyr::mutate(condition.name = str_remove(condition.name, "^neutral\\.")) %>% 
+    # Now put the severity/acceptability IDs into separate columns
+    dplyr::mutate(question = dplyr::case_when(
+        str_ends(condition.name, "severity") ~ "severity",
+        str_ends(condition.name, "acceptability") ~ "acceptability",
+        TRUE ~ NA_character_)) %>% 
+    dplyr::mutate(condition.name = str_remove(condition.name, "\\.acceptability$")) %>% 
+    dplyr::mutate(condition.name = str_remove(condition.name, "\\.severity$")) %>% 
+    # remove ratio_saved_victims as it will be computed later and will trip the name value separation
+    dplyr::mutate(condition.name = str_remove(condition.name, "\\.ratio_saved_victims\\.\\d+(\\.\\d+)*")) %>% 
+    dplyr::mutate(condition.name = str_replace(condition.name, "(\\.question)\\.", "\\1:")) %>% 
+    dplyr::mutate(condition.name = str_replace_all(condition.name, "\\.(\\d)", ":\\1")) %>% 
+    separate.multiple.field.value.pairs %>% 
+    dplyr::rename_with(~ str_replace(.x, "n_", "n."), starts_with("n_"),) %>% 
+    dplyr::mutate(across(starts_with("n."), as.numeric)) %>% 
+    dplyr::mutate(scenarioID = factor(scenarioID)) %>% 
+    dplyr::rename("rating.raw" = "rating") %>% 
+    dplyr::mutate(rating.bin = 1 * (rating.raw > 3 ), .after = "rating.raw") %>% 
+    dplyr::mutate(n.net.saved = n.saved - n.victims, 
+                  ratio = n.saved / n.victims,
+                  p.saved = n.saved / n.total,
+                  .after = "n.victims")  %>% 
+    dplyr::rename_with(~ str_replace_all(.x, "\\.+", "\\."), dplyr::matches("\\.+")) 
+
+```
+
+```{r add-attention-check-briana}
+
+dat.moral.numbers.exp99.briana.scenarios <- dat.moral.numbers.exp99.briana.scenarios %>% 
+    dplyr::mutate(passed.attention.check = ifelse(
+        is.na(attChk.acceptability),
+        FALSE,
+        attChk.acceptability == 2)) %>% 
+    dplyr::mutate(passed.prereq = 
+                      (prereq.between.18.and.45 == 2) &
+                      (prereq.prev.hormon.use == 1)  &
+                      (prereq.hormonal.cond == 1) &
+                      (prereq.cycle.length.normal == 2))
+
+
+```
+
+```{r analyze-menses-briana}
+
+ dat.moral.numbers.exp99.briana.scenarios <- dat.moral.numbers.exp99.briana.scenarios %>% 
+    dplyr::mutate(endDate = str_remove(endDate, "\\s.*$")) %>% 
+    dplyr::mutate(endDate = as.POSIXct(endDate, format="%Y-%m-%d")) %>% 
+    dplyr::mutate(dplyr::across(dplyr::matches("menses\\..*\\.MM\\.DD\\.YY"),
+                                ~ as.POSIXct(.x, format="%m/%d/%Y"))) %>% 
+    dplyr::mutate(menses.Current.cycle.duration = 
+                      base::difftime(menses.Current.cycle.MM.DD.YY, 
+                                     menses.Previous.cycle.MM.DD.YY, 
+                                     units = "days") %>% 
+                      as.numeric(),
+                  menses.Previous.cycle.duration = 
+                      base::difftime(menses.Previous.cycle.MM.DD.YY, 
+                                     menses.Two.cycles.ago.MM.DD.YY,
+                                     units = "days") %>% 
+                      as.numeric()) %>% 
+    # Detect unreasonable cycle durations
+    # According to https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7381001/, 
+    # 90% of women have cycles between 21 and 35 days
+    dplyr::mutate(dplyr::across(dplyr::matches("^menses\\..*\\.cycle\\.duration$"),
+                                ~ ifelse((.x >= 21) & (.x <= 35),
+                                         .x,
+                                         NA))) %>% 
+    dplyr::rowwise() %>% 
+    dplyr::mutate(menses.average.cycle.duration = 
+                      mean(dplyr::c_across(dplyr::matches("menses\\..*\\.cycle\\.duration$")),
+                           na.rm = TRUE)) %>% 
+    dplyr::rowwise() %>% 
+    dplyr::mutate(menses.average.menses.duration = 
+                      mean(dplyr::c_across(dplyr::matches("menses\\..*\\.of\\.Days")),
+                           na.rm = TRUE)) %>%
+    # Determine when the most recent cycle started, dealing with people who gave dates in the future
+    dplyr::mutate(menses.day.in.cycle.at.participation = 
+                      dplyr::case_when(
+                          endDate == menses.Current.cycle.MM.DD.YY ~ 0,
+                          endDate > menses.Current.cycle.MM.DD.YY ~ 
+                              difftime(endDate, menses.Current.cycle.MM.DD.YY, units = "days") %>%
+                              as.numeric(),
+                          (endDate < menses.Current.cycle.MM.DD.YY) & (endDate > menses.Previous.cycle.MM.DD.YY) ~ 
+                              difftime(endDate, menses.Previous.cycle.MM.DD.YY, units = "days") %>%
+                              as.numeric(),
+                          TRUE ~ NA_real_)) %>% 
+    # Scale all values to a cycle duration of 28 days 
+    dplyr::mutate(across(c(menses.average.menses.duration,
+                           menses.day.in.cycle.at.participation),
+                         ~ .x * 28 / menses.average.cycle.duration,
+                         .names = "{.col}.scaled")) %>% 
+    # Determine menstrual phase %>%
+    dplyr::mutate(menses.current.phase.4phases =
+                      dplyr::case_when(
+                          (menses.day.in.cycle.at.participation.scaled <= menses.average.menses.duration.scaled) ~ "menstrual",
+                          (menses.day.in.cycle.at.participation.scaled > menses.average.menses.duration.scaled) & (menses.day.in.cycle.at.participation.scaled < 14) ~ "follicular",
+                          (menses.day.in.cycle.at.participation.scaled == 14)  ~ "ovulatory",
+                          (menses.day.in.cycle.at.participation.scaled > 14) & (menses.day.in.cycle.at.participation.scaled <= 28) ~ "luteal",
+                          TRUE ~ NA_character_)) %>% 
+    dplyr::mutate(menses.current.phase.2phases =
+                      dplyr::case_when(
+                          (menses.day.in.cycle.at.participation.scaled <= 13) ~ "follicular",
+                          (menses.day.in.cycle.at.participation.scaled >= 15) & (menses.day.in.cycle.at.participation.scaled < 28) ~ "luteal",
+                          TRUE ~ NA_character_)) %>% 
+    # https://www.cambridge.org/core/journals/judgment-and-decision-making/article/cooperative-preferences-fluctuate-across-the-menstrual-cycle/883D0C645E32303757E2DE8E698B7ECA
+    dplyr::mutate(menses.current.phase.2phases.restricted =
+                      dplyr::case_when(
+                          (menses.day.in.cycle.at.participation.scaled <= 7) ~ "early follicular",
+                          (menses.day.in.cycle.at.participation.scaled >= 18) & (menses.day.in.cycle.at.participation.scaled < 24) ~ "midluteal",
+                          TRUE ~ NA_character_)) 
+
+    
+
+```
+
+
+
+```{r write-xlsx-briana}
+
+write.xlsx2.gc(dat.moral.numbers.exp99.briana.scenarios %>% 
+                   as.data.frame(),
+               paste0(OUTPUT.DIR, "moral.numbers.exp99.briana.xlsx"), 
+               sheetName = "scenarios",
+               row.names = FALSE,
+               append = FALSE)
+
+
+
+write.xlsx2.gc(dat.moral.numbers.exp99.briana.scenarios %>% 
+                   dplyr::select(ResponseId, endDate, starts_with("menses")) %>% 
+                   dplyr::distinct() %>% 
+                   as.data.frame(),
+               paste0(OUTPUT.DIR, "moral.numbers.exp99.briana.menses.only.xlsx"), 
+               sheetName = "scenarios",
+               row.names = FALSE,
+               append = FALSE)
+
+
+
+
+```
+
+```{r combine-experiments}
+
+dat.moral.numbers.briana  <-
+    dat.moral.numbers.exp99.briana.scenarios
+
+```
+
+```{r create-long-by-phase-type}
+
+# Duplicate data so we have a data set for each menses.current.phase.type
+
+dat.moral.numbers.briana.long.by.phase.type <- dat.moral.numbers.briana %>% 
+    tidyr::pivot_longer(cols = dplyr::starts_with("menses.current.phase"),
+                        names_to = "menses.current.phase.type",
+                        values_to = "menses.current.phase",
+                        values_drop_na = TRUE) 
+
+
+```
+
+```{r remove-incomplete-subjects}
+
+dat.incomplete.subj <- dat.moral.numbers.briana %>% 
+    dplyr::select(experimentID, ResponseId, rating.raw) %>% 
+    dplyr::group_by(experimentID, ResponseId) %>%
+    dplyr::summarize(N = sum(is.finite(rating.raw))) %>% 
+    dplyr::filter(N != TRIALS.PER.EXP[experimentID]) 
+
+if (REMOVE.INCOMPLETE.SUBJ){
+    dat.moral.numbers.briana <- anti_join(
+            dat.moral.numbers.briana,
+            dat.incomplete.subj,
+            by = c("experimentID", "ResponseId")) 
+        
+}
+
+
+```
+
+
+```{r remove-subjects-who-failed-attention-check}
+
+dat.moral.numbers.briana.failed.attention.check <- dat.moral.numbers.briana %>% 
+    dplyr::select(experimentID, ResponseId, passed.attention.check) %>% 
+    dplyr::distinct() %>% 
+    dplyr::filter(!passed.attention.check)
+    
+if(nrow(dat.moral.numbers.briana.failed.attention.check)){
+    
+    dat.moral.numbers.briana <- dplyr::anti_join(
+        dat.moral.numbers.briana,
+        dat.moral.numbers.briana.failed.attention.check,
+        by = c("experimentID", "ResponseId"))
+}
+
+```
+
+`r nrow(dat.moral.numbers.briana.failed.attention.check)` participants were excluded from analysis because they failed the attention check. 
+
+```{r remove-subjects-without-cycle.phase}
+
+dat.moral.numbers.briana.no.cycle.phase <- dat.moral.numbers.briana %>% 
+    dplyr::select(experimentID, ResponseId, dplyr::starts_with("menses.current.phase")) %>% 
+    dplyr::distinct() %>% 
+    dplyr::mutate(across(dplyr::starts_with("menses.current.phase"), ~ !is.na(.x))) %>% 
+    dplyr::rowwise() %>% 
+    dplyr::mutate(has.cycle.phase = any(dplyr::c_across(starts_with("menses.current.phase")))) %>% 
+    dplyr::select(experimentID, ResponseId, has.cycle.phase) %>% 
+    dplyr::filter(!has.cycle.phase)
+    
+    
+
+    
+dat.moral.numbers.briana <- dplyr::anti_join(
+    dat.moral.numbers.briana,
+    dat.moral.numbers.briana.no.cycle.phase,
+    by = c("experimentID", "ResponseId"))
+
+
+```
+
+We also excluded `r nrow(dat.moral.numbers.briana.no.cycle.phase)` who had no cycle phase for none of our phase calculations,
+
+```{r plot-completion-durations, fig.cap="Distribution of run durations in minutes. Given that some participants took less than about a minute to complete the experiment, and others much longer than most participants, we exclude participants who took too long or too short."}
+
+# Plot distribution of per run
+# In Experiment 5b, we considered calculating the durations separately for each condition, 
+# as the text is longer in the vivid condition. However, given that the duration difference between
+# the conditions is less than 2 min in total, we are unlikely to exclude participants by basis the exclusion criteria
+# on the overall condition.
+
+
+dat.moral.numbers.briana %>% 
+    ggplot(aes(x = duration/60)) + 
+    geom_histogram(aes(y = ..density..) , color = "#0000AA", fill = "#0000AA") + 
+    geom_density(alpha = .8, fill = "#6666FF") +
+#    theme_black (base_size = 16)+
+    labs(x = "Run duration (minutes)") + 
+    #xlim(0,3)
+    facet_wrap(~ experimentID, scales = "free")
+    
+    # dplyr::group_by(runID) %>% 
+    # dplyr::summarize(duration1 = mean(duration),
+    #                  duration2 = median(duration))
+
+
+```
+
+```{r remove-participants-with-unusual-completion-durations}
+
+dat.moral.numbers.briana.durations.median <- dat.moral.numbers.briana %>% 
+    dplyr::group_by(experimentID) %>%
+    dplyr::summarize(duration.median = median(duration),
+                     .groups = "drop")
+
+dat.fast.slow.subj <- dplyr::left_join(
+    dat.moral.numbers.briana %>% 
+        dplyr::ungroup() %>% 
+        dplyr::select(experimentID, ResponseId, duration) %>% 
+        dplyr::distinct(),
+    
+    dat.moral.numbers.briana.durations.median,
+    
+    by = "experimentID") %>% 
+    dplyr::filter(abs(scale(duration)) > 3) 
+
+if (REMOVE.FAST.SLOW.SUBJ){
+    dat.moral.numbers.briana <- anti_join(
+            dat.moral.numbers.briana,
+            dat.fast.slow.subj,
+            by = c("experimentID", "ResponseId")) 
+    
+}
+
+```
+
+Another `r nrow(dat.fast.slow.subj)` participants were excluded from analysis because their completion duration differed by more than 3 SD from the median completion duration.
+
+```{r remove-non-females}
+
+dat.moral.numbers.briana.non.females <- dat.moral.numbers.briana %>% 
+    dplyr::select(experimentID, ResponseId, gender) %>% 
+    dplyr::distinct() %>% 
+    dplyr::filter(gender != 2)
+
+
+
+dat.moral.numbers.briana <- anti_join(
+    dat.moral.numbers.briana,
+    dat.moral.numbers.briana.non.females,
+    by = c("experimentID", "ResponseId")) 
+    
+
+
+```
+
+We also excluded `r nrow(dat.moral.numbers.briana.non.females)` participants who did not self-declare as female. 
+
+
+
+```{r calculate-demographics}
+
+
+dat.moral.numbers.briana.demographics <-  dat.moral.numbers.briana %>% 
+    dplyr::ungroup() %>% 
+    dplyr:::mutate(gender = dplyr::case_when(
+        gender == 1 ~ "Male",
+        gender == 2 ~ "Female",
+        gender == 3 ~ "Other",
+        gender == 4 ~ "Undisclosed",
+        TRUE ~ NA_character_)) %>% 
+    get.demographics2(ResponseId, gender, age, experimentID) 
+
+dat.moral.numbers.briana.demographics %>% 
+    knitr::kable(caption = "Demographs",
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+```
+
+
+
+```{r calculate-averages}
+# Averages for Experiment 2 will be calculated below as the paradigm is different and involves choices between two options
+# Note that we don't keep an extra grouping variable as each participant completes each ratio only once.
+
+summarize.ratings <- function(dat = ., ...){
+    
+    dat %>% 
+        dplyr::summarize(
+        N = n(),
+        rating.raw.M = mean(rating.raw),
+        rating.raw.SE = se(rating.raw),
+        rating.raw.p = wilcox.p(rating.raw, mu = 3.5),
+        rating.raw.d = (mean(rating.raw) - 3.5) / sd(rating.raw),
+        rating.bin.M = mean(rating.bin),
+        rating.bin.SE = se(rating.bin),
+        rating.bin.p = binom.test(sum(rating.bin), length(rating.bin))$p.value,
+        ...
+        ) 
+}
+
+dat.moral.numbers.briana.m.across.subj <- 
+    dat.moral.numbers.briana.long.by.phase.type %>% 
+    # Remove severity questions for experiments that have them
+    dplyr::filter(question == "acceptability") %>% 
+    #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN), ratio, n.victims, n.saved, question) %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase, ratio, n.victims, n.saved, question) %>% 
+    summarize.ratings %>% 
+    #mutate(across(everything (), ~ str_replace_na (.x, ""))) %>% 
+    as.data.frame %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-question) 
+    
+```
+
+```{r overall-averages-by-participant-calculate}
+
+dat.moral.numbers.briana.m.overall.by.participant <- dat.moral.numbers.briana.long.by.phase.type %>% 
+    dplyr::filter(question == "acceptability") %>% 
+    #dplyr::group_by(experimentID, ResponseId, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+    dplyr::group_by(experimentID, ResponseId, menses.current.phase.type, menses.current.phase) %>% 
+    dplyr::summarize(rating.raw = mean(rating.raw),
+               rating.bin = mean(rating.bin),
+               .groups = "drop") %>% 
+    dplyr::arrange(rating.raw) %>% 
+    as.data.frame 
+
+dat.moral.numbers.briana.m.overall.by.participant.long <- 
+    dat.moral.numbers.briana.m.overall.by.participant %>% 
+    gather (rating.type, rating, c("rating.raw", "rating.bin"))
+```
+
+```{r overall-averages-by-scenario-calculate}
+
+dat.moral.numbers.briana.m.overall.by.scenario <- dat.moral.numbers.briana.long.by.phase.type%>% 
+    # Remove severity questions for experiments that have them
+    dplyr::filter(question == "acceptability") %>% 
+    #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN), scenarioID) %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase, scenarioID) %>% 
+    dplyr::summarize(rating.raw = mean(rating.raw),
+               rating.bin = mean(rating.bin),
+              .groups = "drop") %>% 
+    arrange (rating.raw) %>% 
+    as.data.frame
+
+dat.moral.numbers.briana.m.overall.by.scenario.long <- 
+    dat.moral.numbers.briana.m.overall.by.scenario %>% 
+    gather (rating.type, rating, c("rating.raw", "rating.bin"))
+
+
+# remove this typo, but I just care about exp 7 now
+```
+
+
+
+```{r print-number-conds, results='hide', eval = FALSE}
+
+dat.number.conds %>% 
+    tidyr::unite("experimentID", experimentID, Group, sep = " - ", remove = TRUE, na.rm = TRUE) %>% 
+    dplyr::group_by(experimentID) %>% 
+    dplyr::arrange(!dplyr::sym(MENSTRUAL.PHASE.COLUMN), ratio, n_victims, ratio2, n_victims2, .by_group = TRUE) %>% 
+    dplyr::rename_with(~ str_remove(.x, "n_")) %>% 
+    kable.packed("experimentID",
+                 caption = "Number conditions",
+                 booktabs = TRUE,
+                 longtable = TRUE,
+                 digits = 3) %>% 
+    kableExtra::add_header_above(c("Number of" = 3, " " = 1, "Number of" = 3, " " = 1), bold = TRUE) %>% 
+    kableExtra::kable_classic_2()
+    
+
+```
+
+# Main analyses
+
+
+```{r descriptives-print, results='hide'}
+
+dat.moral.numbers.briana.m.across.subj %>% 
+    tidyr:::unite("experimentID.phase.type", experimentID, menses.current.phase.type, sep = " - ") %>% 
+    kable.packed("experimentID.phase.type",
+        caption = "Descriptives", 
+        col.names = c(
+            "Cycle phase",
+            "Ratio", "victims", "saved", "participants",
+            "M", "SE", "p", "Cohen's d",
+            "M", "SE", "p"),
+        booktabs = TRUE,
+        longtable = TRUE,
+        digits = 3) %>% 
+    kableExtra::add_header_above(c(" " = 2, "Number of" = 3, "Raw ratings" = 4, "Binary ratings" = 3), bold = TRUE) %>% 
+    kableExtra::kable_classic_2() %>% 
+    kableExtra::kable_styling(font_size = 9,
+                              latex_options = c("scale_down",
+                                                "hold_position",
+                                                "striped"))
+
+
+```
+
+
+
+```{r exp99-model-comparisons-plot-raw, fig.cap = "Acceptability against (a) the Weber ratio, (b) the probability of being saved, (c) the number of victims and (d) the net number of saved. Error bars represent 95\\% bootstrap confidence intervals. While the ratings seem to show a sigmoid dependency on the Weber ratio and a linear dependency on the probability of saving, there appears to be no clear relation between the acceptability ratings and the number of victims or the net number of saved.", fig.height=11, fig.width=11}
+
+l.exp99.briana.model.comp.plots.raw <- dat.moral.numbers.briana.long.by.phase.type %>% 
+    dplyr::filter(str_starts(experimentID, "exp99")) %>% 
+    create.predictor.comparison.plot(facet.var = menses.current.phase.type, 
+                                     value.var = rating.raw,
+                                     #col.var = !!dplyr::sym(MENSTRUAL.PHASE.COLUMN),
+                                     col.var = menses.current.phase,
+                                     ylab = "Acceptability",
+                                     legend = "bottom",
+                                     add.fit = FALSE,
+                                     return.plot = FALSE,
+                                     add.p.saved.to.list = TRUE) 
+    
+# ggpubr::ggarrange(plotlist = l.exp99.briana.model.comp.plots.raw,
+#                   ncol = 2, nrow = 2,
+#                   common.legend = TRUE,
+#                   legend = "bottom") %>%
+#     ggpubr::annotate_figure(top = "Comparison of predictors of acceptability - Exp. 99 (raw ratings)")
+l.exp99.briana.model.comp.plots.raw[[1]]
+```
+
+
+
+
+```{r fit-overall-calculate}
+
+dat.moral.numbers.briana.overall.fit.1param <- dat.moral.numbers.briana.m.across.subj %>% 
+    #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+    dplyr::group_modify(~ tryCatch(
+        nls(rating.bin.M ~ acceptability.fnc (w, 
+                                            n.saved, n.victims),
+            data = .x,
+            start = list(w=.6)) %>% 
+            broom::tidy(),
+        error = function(e) data.frame (w = NA))) %>% 
+    # Just in case
+    dplyr::ungroup()
+
+
+dat.moral.numbers.briana.overall.fit.2param <- dat.moral.numbers.briana.m.across.subj %>% 
+    #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+    dplyr::group_modify(~ tryCatch(
+        nls(rating.bin.M ~ acceptability.fnc (w, 
+                                              n.saved, n.victims,
+                                              a = a),
+            data = .x,
+            start = list(w=.6, a = 5)) %>% 
+            broom::tidy(),
+        error = function(e) data.frame (w = NA, a = NA))) %>% 
+    # Just in case
+    dplyr::ungroup()
+            
+
+
+```
+
+```{r fit-bootstrap-calculate}
+
+if(RECALCULATE.EVERYTHING){
+    
+
+    
+    # This will take about 10 min.
+    
+    # Boot library is annoying for grouped data, so create your own bootstrap
+    
+    #tic()
+    warning("I'm about to generate ", N.BOOTSTRAP, " bootstrap samples. This will take about 8 min.")
+    dat.moral.numbers.briana.bootstrap.1param <- furrr::future_imap_dfr(1:(N.BOOTSTRAP/1),
+                                                                        ~ dat.moral.numbers.briana.long.by.phase.type %>% 
+                                                                            #                                                                     dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+                                                                            dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+                                                                            dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = FALSE, fit.w = TRUE)),
+                                                                        .options = furrr_options(seed = TRUE))
+    #toc()
+    
+    dat.moral.numbers.briana.bootstrap.1param.summary <- 
+        dat.moral.numbers.briana.bootstrap.1param  %>%
+        #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+        dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+        summarize(across(everything(), list(M = mean, SD = sd, SE = se)),
+                  .groups = "drop")
+    #    # wilcox.test(w  ~ vivacity, data = .)
+    
+    warning("I'm about to generate ", N.BOOTSTRAP, " bootstrap samples. This will take about 8 min.")
+    dat.moral.numbers.briana.bootstrap.2param <- furrr::future_imap_dfr(1:(N.BOOTSTRAP/1),
+                                                                        ~ dat.moral.numbers.briana.long.by.phase.type %>% 
+                                                                            #                                                                     dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+                                                                            dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+                                                                            dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = TRUE, fit.w = TRUE)),
+                                                                        .options = furrr_options(seed = TRUE))
+    
+    dat.moral.numbers.briana.bootstrap.2param.summary <- 
+        dat.moral.numbers.briana.bootstrap.2param  %>%
+        #dplyr::group_by(experimentID, !!dplyr::sym(MENSTRUAL.PHASE.COLUMN)) %>% 
+        dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+        summarize(across(everything(), list(M = mean, SD = sd, SE = se)),
+                  .groups = "drop")
+    #    # wilcox.test(w  ~ vivacity, data = .)
+    
+    # Save data
+    save(
+        dat.moral.numbers.briana.bootstrap.1param, 
+        dat.moral.numbers.briana.bootstrap.1param.summary, 
+        dat.moral.numbers.briana.bootstrap.2param,
+        dat.moral.numbers.briana.bootstrap.2param.summary,
+        file = paste0(OUTPUT.DIR, "bootstrap.briana.fits.RData"))
+    
+} else {
+    
+    # Just load the data
+    load(paste0(OUTPUT.DIR, "bootstrap.briana.fits.RData"))
+    
+}
+```
+```{r plot-w-distribution, fig.cap = "Distribution of boostrap estimates of w."}
+
+dat.moral.numbers.briana.bootstrap.1param %>% 
+    dplyr::filter(w < 5) %>% 
+    dplyr::mutate(menses.current.phase = str_remove(menses.current.phase, "early ") %>% 
+                      str_remove("mid")) %>% 
+    ggplot(aes(x = w)) + 
+    geom_histogram(aes(y = ..density..) , color = "#0000AA", fill = "#0000AA") + 
+    geom_density(alpha = .8, fill = "#6666FF")  +
+    facet_grid(menses.current.phase ~ menses.current.phase.type)
+    
+ 
+
+```
+
+```{r fit-bootstrap-save-to-xls}
+
+
+if(RECALCULATE.EVERYTHING){
+
+write.xlsx2.gc(dat.moral.numbers.briana.bootstrap.1param %>% 
+                   dplyr::arrange(experimentID, menses.current.phase.type, menses.current.phase) %>% 
+                   as.data.frame(),
+               paste0(OUTPUT.DIR, "moral.numbers.exp99.briana.bootstrap.sample.xlsx"), 
+               sheetName = "scenarios",
+               row.names = FALSE,
+               append = FALSE)
+}
+
+```
+
+```{r exp99-by-ratio-plot-bin-raw, fig.cap = "Acceptability against the Weber ratio for binary ratings.", fig.width = 10, fig.height=8}
+
+l.exp99.briana.model.comp.plots.bin <- dat.moral.numbers.briana.long.by.phase.type %>% 
+    dplyr::filter(str_starts(experimentID, "exp99")) %>% 
+    #dplyr::filter(!is.na(!!dplyr::sym(MENSTRUAL.PHASE.COLUMN))) %>% 
+    create.predictor.comparison.plot(facet.var = menses.current.phase.type, 
+                                     # dat.fit = dat.moral.numbers.briana.overall.fit.1param %>% 
+                                     #     dplyr::filter(experimentID == "exp99.briana") %>% 
+                                     #     tidyr::pivot_wider(#id_cols = !!dplyr::sym(MENSTRUAL.PHASE.COLUMN),
+                                     #         id_cols = c(menses.current.phase.type, menses.current.phase),
+                                     #         names_from = term,
+                                     #         values_from = estimate),
+                                     value.var = rating.bin,
+                                     #col.var = !!dplyr::sym(MENSTRUAL.PHASE.COLUMN),
+                                     col.var = menses.current.phase,
+                                     ylab = "Acceptability",
+                                     legend = "bottom",
+                                     add.fit = FALSE,
+                                     return.plot = FALSE,
+                                     add.p.saved.to.list = TRUE)
+
+# ggpubr::ggarrange(l.exp99.briana.model.comp.plots.bin[[1]],
+#                   l.exp99.briana.model.comp.plots.raw[[1]],
+#                   ncol = 2, nrow = 1, labels = "auto") 
+# ggpubr::annotate_figure(top = "Comparison of predictors of acceptability - Exp.99 (binary ratings)")
+
+l.exp99.briana.model.comp.plots.bin[[1]]
+
+```
+
+
+
+
+
+`r clearpage()`
+
+## Fits
+
+```{r exp99-fits-bootstrap-summary-print}
+
+dplyr::bind_rows(
+    dat.moral.numbers.briana.bootstrap.1param.summary %>% 
+        dplyr::mutate(fit.type = "1 parameter fit"),
+    dat.moral.numbers.briana.bootstrap.2param.summary %>% 
+        dplyr::mutate(fit.type = "2 parameter fit")) %>% 
+    #dplyr::filter(!is.na(!!dplyr::sym(MENSTRUAL.PHASE.COLUMN))) %>% 
+    dplyr::arrange(experimentID, fit.type, menses.current.phase.type) %>% 
+    tidyr::unite(experimentID.phase.type, experimentID, fit.type, menses.current.phase.type, sep = " - ") %>% 
+    kable.packed(
+        "experimentID.phase.type",
+        caption = "Bootstrap fits of model paremeters ",
+        col.names = c("Cycle phase", rep(c("M", "SD", "SE"), 2)),
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE) %>% 
+    kableExtra::add_header_above(c(" " = 1, "$w$" = 3, "$\\alpha$" = 3)) %>% 
+    kableExtra::kable_styling(latex_options = c("striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+
+```
+
+```{r exp99-fits-bootstrap-comparison-print}
+
+dat.moral.numbers.briana.bootstrap.1param %>% 
+    #dplyr::filter(!is.na(!!dplyr::sym(MENSTRUAL.PHASE.COLUMN))) %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type) %>% 
+    #rstatix::wilcox_test(as.formula(paste("w ~ ", MENSTRUAL.PHASE.COLUMN)), detailed = FALSE) %>% 
+    rstatix::wilcox_test(w ~ menses.current.phase, detailed = FALSE) %>% 
+    tidyr::unite(experimentID.phase.type, experimentID, menses.current.phase.type, sep = " - ") %>% 
+    kable.packed(
+        "experimentID.phase.type",
+        caption = "Comparison of the bootstrap estimates of a across menstrual phases, based on two sample Wilcoxon tests. 1 parameter fits only",
+        #col.names = c(),
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE) %>% 
+    kableExtra::kable_styling(latex_options = c("striped",
+        #"scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+
+
+
+```
+
+```{r exp99-fits-bootstrap-plot, fig.cap = "Bootstrap samples of w"}
+
+
+dat.moral.numbers.briana.bootstrap.1param  %>% 
+    na.omit() %>% 
+    #ggplot(aes(x = !!dplyr::sym(MENSTRUAL.PHASE.COLUMN), y = w)) %>% 
+    ggplot(aes(x = menses.current.phase, y = w)) %>% 
+    violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
+    #scale_y_log10()
+    facet_wrap(menses.current.phase.type ~ experimentID, scales = "free") #labeller = labeller(blocks = label_both))
+
+
+```
+
+`r clearpage()`
+
+## Raw rating comparison
+
+```{r compare-ratings-by-phase}
+
+dplyr::bind_rows(dat.moral.numbers.briana.long.by.phase.type %>% 
+                     dplyr::mutate(max.ratio = paste0("Maximal ratio: ", Inf)),
+                 dat.moral.numbers.briana.long.by.phase.type %>% 
+                     dplyr::filter(ratio <= MAX.RATIO.FOR.ANALYSIS) %>% 
+                     dplyr::mutate(max.ratio = paste0("Maximal ratio: ", MAX.RATIO.FOR.ANALYSIS))) %>% 
+    dplyr::group_by(experimentID, max.ratio, menses.current.phase.type, menses.current.phase, ResponseId) %>%
+    dplyr::summarize(across(c(rating.raw, EMCS.score, IWAH.world.pure),
+                            mean),
+                     .groups = "drop") %>% 
+    tidyr::pivot_longer(cols = c(rating.raw, EMCS.score, IWAH.world.pure),
+                        names_to = "measure",
+                        values_to = "value") %>% 
+    dplyr::group_by(experimentID, max.ratio, menses.current.phase.type, measure) %>%
+    rstatix::wilcox_test(value ~ menses.current.phase, detailed = FALSE) %>% 
+    dplyr::arrange(experimentID, desc(max.ratio), desc(measure), menses.current.phase.type) %>% 
+    dplyr::select(-experimentID) %>% 
+    tidyr::unite(pack.col, max.ratio, measure, menses.current.phase.type, sep = " - ") %>% 
+    kable.packed(
+        "pack.col",
+        caption = "Comparions of raw ratings, EMCS and IWAH scores across phases.",
+        #col.names = c(),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+    
+```
+```{r print-ratings-by-phase}
+
+dplyr::bind_rows(dat.moral.numbers.briana.long.by.phase.type %>% 
+                     dplyr::mutate(max.ratio = paste0("Maximal ratio: ", Inf)),
+                 dat.moral.numbers.briana.long.by.phase.type %>% 
+                     dplyr::filter(ratio <= MAX.RATIO.FOR.ANALYSIS) %>% 
+                     dplyr::mutate(max.ratio = paste0("Maximal ratio: ", MAX.RATIO.FOR.ANALYSIS))) %>% 
+    dplyr::group_by(experimentID, max.ratio, menses.current.phase.type, menses.current.phase, ResponseId) %>%
+    dplyr::summarize(across(c(rating.raw, EMCS.score, IWAH.world.pure),
+                            mean),
+                     .groups = "drop") %>% 
+    tidyr::pivot_longer(cols = c(rating.raw, EMCS.score, IWAH.world.pure),
+                        names_to = "measure",
+                        values_to = "value") %>% 
+    dplyr::group_by(experimentID, max.ratio, measure, menses.current.phase.type, menses.current.phase) %>%
+    dplyr::summarize(N = n(),
+                     M = mean(value), 
+                     SE = se(value), 
+                     .groups = "drop") %>% 
+    dplyr::arrange(experimentID, desc(max.ratio), desc(measure), menses.current.phase.type) %>% 
+    dplyr::select(-experimentID) %>% 
+    tidyr::unite(pack.col, max.ratio, measure, menses.current.phase.type, sep = " - ") %>% 
+    kable.packed(
+        "pack.col",
+        caption = "Descriptives of raw ratings across phases.",
+        #col.names = c(),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE) %>% 
+    kableExtra::kable_classic_2()
+
+
+```
+
+
+```{r exp99-ratings-plot, fig.cap = "Ratings in different menstrual phases", fig.width = 10}
+
+dat.moral.numbers.briana.long.by.phase.type %>% 
+    dplyr::group_by(experimentID, menses.current.phase.type, menses.current.phase, ResponseId) %>%
+    dplyr::summarize(rating.raw = mean(rating.raw), .groups = "drop") %>% 
+    ggplot(aes(x = menses.current.phase, y = rating.raw)) %>% 
+    violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
+    #scale_y_log10()
+    facet_wrap(menses.current.phase.type ~ experimentID, scales = "free") #labeller = labeller(blocks = label_both))
+
+
+```
+
+```{r correlations, fig.cap="Correlations between different variables. None are signifcant."}
+
+moral.numbers.briana.corr.results <- dat.moral.numbers.briana %>% 
+    dplyr::group_by(experimentID, ResponseId) %>% 
+    dplyr::summarize(across(c(rating.raw, EMCS.score, IWAH.world.pure),
+                            mean),
+                     .groups = "drop") %>% 
+    dplyr::select(dplyr::where(is.numeric)) %>% 
+    as.matrix %>% 
+    Hmisc::rcorr()
+
+# Correlation plot with significance
+ggcorrplot::ggcorrplot(moral.numbers.briana.corr.results$r, 
+           method = "circle", 
+           type = "lower",    # or "upper" for an upper triangle
+           p.mat = moral.numbers.briana.corr.results$P,  # Pass p-values for significance indication
+           sig.level = 0.05,  # Significance level (e.g., 0.05)
+           insig = "pch",     # Mark insignificant correlations
+           lab = TRUE)        # Add correlation coefficients
+
+```
+
+

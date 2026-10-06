@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Vivid, number counterbalancing group 1
+# Arguments
+# scenario file, number condition, scenario filter string, block prefix
+
+# Neutral, number counterbalancing group 1
+./parse_scenarios_2questions_with_filter.with_formatted_numbers_no_severity_question.pl incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp10.xml number_conds_exp99_counterbalancing_group1.csv neutral scenarios.neutral.cb1
+mv incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp10.qualtrics.txt incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp99.qualtrics.neutral_cb1.txt
+
+# Neutral, number counterbalancing group 2
+./parse_scenarios_2questions_with_filter.with_formatted_numbers_no_severity_question.pl incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp10.xml number_conds_exp99_counterbalancing_group2.csv neutral scenarios.neutral.cb2
+mv incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp10.qualtrics.txt incommensurate_scenarios_single_horrificness_question.new_questions.scenarios.exp99.qualtrics.neutral_cb2.txt

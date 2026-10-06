@@ -1,0 +1,11 @@
+n_victims,n_saved,n_total,experiments
+300,400,700,4 (replication)
+20,30,50,4 (replication)
+200,400,600,4 (replication)
+10,30,40,4 (replication)
+100,400,500,4 (replication)
+30,300,330,4 (replication)
+400,6000,6400,4 (replication)
+30,600,630,4 (replication)
+400,12000,12400,4 (replication)
+20,800,820,4 (replication)

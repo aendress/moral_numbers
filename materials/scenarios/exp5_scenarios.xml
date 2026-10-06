@@ -1,0 +1,678 @@
+<?xml version="1.0" encoding="utf-8"?>
+<experiment>
+
+<!-- 1.  -->
+
+  <scenario>
+    <label>remoteTreatment.vivid</label>
+    <title>Remote treatment</title>
+    <text>
+    The Cumberree Mountain range is a remote mountain range renowned for its beauty and clean air. It is home to a hospital specialized for treating Pink Flu, a deadly disease requiring continuous medical care, but from which patients usually recover. The mountain range is also home to a village dedicated to holding arts festivals.
+    [br] [br] 
+    An earthquake struck the village, and the survivors require immediate medical attention. However, the only medical personnel available are from the Pink Flu hospital, whose patients will die if staff are withdrawn to attend to the earthquake victims.
+	[br] [br]
+    You are the head of the Pink Flu hospital. If you move your team to attend to the earthquake victims, you will save the n_saved earthquake survivors, but your n_victims Pink Flu patients will die a painful death, feel as if they have third degree burns across their whole body and slowly asphyxiate.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying in the earthquake like the people in the village, or dying from Pink Flu like the people in the hospital?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the village
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in the hospital
+</question.severity.anchor.right>
+   <question.acceptability>
+	How acceptable is it to kill n_victims Pink Flu patients to save n_saved earthquake survivors?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>remoteTreatment.neutral</label>
+    <title>Remote treatment</title>
+    <text>
+    The Cumberree Mountain range is a remote mountain range renowned for its beauty and clean air. It is home to a hospital specialized for treating Pink Flu, a deadly disease requiring continuous medical care. The mountain range is also home to a village dedicated to holding arts festivals.
+    [br] [br]
+	There is a Pink Flu outbreak in the village, and the attendees require immediate medical attention. However, the only medical personnel available are from the Pink Flu hospital, whose patients will die if staff are withdrawn to attend to the attendees.
+	[br] [br]
+	If the medical team of the Pink Flu hospital is moved to attend to the attendees, this will save the n_saved attendees with Pink Flu, but will kill n_victims Pink Flu patients in the hospital.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Pink Flu like the people in the village, or dying from Pink Flu like the people in the hospital?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the village
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in the hospital
+</question.severity.anchor.right>
+      <question.acceptability>
+How acceptable is it to kill n_victims patients in the hospital to save n_saved people in the village?
+	</question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 2.  -->
+
+  <scenario>
+    <label>toxicFactory.vivid</label>
+    <title>Toxic factory</title>
+    <text>
+    A fire in a chemical factory threatens to release heptahopretyde, a gas that kills within seconds even in minimal doses. If released, everybody in the surrounding area will be killed, though the factory workers themselves will be fine due to their respiratory equipment.
+    [br] [br]
+    You are the head of the firefighters. You can prevent the release of heptahopretyde by adding a chemical catalyst to the fire so the heptahopretyde splits up into harmless compounds. This will save n_saved people in the immediately surrounding area. However, this will also increase the fire temperature, and n_victims workers in the factory will die a painful death, being burned and asphyxiated alive.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from heptahopretyde exposure like the people in the surrounding area, or being burned and asphyxiated alive like the workers in the factory?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the surrounding area
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the workers in the factory
+</question.severity.anchor.right>
+       <question.acceptability>
+    How acceptable is it to kill the n_victims factory workers to save n_saved people in the surrounding area?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>toxicFactory.neutral</label>
+    <title>Toxic factory</title>
+    <text>
+    A fire in a chemical factory threatens to release heptahopretyde, a gas that kills within seconds even in minimal doses. If released, everybody in the immediately surrounding area will be killed, though the factory workers themselves will be fine due to their respiratory equipment.
+    [br] [br]
+    The firefighters can prevent the release of heptahopretyde by using heavy lift helicopters to drop a containment tent over the building that concentrates and then purifies the gases. This will save n_saved people in the surrounding area. However, this will overwhelm the respiratory equipment of n_victims workers in the factory and will kill them due to heptahopretyde exposure.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from heptahopretyde exposure like the people in the surrounding area, or dying from heptahopretyde exposure like the workers in the factory?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the surrounding area
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the workers in the factory
+</question.severity.anchor.right>
+    <question.acceptability>
+    How acceptable is it to kill the n_victims factory workers to save n_saved people in the surrounding area?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 3.  -->
+
+  <scenario>
+    <label>desertAqueduct.vivid</label>
+    <title>Aqueduct in the desert</title>
+    <text>
+      Settlements in the Burning Barren desert are supplied with water through a series of aqueducts. The supply to Sandharbor settlement has been poisoned with Possuxyth, a potent, fast acting but relatively pain-free poison.
+	[br] [br]
+    The people in Sandharbor will die if nothing is done. There are few options for relief efforts, as there are no off-road tanker trucks and any evacuation would take too much time because both communities are remote and inaccessible. However, the control engineer can remotely switch the supply to the Midcross settlement to Sandharbor. This would dilute the poison enough to make the water safe to drink, but kill the inhabitants of Midcross.
+    [br] [br]
+    You are the control engineer. If you switch the supply from Midcross to Sandharbor, you will save n_saved people in Sandharbor, but n_victims people in Midcross will endure a painful death due to dehydration, which can take up to a week.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Possuxyth ingestion like the people in Sandharbor, or dying from dehydration like the people in Midcross?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Sandharbor
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Midcross
+</question.severity.anchor.right>
+       <question.acceptability>
+    How acceptable is it to kill n_victims people in Midcross to save n_saved people in Sandharbor?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>desertAqueduct.neutral</label>
+    <title>Aqueduct in the desert</title>
+    <text>
+      Settlements in the Burning Barren desert are supplied with water through a series of aqueducts. The supply to Sandharbor settlement has a leak.
+	[br] [br]
+    The people in Sandharbor will die if nothing is done. There are few options for relief efforts, as there are no off-road tanker trucks and any evacuation would take too much time because both communities are remote and inaccessible. However, the control engineer can remotely switch the supply to the Midcross settlement to Sandharbor. This would provide water to Sandharbor, but kill the people in Midcross.
+    [br] [br]
+    If the control engineer switches the supply from Midcross to Sandharbor, this will save n_saved people in Sandharbor, but n_victims people in Midcross will die as a result.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying dehydration like the people in Sandharbor, or dying from dehydration like the people in Midcross?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Sandharbor
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Midcross
+</question.severity.anchor.right>
+    <question.acceptability>
+    How acceptable is it to kill n_victims people in Midcross to save n_saved people in Sandharbor?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 4.  -->
+  <scenario>
+    <label>trainBomb.vivid</label>
+    <title>
+      Bomb on Train
+    </title>
+    <text>
+	The intelligence services have detected a bomb on a train heading towards the market town of Bangebe, where a major festival is currently underway. The bomb is in the front cargo cars, while the rear cars are carrying passengers. Once the train reaches its destination, the bomb will detonate, killing everyone in the station and the surrounding area, where large crowds have gathered for the festival. However, the rear cars of the train will stay outside the station, so the train passengers will be safe.
+	[br] [br]
+	The intelligence services have a drone available to strike the train on the last bridge before it arrives at its destination. Bombing the train will make it fall into a river underneath. This will kill everybody aboard, but save the people at and around the station.
+	[br] [br]
+	You are the head of the intelligence services. If you strike the train on the bridge, this will save the n_saved people in and around the station, but n_victims people on the train will die a slow and painful death drowning while desperately trying to get out of the locked carriages after they sink to the riverbed.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from an explosion like the people in and around the station, or drowning like the people on the train?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the station
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people on the train
+</question.severity.anchor.right>
+       <question.acceptability>
+	 How acceptable is it to kill the n_victims people on the train to save n_saved people in and around the station?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>trainBomb.neutral</label>
+    <title>
+      Bomb on Train
+    </title>
+    <text>
+	The intelligence services have detected a bomb on a train heading towards the market town of Bangebe, where a major festival is currently underway. The bomb is in the front cargo cars, while the rear cars are carrying passengers. Once the train reaches its destination, the bomb will detonate, killing everyone in the station and the surrounding area, where large crowds have gathered for the festival. However, the rear cars of the train will stay outside the station, so the train passengers will be safe.
+	[br] [br]
+	The intelligence services have a drone available to strike the train on the last bridge before it arrives at its destination. Striking the train will trigger the bombs on the train. This will kill everybody aboard, but save the people in and around the station.
+	[br] [br]
+	If the head of the intelligence services strikes the train on the bridge, this will save n_saved people in and around the station, but the n_victims people on the train will die as a result.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from an explosion like the people in and around the station, or dying from an explosion like the people on the train?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the station
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people on the train
+</question.severity.anchor.right>
+    <question.acceptability>
+	 How acceptable is it to kill the n_victims people on the train to save n_saved people in the station?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 5.  -->
+
+  <scenario>
+    <label>humanSacrifice.vivid</label>
+    <title>
+      Human sacrifice
+    </title>
+    <text>
+      For his imperial cult, the king of Chirfiqa asks the Whotnir tribe to sacrifice n_victims people. These people will be thrown into a snake pit. If there are not enough volunteers, he will kill all n_saved Whotnir by poisoning all their water wells with a fast-acting poison.
+      [br] [br]
+      The governor of the Whotnir region has selected sacrificees who are trying to flee to hide in the capital, where they will survive if they make it. The governor of the Whotnir region has located this group and can detain them in order to have them sacrificed, which would save the remaining Whotnir.
+      [br] [br]
+      You are this governor. If you decide to detain the escapees, you will save n_saved Whotnir, but the n_victims escapees will suffer severe pain from the snake venom before dying after being thrown into the snake pit.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from poisoned water like the remaining Whotnir, or dying from snake bites like the escapees?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the remaining Whotnir
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the escapees
+</question.severity.anchor.right>
+    <question.acceptability>
+      How acceptable is it to detain and sacrifice the n_victims escapees to save the n_saved remaining Whotnir?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>humanSacrifice.neutral</label>
+    <title>
+      Human sacrifice
+    </title>
+    <text>
+      For his imperial cult, the king of Chirfiqa asks the Whotnir tribe to sacrifice n_victims people. These people will be killed by drinking poisoned water. If there are not enough volunteers, he will kill all n_saved Whotnir by poisoning all their water wells with the same fast-acting poison.
+      [br] [br]
+      The governor of the Whotnir region has selected a group of sacrificees who are trying to flee and to hide in the capital, where they will survive if they make it. The governor of the Whotnir region has located this group and can detain them to have them sacrificed, which would save the remaining Whotnir.
+      [br] [br]
+	If the governor decides to detain the escapees, this will save n_saved Whotnir, but the n_victims escapees will die as result.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from poisoned water like the remaining Whotnir, or dying from poisoned water like the escapees?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the remaining Whotnir
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the escapees
+</question.severity.anchor.right>
+    <question.acceptability>
+      How acceptable is it to detain and sacrifice the n_victims escapees to save the n_saved remaining Whotnir?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 6.  -->
+
+  <scenario>
+    <label>treatmentPolicy.vivid</label>
+    <title>Treatment Policy</title>
+    <text>
+      Hyena's Ears is a deadly fungal disease that can be treated with the drug Abacavelam. Unless diagnosed, patients are completely unaware that they have this disease, but will face sudden death within two weeks of contracting it. Unfortunately, diagnosis is unreliable, so some healthy patients will be misdiagnosed as having Hyena's Ears. And giving Abacavelam to healthy people kills them.
+      [br] [br]
+      An unusually warm period led to thawing of the permafrost and the release of Hyena's Ears pathogens. The head of a clinic needs to decide how to deal with this outbreak. The disease doesn't spread between people. If nothing is done, the Hyena's Ears patients will die, but the misdiagnosed patients will survive.
+      [br] [br]
+      You are the head of the clinic. If you decide to administer Abacavelam, you will save n_saved Hyena's Ears patients, but will kill n_victims healthy but misdiagnosed patients, who will face agonizing pain as the skin of their entire body disintegrates completely before finally dying.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Hyena's Ears like the Hyena's Ears patients, or dying while the skin on your body disintegrates like the misdiagnosed patients?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the Hyena's Ears patients
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the misdiagnosed patients
+</question.severity.anchor.right>
+     <question.acceptability>
+      How acceptable is it to administer Abacavelam and to kill n_victims misdiagnosed patients to save n_saved Hyena's Ears patients?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>treatmentPolicy.neutral</label>
+    <title>Treatment Policy</title>
+    <text>
+      Hyena's Ears is a deadly fungal disease that can be treated with the drug Abacavelam. Unless diagnosed, patients are completely unaware they have this disease, but will face sudden death within two weeks of contracting it. Unfortunately, diagnosis is unreliable, so some healthy patients will be misdiagnosed as having Hyena's Ears. And giving Abacavelam to healthy people kills them.
+      [br] [br]
+      An unusually warm period led to thawing of the permafrost and the release of Hyena's Ears pathogens. The head of a clinic needs to decide how to deal with this outbreak. The disease doesn't spread between people. If nothing is done, the Hyena's Ears patients will die, but the misdiagnosed patients will survive.
+      [br] [br]
+      If the head of the clinic decides to administer Abacavelam, this will save n_saved Hyena's Ears patients, but will kill n_victims healthy but misdiagnosed patients.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Hyena's Ears like the Hyena's Ears patients, or dying due to Abacavelam like the misdiagnosed patients?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the Hyena's Ears patients
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the misdiagnosed patients
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to administer Abacavelam and to kill n_victims misdiagnosed patients to save n_saved Hyena's Ears patients?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+<!-- 7.  -->
+
+  <scenario>
+    <label>plagueZoklid.vivid</label>
+    <title>Zoklid Plague</title>
+    <text>
+      The air force uses a drone to monitor the army of emperor Kospiossau conquering another country. The emperor released a Zoklid swarm to attack the settlements of Nova Mistral.
+      [br] [br]
+      Zoklids are dangerous insects. If nothing is done, the Zoklid swarms will reach Nova Mistral and kill all the inhabitants instantly. The drone can release pesticides over the swarm, though this will affect another settlement underneath. The people exposed to the pesticide will die as a result.
+      [br] [br]
+      You are the air force officer controlling the drone. If you decide to release the pesticide, you will save n_saved people in Nova Mistral, but will kill n_victims people in the area underneath the swarm, who will develop excruciating muscle problems and die after suffering for three or four weeks.
+    </text>
+<question.severity.text>
+Which do you find more horrific, being killed by Zoklids like the people in Nova Mistral, or dying from the pesticide like the people underneath the Zoklid swarm?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Nova Mistral
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people underneath the swarm
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to release the pesticides and kill the n_victims people underneath to save the n_saved people in Nova Mistral?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+  <scenario>
+    <label>plagueZoklid.neutral</label>
+    <title>Zoklid Plague</title>
+    <text>
+      The air force uses a drone to monitor the army of emperor Kospiossau conquering another country. The emperor released a Zoklid swarm to attack the settlements of Nova Mistral.
+      [br] [br]
+      Zoklids are dangerous insects. If nothing is done, the Zoklid swarms will reach Nova Mistral and kill all the inhabitants instantly. The drone can release pesticides over the swarm, though this will affect another settlement underneath. The people exposed to the pesticide will die as a result.
+      [br] [br]
+      If the air force officer controlling the drone decides to release the pesticide, this will save n_saved people in Noval Mistral, but will kill n_victims people in the area underneath the swarm, who will die instantly.
+    </text>
+<question.severity.text>
+Which do you find more horrific, being killed by the Zoklids like the people in Nova Mistral, or dying from the pesticide like the people underneath the Zoklid swarm?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Nova Mistral
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people underneath the swarm
+</question.severity.anchor.right>
+     <question.acceptability>
+      How acceptable is it to release the pesticides and kill the n_victims people underneath to save the n_saved people in Nova Mistral?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+<!-- 8.  -->
+<!--
+  <scenario>
+    <label>powerHospital.vivid</label>
+    <title>Hospital Power Outage</title>
+    <text>
+      During a city-wide power outage, a major hospital needs to rely on backup generators to keep patients on life support alive.  The electrical engineer on site receives a warning that the generators of the main operating block are overheating and will lose power in the next 5 minutes. The engineer can still change the cabling to connect the main operating block with the generators of a building with many people on life support. This would kill the patients on life support. However, this would save the patients in the operating block who are currently being operated on, being prepared for, or recovering from, an operation. Their anesthesia would ensure that these patients would not suffer.
+      [br] [br]
+      You are the engineer on site. If you decide to switch the cabling, you will save the n_saved patients in the operating block, but will kill n_victims patients on life support, who will die a painful death by asphyxiation.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying during anesthesia like the people in the operating block, or dying from asphyxiation like the people on life support?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the operating block
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people on life support
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to switch the cabling, thus killing n_victims patients in the operating block to save n_saved patients on life support?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>powerHospital.neutral</label>
+    <title>Hospital Power Outage</title>
+    <text>
+      During a city-wide power outage, a major hospital needs to rely on backup generators to keep patients on life support alive.  The electrical engineer on site receives a warning that the generators of the main operating block are overheating and will lose power in the next 5 minutes. The engineer can still change the cabling to connect the main operating block with the generators of a building with many people on life support. This would kill the patients on life support. However, this would save the patients currently being operated on, being prepared for, or recovering from, an operation. Their anesthesia would ensure that these patients would not suffer.
+      [br] [br]
+	If the engineer on site decides to switch the cabling, this will save the n_saved patients in the operating block, but will kill n_victims patients on life support, who will die in their sleep.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying during anesthesia like the people in the operating block, or dying while sleeping like the people on life support?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in the operating block
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people on life support
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to switch the cabling, thus killing n_victims patients in the operating block to save n_saved patients on life support?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+-->
+
+<!-- 8. (alternative scenario) -->
+
+  <scenario>
+    <label>asteroidDefense.vivid</label>
+    <title>Asteroid Defense</title>
+    <text>
+      Astronomers have just detected a large asteroid on an imminent collision course with Earth, set to impact in 18 hours. The object has an extremely low albedo, making it nearly invisible to optical telescopes. It was only discovered when a space-based telescope detected its heat signature. Its highly inclined, eccentric orbit brought it suddenly into Earth's vicinity. The asteroid will strike Azurville, a densely populated coastal metropolis in Zephyria, home to n_saved people. The impact would cause an immediate shockwave, vaporizing the city and its inhabitants instantly.
+[br][br]
+	The Global Space Agency (GSA) has an experimental deflection system ready, using a kinetic impactor. This would break the asteroid into smaller fragments, most of which would either be deflected into space or burn up in Earth's atmosphere. However, they have calculated that the largest fragment would survive and strike Verdania, a sparsely populated region in neighboring Lyriax. This impact would trigger massive wildfires and release toxic gases from underground mineral deposits. An estimated n_victims people would die over several hours from severe burns, smoke inhalation, and poisonous fumes, enduring significant suffering before succumbing.
+[br][br]
+	The mission control team has only minutes to decide whether to launch the deflection mission. There is no time for evacuation in either scenario. You are the head of the mission control team. If you decide to launch the deflection mission, you will save n_saved people in Azurville, but will kill n_victims people in Verdania, who will die a painful death from burns and smoke inhalation.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying by being vaporized like the people in Azurville, or dying from burns and smoke inhalation like the people in Verdania?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Azurville
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Verdania
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to launch the deflection mission, thus killing n_victims people in Verdania to save n_saved people in Azurville?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>asteroidDefense.neutral</label>
+    <title>Asteroid Defense</title>
+    <text>
+	Astronomers have just detected a large asteroid on an imminent collision course with Earth, set to impact in 18 hours. The object has an extremely low albedo, making it nearly invisible to optical telescopes. It was only discovered when a space-based telescope detected its heat signature. Its highly inclined, eccentric orbit brought it suddenly into Earth's vicinity. The asteroid will strike Azurville, a densely populated coastal metropolis in Zephyria, home to n_saved people. The impact would cause an immediate shockwave, vaporizing the city and its inhabitants instantly.
+[br][br]
+	The Global Space Agency (GSA) has an experimental deflection system ready, using a kinetic impactor. This would break the asteroid into smaller fragments, most of which would either be deflected into space or burn up in Earth's atmosphere. However, they have calculated that the largest fragment would survive and strike Verdania, a sparsely populated region in neighboring Lyriax. This impact would create localized shockwaves, instantly vaporizing an estimated n_victims people in the affected areas.
+[br][br]
+	The mission control team has only minutes to decide whether to launch the deflection mission. There is no time for evacuation in either scenario. If the head of the mission control team decides to launch the deflection mission, this will save n_saved people in Azurville, but will kill n_victims people in Verdania, who will die instantly.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying by being vaporized like the people in Azurville, or dying by being vaporized like the people in Verdania?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Azurville
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Verdania
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is it to launch the deflection mission, thus killing n_victims people in Verdania to save n_saved people in Azurville?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+<!-- 9.  -->
+
+  <scenario>
+    <label>valleysFlooding.vivid</label>
+    <title>Flooding Valleys</title>
+    <text>
+    Valleys in the Whitgus mountains are protected from floods by dams which are however badly maintained. One day during the spring snow melt, the dam protecting Leefside Valley collapses. If nothing is done, Leefside Valley will be flooded, and all inhabitants will drown.
+    [br] [br]
+    The operations engineer can open floodgates in another dam, which would trigger a massive mudslide engulfing Llyne Valley and kill all the people there.
+    [br] [br]
+    You are the operations engineer. If you decide to open the flood gates, you will save n_saved people in Leefside Valley, but will kill n_victims people in Llyne Valley who will be trapped in mud for hours before being painfully crushed and finally dying of asphyxiation.
+  </text>
+<question.severity.text>
+Which do you find more horrific, drowning like the people in Leefside Valley, or dying while trapped in mud like the people in Llyne Valley?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Leefside Valley
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Llyne Valley
+</question.severity.anchor.right>
+       <question.acceptability>
+    How acceptable is it to open the floodgates and to kill n_victims people in Llyne Valley to save the n_saved people in Leafside Valley?
+  </question.acceptability>
+  <nchoices>6</nchoices>
+</scenario>
+
+  <scenario>
+    <label>valleysFlooding.neutral</label>
+    <title>Flooding Valleys</title>
+    <text>
+    Valleys in the Whitgus mountains are protected from floods by dams which are however badly maintained. One day during the spring snow melt, the dam protecting Leefside Valley collapses. If nothing is done, Leefside Valley will be flooded, and all inhabitants will drown.
+    [br] [br]
+    The operations engineer can open floodgates in another dam, which would trigger a massive mudslide engulfing Llyne Valley and kill all the people there.
+    [br] [br]
+    If the operations engineer decides to open the flood gates, this will save the n_saved people in Leefside Valley, but will kill n_victims people in Llyne Valley who will drown as a result.
+  </text>
+<question.severity.text>
+Which do you find more horrific, drowning like the people in Leefside Valley, or drowning like the people in Llyne Valley?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying like the people in Leefside Valley
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying like the people in Llyne Valley
+</question.severity.anchor.right>
+       <question.acceptability>
+    How acceptable is it to open the floodgates and to kill n_victims people in Llyne Valley to save the n_saved people in Leafside Valley?
+  </question.acceptability>
+  <nchoices>6</nchoices>
+</scenario>
+
+<!-- 10.  -->
+
+  <scenario>
+    <label>dietarySupplement.vivid</label>
+    <title>Dietary supplements</title>
+    <text>
+    Due to the parasites endemic on Minnegamau Isles, many inhabitants are at risk of thacium deficiency, and need water fortified with thacium to survive. After a Tsunami, these islands are cut off from the outside world. A lack of fortified water will kill people with thacium deficiency before any evacuation mission can be mounted.
+    [br] [br]
+    You are the official in charge of disaster relief. If you decide to use a tanker plane to airlift drinking water fortified with thacium, this will save n_saved people. However, it will also kill n_victims people with thacium intolerance who can survive without thacium, but who will suffer severe and excruciatingly painful muscle spasms for two days before finally dying.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from thacium deficiency or dying from thacium intolerance with the associated muscle spasms?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from thacium deficiency
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from thacium intolerance
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is to fortify the drinking water with thacium and to kill n_victims people with thacium intolerance to save n_saved people in Minnegamau Isles?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>dietarySupplement.neutral</label>
+    <title>Dietary supplements </title>
+    <text>
+    Due to the parasites endemic on Minnegamau Isles, many inhabitants are at risk of thacium deficiency, and need water fortified with thacium to survive. After a Tsunami, these islands are cut off from the outside world. A lack of fortified water will kill people with thacium deficiency before an evacuation mission can be mounted.
+    [br] [br]
+    If the official in charge of disaster relief decides to use a tanker plane to airlift drinking water fortified with thacium, this will save n_saved people. However, it will also kill n_victims people with thacium intolerance who can survive without thacium, but who will die with similar symptoms to thacium deficiency.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from thacium deficiency, or dying from thacium intolerance?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from thacium deficiency
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from thacium intolerance
+</question.severity.anchor.right>
+       <question.acceptability>
+      How acceptable is to fortify the drinking water with thacium and to kill n_victims people with thacium intolerance to save n_saved people in Minnegamau Isles?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 11.  -->
+
+  <scenario>
+    <label>healthBudget.vivid</label>
+    <title>
+Limited health budget
+    </title>
+    <text>
+    The government of Solandia faces a severe budget shortfall just when a major outbreak of Zephyrion Disease occurs. Zephyrion Disease is a deadly, but relatively pain-free disease that kills infected people within one day.
+    [br] [br]
+    You are the health minister of Solandia. If you use the budget allocated to pay for drugs for Astronexis Syndrome in order to buy drugs for Zephyrion Disease instead, you will save n_saved people infected by Zephyrion Disease. However, you will also kill n_victims Astronexis Syndrome patients, who will see their body paralyzed muscle by muscle before finally dying and suffer excruciating pain in the process.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Zephyrion Disease, or dying from Astronexis Syndrome after complete paralysis?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from Zephyrion Disease
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from Astronexis Syndrome
+</question.severity.anchor.right>
+   <question.acceptability>
+      How acceptable is to buy Zephyrion Disease drugs instead of Astronexis Syndrome drugs, and thus to kill n_victims Astronexis Syndrome patients to save n_saved people with Zephyrion Disease?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+  <scenario>
+    <label>healthBudget.neutral</label>
+    <title>
+Limited health budget
+    </title>
+    <text>
+    The government of Solandia faces a severe budget shortfall just when a major outbreak of Zephyrion Disease occurs. Zephyrion Disease is a deadly, but relatively pain-free disease that kills infected people within one day.
+    [br] [br]
+    If the health minister of Solandia uses the budget allocated to pay for drugs for Astronexis Syndrome in order to buy drugs for Zephyrion Disease instead, this will save n_saved people infected by Zephyrion Disease. However, this will also kill n_victims Astronexis Syndrome patients, though the symptoms of the two diseases are similar.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from Zephyrion Disease, or dying from Astronexis Syndrome?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from Zephyrion Disease
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from Astronexis Syndrome
+</question.severity.anchor.right>
+   <question.acceptability>
+      How acceptable is to buy Zephyrion Disease drugs instead of Astronexis Syndrome drugs, and thus to kill n_victims Astronexis Syndrome patients to save n_saved people with Zephyrion Disease?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+<!-- 12.  -->
+
+  <scenario>
+    <label>geneDrive.vivid</label>
+    <title>Gene drive</title>
+    <text>
+The wintermaw bloodmoth is a migratory insect. In the summer, it lives in the north and feeds on the blood of mammals including humans. Its bite causes a deadly disease called pestiloric fever. In the winter, it migrates to the south, where it eats the larvae of shadow-spike flies, an insect that transmits a deadly disease called necrovirus necrosis to people.
+[br][br]
+You are the health minister and must decide whether to eradicate the wintermaw bloodmoth through a gene drive. If you eradicate them, you will save the lives of n_saved people in the north who would otherwise die of pestiloric fever. However, this will also increase the shadow-spike fly population, whose larvae would not get eaten by the wintermaw bloodmoth (and that cannot otherwise be easily eradicated). This will kill n_victims people in the south who will die of necrovirus necrosis and experience excruciating internal hemorrhaging and paralyzing muscle pain in the process.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from pestiloric fever, or dying from necrovirus necrosis while experiencing internal hemorrhaging?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from pestiloric fever
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from necrovirus necrosis
+</question.severity.anchor.right>
+    <question.acceptability>
+      How acceptable is to eradicate the wintermaw bloodmoth, and thus to kill n_victims people in the south to save n_saved people in the north?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+  <scenario>
+    <label>geneDrive.neutral</label>
+    <title>Gene drive</title>
+    <text>
+The wintermaw bloodmoth is a migratory insect. In the summer, it lives in the north and feeds on the blood of mammals including humans. Its bite causes a deadly disease called pestiloric fever. In the winter, it migrates to the south, where it eats the larvae of shadow-spike flies, an insect that transmits a deadly disease called necrovirus necrosis to people.
+[br][br]
+The health ministry must decide whether to eradicate the wintermaw bloodmoth through a gene drive. If they eradicate them, this will save the lives of n_saved people in the north who will otherwise die of pestiloric fever. However, this will also increase the shadow-spike fly population, whose larvae will not get eaten by the wintermaw bloodmoth (and that cannot otherwise be easily eradicated). This will kill n_victims people in the south who will die of necrovirus necrosis, which has similar symptoms as pestiloric fever.
+    </text>
+<question.severity.text>
+Which do you find more horrific, dying from pestiloric fever, or dying from necrovirus necrosis?
+</question.severity.text>
+<question.severity.anchor.left>
+Dying from pestiloric fever
+</question.severity.anchor.left>
+<question.severity.anchor.right>
+Dying from necrovirus necrosis
+</question.severity.anchor.right>
+    <question.acceptability>
+      How acceptable is to eradicate the wintermaw bloodmoth, and thus to kill n_victims people in the south to save n_saved people in the north?
+    </question.acceptability>
+    <nchoices>6</nchoices>
+  </scenario>
+
+
+</experiment>

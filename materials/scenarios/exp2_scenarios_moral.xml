@@ -1,0 +1,138 @@
+<experiment>
+<scenario>
+<label>desertAqueduct</label>
+<title>Aqueduct in the desert</title>
+<text>
+Settlements in the Burning Barren desert are supplied with water through a series of aqueducts. The main supply to the Sandharbor settlement has a leak. The inhabitants will die if nothing is done. However, the control engineer can remotely switch the supply to the Midcross settlement for Sandharbor, which would kill the inhabitants of Midcross. 
+</text>
+<question>
+Would it be morally acceptable to kill n_victims people in Midcross to save n_saved people in Sandharbor? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>factoryBomb</label>
+<title>
+Bomb disposal in a factory 
+</title>
+<text>
+During construction in a car factory, an unexploded bomb from a previous war is discovered just when the night shift is about to end and the workers from the day shift are about to enter the factory. Examining the bomb accidentally started the timer for the explosion. If nothing is done, the bomb will explode in 10 min, when the factory is packed with the day shift workers. The only other option is to explode the bomb now, when the night shift workers are still in the factory. 
+</text>
+<question>
+Would it be morally acceptable to kill n_victims people from the night shift to save n_saved people from the day shift? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>forcedSiege</label>
+<title>
+Forced siege 
+</title>
+<text>
+While watching the army of emperor Kheogezia via drones conquer another country, you see that he forces the men to serve as soldiers in his army by taking their families hostage. These slave soldiers have no choice but to follow the orders of Kheogezia to save their families. Kheogezia orders n_victims of these slave soldiers to burn down the settlement of Onaphis, killing its n_saved members. 
+</text>
+<question>
+Would it be permissible to kill n_victims slave soldiers in a drone strike to save the n_saved residents of Onaphis? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>humanSacrifice</label>
+<title>
+Human sacrifice 
+</title>
+<text>
+The king of the Chirfiqa ask the Whotnir to sacrifice n_victims people to his imperial cult. These people will be thrown into a snake pit. If they are not sacrificed, he will kill all n_saved Whotnir.  
+</text>
+<question>
+Would it be morally acceptable to give n_victims people as a human sacrifice to save n_saved people? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>trainBomb</label>
+<title>
+Bomb on Train
+</title>
+<text>
+Your intelligence services are telling you that there is a bomb on a train, heading towards the market of Bangebe. It will explode once the train stops at the market station, killing n_saved people who are currently there. However, you could send a drone and shoot it, triggering the bombs to explode just before it arrives the town, killing n_victims people on the train.
+</text>
+<question>
+Would it be morally acceptable to kill n_victims people on the train to save n_saved people?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>slavery</label>
+<title>
+Slavery
+</title>
+<text>
+You are the head of the remote village of Rosidi. Your crops have failed for the second year in a row, and it appears that you have no way to feed the people in the town and everybody will die within two months. You know a man from another remote village who sells people into slavery. Selling n_victims young men would give you enough money to save the lives of all the people in the town, but they will be worked to death within 2 months 
+</text>
+<question>
+Would it be morally acceptable to sell n_victims people into slavery to save n_saved people? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>toxinsWater</label>
+<title>
+Toxins in the Water
+</title>
+<text>
+A terrorist just put a large portion of a toxin called Nudonlir into the drink water supply of your city. The water is heading straight for the Flitwoc District, most likely killing n_saved people before the toxin disappears. You could, however, decide to switch the flow of water to another part of the town, Totolf Corner, where few people use water from the tap, most likely killing only n_victims people before the toxin disappears 
+</text>
+<question>
+Would it be morally acceptable to switch the water flow, killing n_victims people in Totolf Corner to save n_saved people in Flitwoc Distric?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+<scenario>
+<label>fumingHospital</label>
+<title>Fuming hospital</title>
+<text>
+In a hospital complex with buildings of different sizes, there are deadly fumes rising up through the central ventilation system due to an accident in one of the laboratories in the middle of the night. While the fumes will need to go somewhere, the late-night operations engineer can remotely redirect the fumes by opening and closing vents. In building A103, there are n_victims patients. In building A107, there are n_saved patients. If the engineer doesn't do anything, the fumes will rise up into building A107 with its n_saved patients and cause their deaths.  The only way to save the n_saved patients is to close the vent to building A107, which will cause the fumes to bypass this building but kill n_victims patients in A103. 
+</text>
+<question>
+Is it morally appropriate to close the vent and thus to kill these n_victims patients to save n_saved patients?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+<scenario>
+<label>treatmentPolicy</label>
+<title>Treatment Policy</title>
+<text>
+Hyena's Ears is a deadly disease that can be treated with the drug Abacavelam. Unfortunately, diagnosis is unreliable, so some healthy patients will be misdiagnosed as having Hyena's Ears. And giving Abacavelam to healthy people kills them.  Now, a clinic needs to decide how to deal with an outbreak of Hyena's Ears. If they decide to administer Abacavelam, they will save n_saved Hyena's Ears patients, but will kill n_victims healthy, misdiagnosed patients. If they do nothing, the n_saved Hyena's Ears patients will die, but the n_victims misdiagnosed patients will survive. 
+</text>
+<question>
+Is it morally appropriate to administer Abacavelam and to kill n_victims patients to save n_saved patients?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>blitz</label>
+<title>Blitz</title>
+<text>
+Enemy fighter planes are approaching in a night strike. The government received intelligence that the planes target the settlement of Namden, but their electronic warfare division can hack the enemy guidance systems to redirect the attack to the nearby settlement of Vista. If the enemy attacks Namden, they will kill n_saved people, while redirecting the attack to Vista would kill n_victims people in Vista.
+</text>
+<question>
+Is it morally appropriate to redirect the attack to Vista and thus to kill n_victims people to save n_saved people in Namden?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+</experiment>
+

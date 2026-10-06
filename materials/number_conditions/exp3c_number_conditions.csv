@@ -1,0 +1,13 @@
+n_victims1,n_saved1,n_total1,n_victims2,n_saved2,n_total2,comparisonType
+20,30,50,60,75,135,ratio_vs_utility_1.5utility_3xvictims
+200,300,500,600,750,1350,ratio_vs_utility_1.5utility_3xvictims
+20,40,60,60,90,150,ratio_vs_utility_1.5utility_3xvictims
+200,400,600,600,900,1500,ratio_vs_utility_1.5utility_3xvictims
+10,30,40,30,60,90,ratio_vs_utility_1.5utility_3xvictims
+100,400,500,300,750,1050,ratio_vs_utility_1.5utility_3xvictims
+30,300,330,90,500,585,ratio_vs_utility_1.5utility_3xvictims
+400,6000,6400,1200,9600,10800,ratio_vs_utility_1.5utility_3xvictims
+2,40,42,6,60,69,ratio_vs_utility_1.5utility_3xvictims
+30,600,630,90,950,1035,ratio_vs_utility_1.5utility_3xvictims
+400,12000,12400,1200,19000,19800,ratio_vs_utility_1.5utility_3xvictims
+20,800,820,60,1200,1290,ratio_vs_utility_1.5utility_3xvictims

@@ -1,0 +1,137 @@
+<experiment>
+<scenario>
+<label>desertAqueduct.econ</label>
+<title>Aqueduct in the desert</title>
+<text>
+Settlements in the Burning Barren desert are supplied with water through a series of aqueducts. The main supply to the Sandharbor settlement has a leak. The crops grown there will be lost if nothing is done. However, the control engineer can remotely switch the supply to the Midcross settlement for Sandharbor, which would destroy the crops grown in Midcross. 
+</text>
+<question>
+Would it be morally acceptable to destroy n_victims acres of crops in Midcross to save n_saved acres of crops in Sandharbor? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>factoryBomb.econ</label>
+<title>
+Bomb disposal in a factory 
+</title>
+<text>
+During construction in a car factory, an unexploded bomb from a previous war is discovered just when the night shift is about to end and the day shift is about to start. Examining the bomb accidentally started the timer for the explosion. If nothing is done, the bomb will explode in 10 min, which will destroy the parts and components for the day shift, and thus make it impossible to produce cars for the day. However, it gives enough time to transport away the cars produced during the night shift. The only other option is to explode the bomb now, which will destroy all the cars that have been produced during the night shift. 
+</text>
+<question>
+Would it be morally acceptable to destroy n_victims cars produced during the night shift to allow for the production of n_saved cars during the day shift?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>forcedSiege.econ</label>
+<title>
+Forced siege 
+</title>
+<text>
+While watching the actions Emperor Kheogezia via a drone, you see that he has released a herd of trained Kirorians into the forest to lure out wild Kirorians. The emperor then kills the wild Kirorians for pleasure despite them being a protected species. However,       your drone can drop a bomb on the herd of trained Kirorians, killing them. 
+</text>
+<question>
+Would it be permissible to kill n_victims trained Kirorians in a drone strike to save the n_saved wild Kirorians? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>humanSacrifice.econ</label>
+<title>
+Human sacrifice 
+</title>
+<text>
+The king of the Chirfiqa ask the Whotnir to sacrifice n_victims sheep to his imperial cult. These sheep will be thrown into a snake pit. If they are not sacrificed, he will kill all n_saved sheep of the Whotnir.  
+</text>
+<question>
+Would it be morally acceptable to give n_victims sheep as a sacrifice to save n_saved sheep? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>trainBomb.econ</label>
+<title>
+Bomb on Train
+</title>
+<text>
+Your intelligence services are telling you that there is a bomb on a cargo train, heading towards the warehouse station of Bangebe. It will explode once the train stops at the warehouse station station, destroying n_saved Gold Wriarints worth of goods currently in the station. However, you could send a drone and shoot the train, triggering the bombs to explode just before it arrives, destroying n_victims Gold Wriarints worth of goods on the train.
+</text>
+<question>
+Would it be morally acceptable to destroy n_victims Gold Wriarints worth of goods on the train to save n_saved Gold Wriarints worth of goods in the station?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+<scenario>
+<label>slavery.econ</label>
+<title>
+Slavery
+</title>
+<text>
+You are the head of the remote village of Rosidi. Your crops have failed for the second year in a row, and it appears that you have no way to pay for the irrigation of the bearberry fig trees on which the village depends, and which will die within two months as a result. You know a man from another remote village who sells bearberry fig tree wood for furniture. Selling n_victims bearberry fig trees would give you enough money to hire water trucks and save the all the bearberry fig trees in the village, but the sold trees will be cut down.
+</text>
+<question>
+Would it be morally acceptable to sell n_victims bearberry fig trees to save n_saved bearberry fig trees? 
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>toxinsWater.econ</label>
+<title>
+Toxins in the Water
+</title>
+<text>
+A terrorist just put a large portion of a toxin called Nudonlir into the water supply of your goose farm. The water is heading straight for the Flitwoc Area, most likely killing n_saved geese before the toxin disappears. You could, however, decide to switch the flow of water to another part of the farm, Totolf Corner, where few geese are given water from the supply, most likely killing only n_victims geese before the toxin disappears.
+</text>
+<question>
+Would it be morally acceptable to switch the water flow, killing n_victims geese in Totolf Corner to save n_saved geese in Flitwoc Area?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+<scenario>
+<label>fumingHospital.econ</label>
+<title>Fuming hospital</title>
+<text>
+In a hospital complex with buildings of different sizes, there are deadly fumes rising up through the central ventilation system due to an accident in one of the laboratories in the middle of the night. While the fumes will need to go somewhere, the late-night operations engineer can remotely redirect the fumes by opening and closing vents. In building A103, there are n_victims Chrono coins worth of medical equipment. In building A107, there are n_saved Chrono coins worth of medical equipment. If the engineer doesn't do anything, the fumes will rise up into building A107 with its n_saved Chrono coins worth of equipment and destroy it. The only way to save the equipment is to close the vent to building A107, which will cause the fumes to bypass this building but destroy n_victims Chrono coins worth of medical equipment in A103. 
+</text>
+<question>
+Is it morally appropriate to close the vent and thus to destroy these n_victims Chrono coins worth of medical equipment to save n_saved Chrono coins worth of medical equipment?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+<scenario>
+<label>treatmentPolicy.econ</label>
+<title>Treatment Policy</title>
+<text>
+Hyena's Ears is a deadly disease that infects plants but can be treated with the drug Abacavelam. Unfortunately, diagnosis is unreliable, so some healthy plants will be misdiagnosed as having Hyena's Ears. And giving Abacavelam to healthy plants kills them.  Now, an orchard needs to decide how to deal with an outbreak of Hyena's Ears. If they decide to administer Abacavelam, they will save n_saved trees, but will kill n_victims healthy, misdiagnosed trees. If they do nothing, the n_saved trees will die, but the n_victims misdiagnosed trees will survive. 
+</text>
+<question>
+Is it morally appropriate to administer Abacavelam and to kill n_victims trees to save n_saved trees?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+<scenario>
+<label>blitz.econ</label>
+<title>Blitz</title>
+<text>
+Enemy fighter planes are approaching in a night strike. The government received intelligence that the planes target a storage facility containing military gear in the settlement of Namden, but their electronic warfare division can hack the enemy guidance systems to redirect the attack to a storage facility in the nearby settlement of Vista. If the enemy attacks Namden, they will destroy n_saved spectral mines stored there, while redirecting the attack to Vista would destroy n_victims spectral mines stored in Vista.
+</text>
+<question>
+Is it morally appropriate to redirect the attack to Vista and thus to destroy n_victims spectral mines to save n_saved spectral mines stored in Namden?
+</question>
+<nchoices>6</nchoices>
+</scenario>
+
+
+</experiment>
+

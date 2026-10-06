@@ -1,0 +1,22 @@
+
+
+Table \ref{tab:print-ncv-table} shows some \emph{non-combatant casualty cut-off values} (NCVs, that is, acceptable civilian deaths per military target) used by the US military extracted from [@Jones2020], chapter 5. The values differ considerably across contexts
+
+```{r print-ncv-table}
+list(
+  "Baghdad \"shock and awe,\" Iraq, 2003"                              = 30,
+  "Iraq surge, 2007"                                                    = 26,
+  "Afghanistan, 2008"                                                   = 35,
+  "Afghanistan, 2009 (McChrystal directive)"                            =  1,
+  "Afghanistan, 2010 (surge)"                                           =  9,
+  "Operation Inherent Resolve (ISIS), mid-2015"                         =  0,
+  "Operation Inherent Resolve (ISIS), late 2015"                        =  5,
+  "Operation Inherent Resolve, Ramadi, April 2016"                      = "10+",
+  "Operation Inherent Resolve, Mosul ISIS cash building, January 2016"  = 50
+) %>%
+  tibble::enframe(name = "Context", value = "NCV") %>%
+  knitr::kable(
+    caption = "Documented Non-Combatant Casualty Cut-off Values (NCV) across US military operations, 2003–2016. The NCV i the maximum number of civilian casualties a commander may authorize without escalating approval to higher command. Values vary across theaters, time periods, and individual target engagements, with higher-value targets receiving higher permissible thresholds. Source: Jones (2020, pp. 228–231).",
+    booktabs = TRUE
+  )
+```

@@ -1,0 +1,472 @@
+```{r interaction-power-analysis-set-flag}
+
+RUN_EMP_POWER_ANA <- FALSE
+
+```
+
+We initially planned to assess our predictions using the interaction between the ratio range (pre-asymptotic vs. asymptotic) and the vivacity condition (vivid vs. non-vivid). However, in Experiments 4 and 5, the interaction between ratio range (pre-asymptotic vs asymptotic) and the vivacity condition did not reach significance in our generalized linear mixed models, while other analyses consistently revealed patterns conceptually similar to this interaction. This raises the possibility that the generalized linear mixed models may be inadequate to detect the hypothesized interaction, given the data generation process underlying our experiments.  
+
+
+To test this issue, we ran an empirical power analysis for the interaction through a series of simulations. Specifically, in each simulation, we generated synthetic binary data reflecting participants’ responses to vivid and neutral scenarios across two ranges of ratio values, based on four parameters for the probabilities of "acceptable" responses, (i) in the neutral condition in the pre-asymptotic range, (ii) in the neutral condition in the asymptotic range, (iii) in the vivid condition in the pre-asymptotic range, (iv) in the vivid condition in the asymptotic range. The latter two were calculated by scaling the probabilities from the neutral condition using the risk ratio for "acceptable" responses in the neutral vs. vivid conditions, separately for each ratio range. The data then consisted of 12 Bernoulli trials in each of the four conditions (reflecting the number of trials in our experiments), for 100 simulated participants. For each simulated dataset, we fit a GLMM that included fixed effects for vividness and ratio range, their interaction, and a random intercept for each participant. We then extracted the p-value for the interaction term and recorded whether it reached statistical significance. We repeated this procedure 1,000 times using the empirically observed parameters from Experiments 4 and 5, and 500 times for a wider range of parameters (see below). Given this data generation process, the interaction in question is explicitly embedded in the data. As a result, the proportion of simulations in which the interaction was detected is an empirical estimate of the model’s statistical power.
+
+```{r interaction-power-analysis-define-functions-generate-data, include = FALSE}
+# Function moved to helper_functions/moral_numbers_power.R
+```
+
+
+```{r interaction-power-analysis-define-functions-analyze-data, include = FALSE}
+# Functions moved to helper_functions/moral_numbers_power.R
+```
+
+
+
+
+```{r interaction-power-analysis-define-parameters-observed}
+# Find averages and risk ratios in asymptotic and pre-asymptotic ranges
+dat.moral.numbers.averages.in.ratio.ranges.observed <- v.asymptote.start %>%
+    tibble::enframe("experimentID", "ratio") %>%
+    dplyr::group_by(experimentID) %>%
+    dplyr::group_modify(
+        {
+            ~ dat.moral.numbers %>%
+                dplyr::filter(experimentID == stringr::str_c(.x$experimentID, ".vivacityManipulationWorking")) %>%
+                dplyr::filter(question == "acceptability") %>%
+                dplyr::mutate(ratio.range = dplyr::if_else(ratio < .x$ratio, "pre-asymptotic", "asymptotic")) %>%
+                dplyr::group_by(ratio.range, vivacity) %>%
+                dplyr::summarise(M = mean(rating.bin, na.rm = TRUE)) %>%
+                tidyr::pivot_wider(names_from = vivacity, values_from = M) %>%
+                dplyr::mutate(rr = neutral / vivid)
+        },
+        .keep = TRUE
+    ) %>%
+    dplyr::group_by(experimentID) %>%
+    dplyr::group_modify(
+        ~ data.frame(
+            p.neutral.low.ratio = .x %>%
+                dplyr::filter(ratio.range == "pre-asymptotic") %>%
+                dplyr::pull(neutral),
+            p.neutral.high.ratio = .x %>%
+                dplyr::filter(ratio.range == "asymptotic") %>%
+                dplyr::pull(neutral),
+            rr.low.ratio = .x %>%
+                dplyr::filter(ratio.range == "pre-asymptotic") %>%
+                dplyr::pull(rr),
+            rr.high.ratio = .x %>%
+                dplyr::filter(ratio.range == "asymptotic") %>%
+                dplyr::pull(rr)
+        ),
+        .keep = TRUE
+    ) %>%
+    dplyr::ungroup()
+```
+
+```{r interaction-power-analysis-define-parameters-sample}
+# Sample these parameters
+dat.moral.numbers.averages.in.ratio.ranges.samples.specs <- tibble::tribble(
+    ~param, ~min, ~max, ~step,
+    "p.neutral.low.ratio", 0.6, 0.7, 0.05,
+    "p.neutral.high.ratio", 0.85, 0.95, 0.05,
+    "rr.low.ratio", 1.2, 1.4, 0.05,
+    "rr.high.ratio", 1.0, 1.1, 0.01
+)
+
+dat.moral.numbers.averages.in.ratio.ranges.samples <- dat.moral.numbers.averages.in.ratio.ranges.samples.specs %>%
+    purrr::pmap(function(param, min, max, step) {
+        setNames(list(seq(min, max, by = step)), param)
+    }) %>%
+    purrr::list_flatten() %>%
+    expand.grid() %>%
+    dplyr::mutate(experimentID = "Sample", .before = 1)
+
+# dat.moral.numbers.averages.in.ratio.ranges.samples <- expand.grid(
+#     p.neutral.low.ratio = seq(.6, .7, by = .05),
+#     p.neutral.high.ratio = seq(.85, .95, by = .05),
+#     rr.low.ratio = seq(1.2, 1.4, by = .05),
+#     rr.high.ratio = seq(1, 1.1, by = .01)
+# ) %>%
+#     dplyr::mutate(experimentID = "Sample", .before = 1)
+```
+
+```{r interaction-power-analysis-define-parameters-sample-describe-fnc, include = FALSE}
+# Function moved to helper_functions/moral_numbers_power.R
+```
+
+We conducted these simulations using two parameter sets. First, we used the probabilities of "acceptable" responses observed in Experiments 4 and 5. Second, we sampled from a broader space of plausible values. Specifically, `r describe_ratio_range_params(dat.moral.numbers.averages.in.ratio.ranges.samples.specs)`
+
+
+
+```{r interaction-power-analysis-print-parameters, eval = RUN_EMP_POWER_ANA}
+# Print the parameters using knitr::kable in a single table, grouped by whether the are observed parameters or samples
+
+dplyr::bind_rows(
+    dat.moral.numbers.averages.in.ratio.ranges.observed %>%
+        format_exp_info(),
+    dat.moral.numbers.averages.in.ratio.ranges.samples
+) %>%
+    dplyr::arrange(experimentID) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Parameters used in the empirical power analysis for the interaction between ratio range and vivacity.",
+        col.names = dplyr::if_else(
+            stringr::str_detect(names(.[, -1]), "low"),
+            "Pre-asymptotic range",
+            "Asymptotic range"
+        ),
+        align = c("c", "c", "c", "c"),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::add_header_above(c("P(acceptable)" = 2, "Risk ratio for P(acceptable) $\\frac{\\text{neutral}}{\\text{vivid}}$" = 2)) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r interaction-power-analysis-run-simulations}
+if (RECALCULATE_EVERYTHING_APP) {
+    gc() # Clean up memory just in case
+    
+    # Run simulations and compute the proportion of significant interactions. This is the statistical power of the interaction
+    
+    # We first look at the proportion of simulations where the interaction would be significant with the values from experiments 8 and 10
+    
+    dat_proportion_ia_significant_exp8_10 <- dat.moral.numbers.averages.in.ratio.ranges.observed %>%
+        simulate_and_check_significance_wrapper(n_sim = 1000)
+    
+    
+    # We now sample the parameters more generally
+    
+    dat_proportion_ia_significant_samples <- dat.moral.numbers.averages.in.ratio.ranges.samples %>%
+        simulate_and_check_significance_wrapper(n_sim = 500)
+    
+    save(
+        dat_proportion_ia_significant_exp8_10,
+        dat_proportion_ia_significant_samples,
+        file = here::here(
+            OUTPUT_DIR,
+            "interaction.simulations.RData"
+        )
+    )
+    
+    gc() # Clean up memory just in case
+} else {
+    load(here::here(
+        OUTPUT_DIR,
+        "interaction.simulations.RData"
+    ))
+}
+```
+
+```{r interaction-power-analysis-print-results, eval = RUN_EMP_POWER_ANA}
+dplyr::bind_rows(
+    dat_proportion_ia_significant_exp8_10 %>%
+        format_exp_info(),
+    dat_proportion_ia_significant_samples
+) %>%
+    dplyr::arrange(experimentID) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Results of the empirical power analysis for the interaction between ratio range and vivacity.",
+        col.names = dplyr::case_when(
+            stringr::str_detect(names(.[, -1]), "low") ~ "Pre-asymptotic range",
+            stringr::str_detect(names(.[, -1]), "high") ~ "Asymptotic range",
+            stringr::str_detect(names(.[, -1]), "ia_signif") ~ "Power",
+            TRUE ~ "weird input"
+        ),
+        align = c("c", "c", "c", "c", "c"),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::add_header_above(c("P(acceptable)" = 2, "Risk ratio for P(acceptable) $\\frac{\\text{neutral}}{\\text{vivid}}$" = 2, " " = 1), escape = FALSE) %>%
+    kableExtra::kable_classic_2()
+```
+```{r interaction-power-analysis-plot-results, fig.width=9, fig.cap = "Empirical power as a function of simulation parameters. (a) Histogram of empirical power across all simulated parameter combinations. The distribution is bimodal, indicating that most simulations result in either very low or very high power. (b) Heatmaps showing empirical power as a function of risk ratios in the pre-asymptotic (x-axis) and asymptotic (y-axis) ranges. Facets represent different combinations of probabilities of an “acceptable” response in each range. Warmer colors indicate higher power. Power increases when the difference between the risk ratios is larger, i.e., when the pre-asymptotic risk ratio is high and the asymptotic risk ratio is low."}
+plot_interaction_power_histogram <- dat_proportion_ia_significant_samples %>%
+    ggplot2::ggplot(ggplot2::aes(x = ia_signif)) +
+    ggplot2::geom_histogram(
+        ggplot2::aes(fill = after_stat(x)), # fill by bin's x position (i.e., power)
+        binwidth = 0.05,
+        color = "white",
+        boundary = 0,
+        closed = "left"
+    ) +
+    scale_fill_viridis_c(name = "Power", option = "D", limits = c(0, 1)) +
+    ggplot2::labs(
+        # title = "Title",
+        x = "Empirical power",
+        y = "# Simulations"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(legend.position = "right")
+
+
+labeller_power_heatmap <- labeller(
+    .cols = function(x) paste0("P(accept.,\npre-asympt.): ", x),
+    .rows = function(x) paste0("P(accept.,\nasympt.): ", x),
+)
+
+
+plot_interaction_power_heatmap <- ggplot2::ggplot(
+    dat_proportion_ia_significant_samples,
+    ggplot2::aes(x = rr.low.ratio, y = rr.high.ratio, fill = ia_signif)
+) +
+    ggplot2::geom_tile() +
+    ggplot2::facet_grid(p.neutral.low.ratio ~ p.neutral.high.ratio,
+                        labeller = labeller_power_heatmap
+    ) +
+    scale_fill_viridis_c(name = "Power", option = "D") +
+    ggplot2::labs(
+        # title = "Title"
+        x = "Risk ratio in pre-asymptotic range",
+        y = "Risk ratio in asymptotic range"
+    ) +
+    ggplot2::theme_minimal()
+
+
+ggpubr::ggarrange(
+    plot_interaction_power_histogram,
+    plot_interaction_power_heatmap,
+    ncol = 2,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom"
+)
+```
+
+
+As shown in Figure \ref{fig:interaction-power-analysis-plot-results}, the empirical power is highly sensitive to the simulation parameters. Figure \ref{fig:interaction-power-analysis-plot-results}a shows a bimodal distribution, with many simulations yielding either very low or very high power. This variation is partly explained by differences in the simulation parameters. Figure \ref{fig:interaction-power-analysis-plot-results}b displays empirical power as a function of the risk ratio of "acceptable" responses in the pre-asymptotic vs. asymptotic range. As the asymptotic risk ratio decreases and the pre-asymptotic risk ratio increases (i.e., as the difference between the two increases), empirical power tends to rise. However, given the strong dependence of power on simulation parameters-even within a narrowly defined parameter space—it seems reasonable to conclude that GLMMs are not well-suited to detect the interaction, given our data-generating process.
+
+`r clearpage()`
+
+#### APP: Empirical power analysis for the analyses based on difference scores {#app:power-difference-scores}
+
+We ran an empirical power analyses for our difference scores with the same parameters as for the interaction. As mentioned above, the absolute difference score is simply the difference between the average ratings in the neutral and the vivid condition, while the relative difference score is defined as $\frac{7}{5} \frac{\text{neutral} - \text{vivid}}{\text{neutral} + \text{vivid}}$, where the factor $\frac{7}{5}$ simply scales the difference to a value between -1 and 1. 
+
+```{r diff-score-power-analysis-define-functions-analyze-data, include = FALSE}
+# Function moved to helper_functions/moral_numbers_power.R
+```
+
+```{r diff-score-power-analysis-run-simulations}
+if (RECALCULATE_EVERYTHING_APP) {
+    # Set seed to Cesar's birthday
+    set.seed(1207100)
+    
+    gc() # Clean up memory just in case
+    
+    # Run simulations and compute the proportion of significant interactions. This is the statistical power of the interaction
+    
+    # We first look at the proportion of simulations where the interaction would be significant with the values from experiments 8 and 10
+    
+    dat_proportion_diff_score_significant_exp8_10 <- purrr::map_dfr(
+        purrr::set_names(c("d.absolute", "d.relative")),
+        ~ {
+            dat.moral.numbers.averages.in.ratio.ranges.observed %>%
+                simulate_and_check_significance_wrapper(
+                    n_sim = 1000,
+                    fun = simulate_and_check_significance_diff_score,
+                    difference_type = .x
+                )
+        },
+        .id = "difference_type"
+    )
+    
+    
+    # We now sample the parameters more generally
+    
+    dat_proportion_diff_score_significant_samples <- purrr::map_dfr(
+        purrr::set_names(c("d.absolute", "d.relative")),
+        ~ {
+            dat.moral.numbers.averages.in.ratio.ranges.samples %>%
+                simulate_and_check_significance_wrapper(
+                    n_sim = 500,
+                    fun = simulate_and_check_significance_diff_score,
+                    difference_type = .x
+                )
+        },
+        .id = "difference_type"
+    )
+    
+    save(
+        dat_proportion_diff_score_significant_exp8_10,
+        dat_proportion_diff_score_significant_samples,
+        file = here::here(
+            OUTPUT_DIR,
+            "diff_scores.simulations.RData"
+        )
+    )
+    
+    gc() # Clean up memory just in case
+} else {
+    load(here::here(
+        OUTPUT_DIR,
+        "diff_scores.simulations.RData"
+    ))
+}
+```
+
+```{r diff-score-power-analysis-print-results, eval = RUN_EMP_POWER_ANA}
+dplyr::bind_rows(
+    dat_proportion_diff_score_significant_exp8_10 %>%
+        format_exp_info(),
+    dat_proportion_diff_score_significant_samples
+) %>%
+    dplyr::arrange(difference_type, experimentID) %>%
+    dplyr::mutate(difference_type = stringr::str_remove(difference_type, "^d.")) %>%
+    dplyr::mutate(pack_col = stringr::str_c(experimentID, " (", difference_type, ")"), .keep = "unused", .before = 1) %>%
+    kable.packed(
+        "pack_col",
+        caption = "Results of the empirical power analysis for the difference score diffference across  ratio ranges.",
+        col.names = dplyr::case_when(
+            stringr::str_detect(names(.[, -1]), "low") ~ "Pre-asymptotic range",
+            stringr::str_detect(names(.[, -1]), "high") ~ "Asymptotic range",
+            stringr::str_detect(names(.[, -1]), "ia_signif") ~ "Power",
+            TRUE ~ "weird input"
+        ),
+        align = c("c", "c", "c", "c", "c"),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::add_header_above(c("P(acceptable)" = 2, "Risk ratio for P(acceptable) $\\frac{\\text{neutral}}{\\text{vivid}}$" = 2, " " = 1), escape = FALSE) %>%
+    kableExtra::kable_classic_2()
+```
+```{r diff-score-power-analysis-plot-results, fig.width=12, fig.height=12, fig.cap = "Empirical power as a function of simulation parameters for the difference between vivacity difference scores across ratio ranges. (a) Histogram of empirical power across all simulated parameter combinations. (b) Heatmaps showing empirical power as a function of risk ratios in the pre-asymptotic (x-axis) and asymptotic (y-axis) ranges. Facets represent different combinations of probabilities of an “acceptable” response in each range. Warmer colors indicate higher power. Power increases when the difference between the risk ratios is larger, i.e., when the pre-asymptotic risk ratio is high and the asymptotic risk ratio is low."}
+plot_diff_score_power_histogram <- purrr::map(
+    purrr::set_names(c("d.relative", "d.absolute")),
+    ~ {
+        dat_proportion_diff_score_significant_samples %>%
+            dplyr::filter(difference_type == .x) %>%
+            ggplot2::ggplot(ggplot2::aes(x = ia_signif)) +
+            ggplot2::geom_histogram(
+                ggplot2::aes(fill = after_stat(x)), # fill by bin's x position (i.e., power)
+                binwidth = 0.05,
+                color = "white",
+                boundary = 0,
+                closed = "left"
+            ) +
+            scale_fill_viridis_c(name = "Power", option = "D", limits = c(0, 1)) +
+            ggplot2::labs(
+                title = stringr::str_c(stringr::str_to_title(stringr::str_remove(.x, "^d.")), " difference scores"),
+                x = "Empirical power",
+                y = "# Simulations"
+            ) +
+            ggplot2::theme_minimal() +
+            ggplot2::theme(legend.position = "right")
+    }
+)
+
+
+plot_diff_score_power_heatmap <- purrr::map(
+    purrr::set_names(c("d.relative", "d.absolute")),
+    ~ {
+        ggplot2::ggplot(
+            dat_proportion_diff_score_significant_samples %>%
+                dplyr::filter(difference_type == .x),
+            ggplot2::aes(x = rr.low.ratio, y = rr.high.ratio, fill = ia_signif)
+        ) +
+            ggplot2::geom_tile() +
+            ggplot2::facet_grid(p.neutral.low.ratio ~ p.neutral.high.ratio,
+                                labeller = labeller_power_heatmap
+            ) +
+            scale_fill_viridis_c(name = "Power", option = "D") +
+            ggplot2::labs(
+                title = stringr::str_c(stringr::str_to_title(stringr::str_remove(.x, "^d.")), " difference scores"),
+                x = "Risk ratio in pre-asymptotic range",
+                y = "Risk ratio in asymptotic range"
+            ) +
+            ggplot2::theme_minimal()
+    }
+)
+
+ggpubr::ggarrange(
+    plotlist = c(
+        plot_diff_score_power_histogram,
+        plot_diff_score_power_heatmap
+    ),
+    ncol = 2,
+    nrow = 2,
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom"
+)
+```
+
+
+As shown in Figure \ref{fig:diff-score-power-analysis-plot-results}, the empirical power is less sensitive to the simulation parameters than in the case of the GLMMs, and the majority of the simulations show satisfactory power. Critically, however, even though the parameters were relatively similar, the parameters in Experiment 4 yielded less than 10% empirical power, while those in Experiment 5 yielded more than 80%. As in the case of the GLMMs, these analyses thus cannot reliably detect differences in difference scores across ratio ranges. As a result, it seems reasonable to conclude that these analyses are not well-suited to detect the interaction, given our data-generating process.
+
+
+
+We also performed a power analysis to determine how many participants would be create to observe 80% power for the difference scores (neutral vs. vivid) across the asymptotic and non-asymptotic range. As shown in Table \ref{tab:exp8-10-asymptotic-vs-preasymptotic-power}, 80% power would require about 400 participants in Experiment 10, and more in other experiments. 
+
+`r clearpage()`
+
+#### APP: Required number of participants for the ratio-range based analyses of difference scores
+
+```{r exp8-10-asymptotic-vs-preasymptotic-power}
+dplyr::bind_rows(
+    dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
+        dplyr::filter(!stringr::str_detect(experimentID, "exp11")) %>%
+        filter_vivacity_exps() %>%
+        format_exp_info() %>%
+        dplyr::mutate(experimentID = factor(experimentID, levels = sort(unique(experimentID)))),
+    dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
+        dplyr::filter(!stringr::str_detect(experimentID, "exp11"),
+                      !stringr::str_detect(experimentID, "\\.vivacityManipulationWorking$")) %>%
+        filter_vivacity_exps() %>%
+        combine_exps("^exp(8|10)$") %>%
+        format_exp_info()
+) %>%
+    tidyr::pivot_longer(c(d.absolute, d.relative),
+                        names_to = "difference.type",
+                        values_to = "d"
+    ) %>%
+    tidyr::pivot_wider(
+        id_cols = c("experimentID", "ResponseId", "difference.type"),
+        names_from = "ratio.range",
+        values_from = "d",
+        names_vary = "slowest"
+    ) %>%
+    dplyr::mutate(d.ratio.range = `pre-asymptote` - asymptote) %>%
+    dplyr::group_by(experimentID, difference.type) %>%
+    dplyr::summarize(
+        M = mean(d.ratio.range),
+        SD = sd(d.ratio.range),
+        d.cohen = M / SD,
+        n.required = ceiling(
+            pwr::pwr.t.test(
+                d = d.cohen,
+                sig.level = .05,
+                power = .8,
+                type = "one.sample"
+            )$n
+        ),
+        .groups = "drop"
+    ) %>%
+    dplyr::select(-M, -SD) %>%
+    #format_exp_info() %>%
+    dplyr::arrange(experimentID, difference.type) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Required sample sizes for $80\\%$ power for the difference between difference scores between the pre-asymptotic and the asymptotic range to reach significance",
+        # col.names = c(),
+        booktabs = TRUE,
+        longtable = TRUE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_classic_2()
+```

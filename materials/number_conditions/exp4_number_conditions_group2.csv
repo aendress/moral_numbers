@@ -1,0 +1,13 @@
+counterbalancing_group,n_victims,n_saved,n_total,ratio_saved_victims,experiments
+2,30,40,70,1.333333333,7 (vivid victims)
+2,50,100,150,2,7 (vivid victims)
+2,40,120,160,3,7 (vivid victims)
+2,200,800,1000,4,7 (vivid victims)
+2,300,3000,3300,10,7 (vivid victims)
+2,20,300,320,15,7 (vivid victims)
+2,10,200,210,20,7 (vivid victims)
+2,10,500,510,50,7 (vivid victims)
+2,30,3000,3030,100,7 (vivid victims)
+2,40,16000,16040,400,7 (vivid victims)
+2,20,12000,12020,600,7 (vivid victims)
+2,100,80000,80100,800,7 (vivid victims)

@@ -1,0 +1,13 @@
+counterbalancing_group,n_victims,n_saved,n_total,ratio_saved_victims,experiments
+1,300,400,700,1.333333333,briana
+1,20,40,600,2,briana
+1,10,30,40,3,briana
+1,20,80,250,4,briana
+1,40,400,440,10,briana
+1,50,750,320,15,briana
+1,30,600,630,20,briana
+1,100,5000,5100,50,briana
+1,40,4000,4040,100,briana
+1,10,5000,4010,500,briana
+1,200,200000,12020,1000,briana
+1,30,60000,24030,2000,briana

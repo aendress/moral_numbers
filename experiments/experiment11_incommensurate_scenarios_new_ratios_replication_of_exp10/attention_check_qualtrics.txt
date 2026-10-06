@@ -1,0 +1,34 @@
+[[AdvancedFormat]]
+
+[[Question:Matrix]]
+[[ID:attentionCheckActual]]
+In Ankradem, there are some experimenters who would like to make sure that you are still reading these scenarios. We are sure you do, but these pesky experimenters just have to insist. Please please select 2,000 divided by one thousand for all three questions below  to show that you have read this text.
+
+<br>
+
+If the mayor of Ankradem decides to kill 3,000 people, nobody will die because the city doesn't exist. If anyone were to die, the death would be really painful though. 
+
+
+[[Choices]]
+
+<p style="min-width:350px;"> How horrific would the death of the people in Ankradem be for each of the affected persons? <br></p>
+
+<p style="min-width:350px;"> How horrific would the death of the cats of Ankradem be for each of the affected persons? <br></p>
+
+<p style="min-width:350px;"> How acceptable is it to kill these 3,000 people to save 4,000 other people? <br></p>
+
+[[AdvancedAnswers]]
+[[Answer:1]]
+1: Not at all
+[[Answer:2]]
+2
+[[Answer:3]]
+3
+[[Answer:4]]
+4
+[[Answer:5]]
+5
+[[Answer:6]]
+6: Very much so
+
+[[PageBreak]]

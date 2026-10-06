@@ -1,0 +1,371 @@
+---
+title: "Prospect stuff"
+author: |
+    | Ansgar D. Endress
+bibliography: /Users/endress/ansgar.bib
+csl: /Users/endress/csl_files/science.csl
+output:
+  pdf_document:
+    citation_package: natbib
+#    includes:
+#      in_header: ansgar.sty
+    toc: FALSE
+    number_sections: true
+    keep_tex: true
+    fig_caption: true
+    highlight: tango    
+  html_notebook:
+    theme: spacelab      
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango    
+  html_document:
+    theme: spacelab      
+    number_sections: yes
+    df_print: paged
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, echo = FALSE, include=FALSE}
+rm (list=ls())
+
+options(digits = 3,
+        knitr.kable.NA = '')
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE, 
+    # Print warnings to console rather than the output file
+    warning = FALSE,  
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+```
+
+
+
+```{r load-libraries, include = FALSE, message = TRUE, warning = TRUE}
+
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+
+
+
+librarian::shelf(
+    tidyverse,
+    stringr,
+    knitr,
+    kableExtra,
+    ez,
+    rlang,
+    ggpubr,
+    
+    ggalt, # for geom_spikelines
+    ggh4x # for coord_axes_inside
+#    future,    
+#    xlsx,
+#    purrr,
+#    Hmisc,
+#    stringi,
+#    stringdist,
+#    pwr
+# broom,
+#broom.mixed,
+)
+
+# Don't load simr as it redefines .
+if(!librarian::check_installed(simr))
+    stop("simr is not installed.")
+
+source('helper_functions/moral_numbers_models.R')
+
+```
+
+
+
+
+```{r loss-aversion-demo-setup}
+
+theme_set(ggthemes::theme_clean(14))
+theme_update(
+  legend.position = "bottom",
+  legend.justification = "center"
+)
+```
+
+
+## APP: Application to prospect theory
+
+### Basic idea
+
+The current model also provides a fairly straightforward explanation of loss aversion in prospect theory. In a nutshell, the absolute subjective value (i.e., the utility) of a change in endowment is greater for losses than for gains - according to some meta-analyses about 1.995 times as large [@Brown2024] (but see below). While this observation has been considered "the most significant contribution of psychology to behavioral economics” ([@Kahneman2011], p. 300), it is usually treated as a quirk of human decision making by fitting arbitrary parameters to human performance [@Tversky1992;@Abdellaoui2007;@Booij2009]. 
+
+Instead, we propose that loss aversion is an automatic consequence of our biophysically-rooted decision model. Specifically, we propose that, with respect to an endowment $E$, the subjective desirability (i.e., the utility) of a positive change $C$ tracks the subjective certainty that the change is a gain, which, in turn tracks the Weber ratio $\frac{E + C}{E}$. Conversely, the subjective *undesirability* of a negative change (i.e., the utility) tracks the subjective certainty that the change is a loss, which, in turn, tracks the Weber ratio $\frac{E}{E + C}$ (for negative $C's$). 
+
+The Weber ratio for losses $\frac{E}{E - |C|}$ is strictly greater than that for gains $\frac{E + |C|}{E}$, where $|C|$ is the absolute value of $C$.[^loss-aversion-ratio-proof] Since the acceptability function is monotonic, the absolute utility of losses is thus strictly greater than that of gains. In other words, loss aversion is a basic consequence of magnitude processing, and thus of any system with a fixed precision and multiplicative gain control [@Endress-Catastrophic-Interference].
+
+[^loss-aversion-ratio-proof]: Proof: Assume that $\frac{E}{E - |C|} < \frac{E + |C|}{E}$. It follows that $E^2 < (E + |C|)(E - |C|)$, and thus that $|C|^2 < 0$, which is a contradiction. 
+
+
+```{r loss-aversion-demo-define-functions}       
+
+create_data_for_prospect_demo <- function(endowment, 
+                                          relative_changes = seq(-99, 99, 1) / 100,
+                                          ws = c(.25, .5, .75))
+{
+
+
+    data.frame(
+        endowment = endowment,
+        relative_change = relative_changes
+    ) %>% 
+        dplyr::mutate(
+            change = endowment * relative_change
+        ) %>% 
+        tidyr::expand_grid(w = ws) %>% 
+        dplyr::group_by(w) %>% 
+        dplyr::group_modify(
+            \(df, df_w){
+                
+                df %>% 
+                    dplyr::mutate(
+                        ratio = dplyr::if_else(
+                            change >= 0,
+                            (endowment + change) / endowment,
+                            endowment / (endowment + change)
+                        ),
+                        value = dplyr::if_else(
+                            change >= 0,
+                            acceptability.fnc(w = df_w$w, a = 1, r = ratio),
+                            -acceptability.fnc(w = df_w$w, a = 1, r = ratio)
+                        )
+                    )
+            }
+        ) %>% 
+        dplyr::ungroup() %>% 
+        dplyr::mutate(w = as.factor(w))
+}
+
+create_prospect_change_value_plot <- function(dat = .)
+{
+        ggplot(
+            dat,
+            aes(x = relative_change, y = value, group = w, col = w, lty = w)
+        ) +
+        geom_line() +
+        labs(
+            x = "Relative change (relative to endowment)",
+            y = "Utility (arbitrary units)"
+        ) + 
+        ggh4x::coord_axes_inside(
+            xintercept = 0, 
+            yintercept = 0,
+            labels_inside = TRUE,
+        ) +
+        ggalt::geom_spikelines(
+            data = subset(dat, relative_change %in% c(-.50, .50)), 
+            linetype = "dotted", 
+            colour = "blue"
+        )
+}
+
+create_prospect_relative_value_plot <- function(dat = .){
+    
+    dat %>% 
+        dplyr::mutate(
+            change_sign = sign(change),
+            relative_change = abs(relative_change),
+            value = abs(value)
+        ) %>% 
+        dplyr::select(-ratio, -change) %>% 
+        dplyr::filter(relative_change != 0) %>% 
+        tidyr::pivot_wider(
+            names_from = change_sign,
+            values_from = value) %>% 
+        dplyr::mutate(relative_value_loss_vs_gain = `-1`/ `1`) %>% 
+        dplyr::select(-dplyr::matches("1")) %>% 
+        ggplot(aes(x = relative_change, y = relative_value_loss_vs_gain, group = w, col = w, lty = w)) +
+        geom_line() +
+        labs(
+            x = "Relative change (relative to endowment)",
+            y = TeX("Loss aversion $\\left(\\frac{\\left|Utility_{Loss}\\right|}{\\left|Utility{Gain}\\right|}\\right)$")
+        )
+    
+}
+```
+
+
+```{r loss-aversion-demo-create-data}
+dat_prospect_demo <- create_data_for_prospect_demo(100, 
+                                                   ws = c(
+                                                       seq(.25, 2, .25),
+                                                       10, 20, 50, 100
+                                                   )
+)
+
+```
+
+
+
+```{r loss-aversion-demo-plot, fig.cap ="Illustration of loss aversion as a consequence of magnitude processing. (a) Subjective utility as a function of relative gains or losses with respect to an endowment, for different values of the uncertainty parameter $w$. The S-shaped curve emerges naturally from the asymmetry of the Weber ratios for gains and losses. Dotted blue lines mark the utility values at a change of $\\pm 50\\%$, illustrating that the absolute utility of a $50\\%$ loss exceeds that of a $50\\%$ gain. (b) Ratio of absolute utilities for losses vs.\\ gains, $\\frac{\\left|\\text{Utility}_{\\text{Loss}}\\right|}{\\left|\\text{Utility}_{\\text{Gain}}\\right|}$, as a function of relative change. Values greater than 1 indicate loss aversion. Note that loss aversion exceeds 1 for all values of $w$ and increases with the size of the change.", fig.width=8}
+
+
+
+ggpubr::ggarrange(
+    
+    dat_prospect_demo %>% 
+        create_prospect_change_value_plot(),
+    
+    dat_prospect_demo %>% 
+        create_prospect_relative_value_plot(),
+
+    labels = "auto",
+    common.legend = TRUE,
+    legend = "bottom"
+
+)
+    
+```
+
+This idea is illustrated in Figure \ref{fig:loss-aversion-demo-plot}. Figure \ref{fig:loss-aversion-demo-plot}a plots the subjective value as a function of relative changes with respect to the endowment between -99% and 99%, and shows the typical S-shaped curve. Figure \ref{fig:loss-aversion-demo-plot}b plots the relative utility for loss vs. gains for a given change, i.e. $\frac{\left|\text{Utility}_{\text{Loss}}\right|}{\left|\text{Utility}_{\text{Gain}}\right|}$. The relative utility is a measure of loss aversion. For example, if $\frac{\left|\text{Utility}_{\text{Loss}}\right|}{\left|\text{Utility}_{\text{Gain}}\right|} = 2$ for a given change, the change is twice as aversive as a loss as it would be positive as a gain. Figure \ref{fig:loss-aversion-demo-plot}b shows that the relative utility is always greater than 1, and thus shows loss aversion for all uncertainty parameters $w$. Further, we make the novel prediction that the relative utility of losses (compared to gains) should increase as a function of change (see below), a prediction that receives support from different studies [@Abdellaoui2007;@Booij2009]. 
+
+
+### Comparison to [@Tversky1992]
+
+```{r add-tk-to-data}
+
+add_tk_data <- function(dat = .){
+    
+    dat %>% 
+        # Add Tversky and Kahneman (1992) model
+        dplyr::mutate(
+            value_tk = abs(relative_change)^.88,
+            value_tk = dplyr::if_else(
+                relative_change < 0,
+                -2.25 * value_tk,
+                value_tk
+            ),
+            value_tk_scaled = value_tk * max(value) / max(value_tk)
+        )
+}
+
+w_tk_best <- create_data_for_prospect_demo(
+    100, 
+    ws = seq(.1, 10, .1)
+) %>% 
+    dplyr::group_by(w) %>% 
+    dplyr::group_modify(~ add_tk_data(.x)) %>% 
+    # Still grouped
+    dplyr::summarize(
+        SS = sum((value - value_tk_scaled)^2),
+        .groups = "drop"
+        ) %>% 
+    dplyr::slice_min(SS) %>% 
+    dplyr::pull(w) %>% 
+    as.numeric()
+        
+message("Best fit is ", w_tk_best)
+        
+dat_prospect_demo_tk <- create_data_for_prospect_demo(
+    100,
+    ws = w_tk_best
+) %>% 
+    add_tk_data() %>% 
+    dplyr::select(-value_tk, -change, -ratio) %>% 
+    tidyr::pivot_longer(cols = c(value, value_tk_scaled),
+                        names_to = "Model",
+                        values_to = "value"
+    ) %>% 
+    dplyr::mutate(Model = dplyr::if_else(str_detect(Model, "tk"),
+                                         "TK1992",
+                                         "EA"))
+    
+
+    
+```
+
+
+```{r tk-plot, fig.cap = "Comparison of the current model (EA) and the Tversky and Kahneman (1992) model, with parameterization $\\lambda = 2.25$, $\\alpha = \\beta = 0.88$. The $w$ parameter was set to a large value ($w = 10$) to approximate the quasi-linear behavior of the Tversky and Kahneman (1992) function. Because both models use arbitrary units, the output of the Tversky and Kahneman (1992) model was scaled so that the maxima of both functions coincide. The two models produce closely overlapping value functions across the full range of relative changes."}
+
+dat_prospect_demo_tk %>% 
+    ggplot(aes(x = relative_change, y = value, group = Model, col = Model, lty = Model)) +
+    geom_line() +
+    labs(
+        x = "Relative change (relative to endowment)",
+        y = "Utility (arbitrary units)"
+    ) +
+    ggh4x::coord_axes_inside(
+        xintercept = 0, 
+        yintercept = 0,
+        labels_inside = TRUE,
+    ) 
+
+```
+
+In Figure \ref{fig:tk-plot}, we show that our model can mimic the functional form assumed by [@Tversky1992]. We use their parameterization ($\text{utility} = |C|^\alpha - \lambda |C|^\beta$, with $\lambda = 2.25$ and $\alpha = \beta = 0.88$, but see below). We thus set the $w$ parameter to a large value to make it quasi-linear as in their function ($w = 10$). Given that both models use arbitrary units, we multiplied the output of the Tversky and Kahneman model so that the maximum y value coincide for both models. As shown in Figure \ref{fig:tk-plot}, both models behave fairly similarly.
+
+### Variability of $\lambda$ estimates
+
+While [@Tversky1992] proposed a $\lambda$ value of 2.25, there is considerable variability across studies, with some metanalyses finding a value of 1.995 [@Brown2024], others of 1.31 [@Walasek2024] and yet others of 1.07 [@Yechiam2025]. Further, methodological differences seems to affect the magnitude of loss aversion, including how the parameter is estimated, the population [@Brown2024], and the size of the magnitude of the gain/loss  [@Abdellaoui2007;@Booij2009], with some authors even proposing that loss aversion mainly arises in experiments where gains are larger than losses and where gains and losses are presented in an ordered fashion [@Yechiam2025]. 
+
+While our simple conceptual model is not intended to capture such variability, variability is expected for a variety of reasons. For example, and as mentioned above, we predict that loss aversion depends on the relative change. Likewise, given that number processing shows substantial individual differences in the $w$ parameter [@Halberda2008], we would expect similar individual differences in loss aversion. To the extent that observers retain numeric information over trials, we would also expect to see ordering effects like those in [@Yechiam2025], for example through anchoring effects across trials. However, further research is needed to map our model to such differences in loss aversion.
+ 
+
+### Integration of probabilistic information
+
+In standard prospect theory, utilities are integrated with probability information. However, given that humans use approximate representations of numbers even when these numbers are presented as Arabic numerals [@Moyer1967; @Buckley1974; @Hinrichs1981; @Dehaene1990], the assumption that probalistic information is represented at face value is almost certainly false (see also [@BarrettoGarcia2023; @Khaw2020] for evidence that risk taking is related to number processing precision). As a result, to construct a biophysically grounded derivation of prospect theory, more work is need to understand how probabilistic information is represented, and how the (presumably) noisy representations of probability information is integrated with the noisy representations of value.
+
+
+### Monotonicity behavior 
+
+In this section, we investigate whether the relative utility of losses vs. gains is growing. With the acceptability given by $1 + \log_2 \Phi\left(\frac{R-1}{\sqrt{2}w \sqrt(R^2 + 1)}\right)$, we get
+
+$$
+G(C) =  \frac{1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{\sqrt{2}w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right)}{1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{\sqrt{2}w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)} = \frac{1 + \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{E^2 + (E-C)^2}} \right)}{1 + \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{(E+C)^2 + E^2}} \right)}
+$$
+
+where we assume that $C$ is non-negative. While the derivative is cumbersome to calculate, is easy to see that $G(C) > 1$ for all $C's$ between $0$ and $E$, and that $G(C)$ must be locally growing for at least some $C$ in the neighborhood of $0$.
+
+In fact, for $C = 0$, L'Hôpital's Rule shows that $G(C)$ converges to $1$. For all $0 < C < E$, the Weber ratio in the numerator is stricly greater than than that in the denominator. As both $log_2$ and $\Phi$ are strictly monotonic, $G(C)$ is greater than $1$ for  all $0 < C < E$. 
+
+As a result, the Mean Value Theorem implies that, for each $0 < C < E$, there exists an $C^*$ for which $G^\prime(C^*)$ is strictly positive. While this does not imply that $G$ grows monotonically, it does imply that the one can find $C^*$'s where $G^\prime$ is positive in arbitrarily small neighborhoods of $0$, and that the average growth around $C = 0$ is positive.   
+
+
+To avoid differentiating an unwieldy function, we consider the difference in utilities.
+
+
+$$
+H(C) =  1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{\sqrt{2}w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right) - \left(1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{\sqrt{2}w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)\right) = \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{E^2 + (E-C)^2}} \right) -  \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{(E+C)^2 + E^2}} \right)
+$$
+
+
+
+

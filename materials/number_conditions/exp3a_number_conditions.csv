@@ -1,0 +1,13 @@
+n_victims1,n_saved1,n_total1,n_victims2,n_saved2,n_total2,comparisonType
+20,30,50,10,11,21,ratio_vs_victims
+200,300,500,100,110,210,ratio_vs_victims
+20,40,60,10,12,22,ratio_vs_victims
+200,400,600,100,120,220,ratio_vs_victims
+10,30,40,5,7,12,ratio_vs_victims
+100,400,500,50,80,130,ratio_vs_victims
+30,300,330,15,42,57,ratio_vs_victims
+400,6000,6400,200,750,950,ratio_vs_victims
+2,40,42,1,5,6,ratio_vs_victims
+30,600,630,15,70,85,ratio_vs_victims
+400,12000,12400,200,1400,1550,ratio_vs_victims
+20,800,820,10,90,100,ratio_vs_victims
