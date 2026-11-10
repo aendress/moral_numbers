@@ -94,3 +94,9 @@ data/qualtrics_qsf_files/deleted/*.csv
 
 # macOS metadata
 .DS_Store
+
+# Backup of code/output before the recomputation (2026-10-10)
+code/output.10092026/
+
+# Timestamped safety copies (moved into safety_copies/ subfolders)
+safety_copies/
