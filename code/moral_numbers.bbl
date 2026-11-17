@@ -118,15 +118,6 @@
       \verb{doi}
       \verb 10.1287/mnsc.1070.0711
       \endverb
-      \verb{eprint}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
-      \verb{urlraw}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
-      \verb{url}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
     \endentry
     \entry{Alexander2021}{inbook}{}{}
       \name{author}{2}{}{%
@@ -149,6 +140,9 @@
            familyi={Z\bibinitperiod},
            given={Edward\bibnamedelima N.},
            giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Stanford, CA}%
       }
       \list{publisher}{1}{%
         {Metaphysics Research Lab, Stanford University}%
@@ -175,7 +169,7 @@
       \field{booktitle}{The {Stanford} Encyclopedia of Philosophy}
       \field{edition}{{W}inter 2021}
       \field{howpublished}{\url{https://plato.stanford.edu/archives/win2021/entries/ethics-deontological/}}
-      \field{title}{{Deontological Ethics}}
+      \field{title}{Deontological Ethics}
       \field{year}{2021}
     \endentry
     \entry{Altmann2002}{article}{}{}
@@ -526,7 +520,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Humans are generally risk averse, preferring smaller certain over larger uncertain outcomes. Economic theories usually explain this by assuming concave utility functions. Here, we provide evidence that risk aversion can also arise from relative underestimation of larger monetary payoffs, a perceptual bias rooted in the noisy logarithmic coding of numerical magnitudes. We confirmed this with psychophysics and functional magnetic resonance imaging, by measuring behavioural and neural acuity of magnitude representations during a magnitude perception task and relating these measures to risk attitudes during separate risky financial decisions. Computational modelling indicated that participants use similar mental magnitude representations in both tasks, with correlated precision across perceptual and risky choices. Participants with more precise magnitude representations in parietal cortex showed less variable behaviour and less risk aversion. Our results highlight that at least some individual characteristics of economic behaviour can reflect capacity limitations in perceptual processing rather than processes that assign subjective values to monetary outcomes.}
       \field{issue}{9}
-      \field{journaltitle}{Nature human behaviour}
+      \field{journaltitle}{Nature Human Behaviour}
       \field{title}{Individual risk attitudes arise from noise in neurocognitive magnitude representations.}
       \field{volume}{7}
       \field{year}{2023}
@@ -988,7 +982,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{The process of numeric comparison was investigated. Four groups of 10 5s were asked to judge which of two digits or which of two dot patterns was numerically larger. Stimuli were either digits or dot patterns in familiar, unfamiliar, or random configurations. Mean reaction time was systematically related to the difference between logarithms of the stimulus values. A single numeric comparison process gave good account of the data for all Stimulus types. This process was well described by a random walk model with variable step size and fixed boundaries. Reaction time matrices were fur- ther analyzed using Kruskal's 1964 multidimensional scaling program MD- SCAL, and the recovered stimulus configurations were successfully simulated from a simple version of the model.}
       \field{issue}{6}
-      \field{journaltitle}{Journal of experimental psychology}
+      \field{journaltitle}{Journal of Experimental Psychology}
       \field{title}{Comparisons of digits and dot patterns.}
       \field{volume}{103}
       \field{year}{1974}
@@ -1055,8 +1049,8 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Most people hold that it is wrong to sacrifice some humans to save a greater number of humans. Do people also think that it is wrong to sacrifice some animals to save a greater number of animals, or do they answer such questions about harm to animals by engaging in a utilitarian cost-benefit calculation? Across 10 studies ( = 4,662), using hypothetical and real-life sacrificial moral dilemmas, we found that participants considered it more permissible to harm a few animals to save a greater number of animals than to harm a few humans to save a greater number of humans. This was explained by a reduced general aversion to harm animals compared with humans, which was partly driven by participants perceiving animals to suffer less and to have lower cognitive capacity than humans. However, the effect persisted even in cases where animals were described as having greater suffering capacity and greater cognitive capacity than some humans, and even when participants felt more socially connected to animals than to humans. The reduced aversion to harming animals was thus also partly due to -the tendency to ascribe lower moral value to animals due to their species-membership alone. In sum, our studies show that deontological constraints against instrumental harm are not absolute but get weaker the less people morally value the respective entity. These constraints are strongest for humans, followed by dogs, chimpanzees, pigs, and finally inanimate objects. (PsycInfo Database Record (c) 2021 APA, all rights reserved).}
       \field{issue}{5}
-      \field{journaltitle}{Journal of experimental psychology. General}
-      \field{title}{Utilitarianism for animals, Kantianism for people? Harming animals and humans for the greater good.}
+      \field{journaltitle}{Journal of Experimental Psychology: General}
+      \field{title}{Utilitarianism for animals, {Kantianism} for people? {H}arming animals and humans for the greater good.}
       \field{volume}{150}
       \field{year}{2021}
       \field{pages}{1008\bibrangedash 1039}
@@ -1153,7 +1147,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Current theories hypothesize that moral judgments are difficult because rational and emotional decision processes compete. We present a fundamentally different theory of moral judgment: the Subjective Utilitarian Theory of moral judgment. The Subjective Utilitarian Theory posits that people try to identify and save the competing item with the greatest "personal value." Moral judgments become difficult only when the competing items have similar personal values. In Experiment 1, we estimate the personal values of 104 items. In Experiments 2-5, we show that the distributional overlaps of the estimated personal values account for over 90\% of the variance in reaction times (RTs) and response choices in a moral judgment task. Our model fundamentally restructures our understanding of moral judgments from a competition between decision processes to a competition between similarly valued items.}
       \field{issue}{10}
-      \field{journaltitle}{Journal of experimental psychology. General}
+      \field{journaltitle}{Journal of Experimental Psychology: General}
       \field{title}{A subjective utilitarian theory of moral judgment.}
       \field{volume}{145}
       \field{year}{2016}
@@ -1196,7 +1190,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Dual-process theories of moral judgment suggest that responses to moral dilemmas are guided by two moral principles: the principle of deontology states that the morality of an action depends on the intrinsic nature of the action (e.g., harming others is wrong regardless of its consequences); the principle of utilitarianism implies that the morality of an action is determined by its consequences (e.g., harming others is acceptable if it increases the well-being of a greater number of people). Despite the proposed independence of the moral inclinations reflecting these principles, previous work has relied on operationalizations in which stronger inclinations of one kind imply weaker inclinations of the other kind. The current research applied Jacoby's (1991) process dissociation procedure to independently quantify the strength of deontological and utilitarian inclinations within individuals. Study 1 confirmed the usefulness of process dissociation for capturing individual differences in deontological and utilitarian inclinations, revealing positive correlations of both inclinations to moral identity. Moreover, deontological inclinations were uniquely related to empathic concern, perspective-taking, and religiosity, whereas utilitarian inclinations were uniquely related to need for cognition. Study 2 demonstrated that cognitive load selectively reduced utilitarian inclinations, with deontological inclinations being unaffected. In Study 3, a manipulation designed to enhance empathy increased deontological inclinations, with utilitarian inclinations being unaffected. These findings provide evidence for the independent contributions of deontological and utilitarian inclinations to moral judgments, resolving many theoretical ambiguities implied by previous research.}
       \field{issue}{2}
-      \field{journaltitle}{Journal of personality and social psychology}
+      \field{journaltitle}{Journal of Personality and Social Psychology}
       \field{title}{Deontological and utilitarian inclinations in moral decision making: a process dissociation approach.}
       \field{volume}{104}
       \field{year}{2013}
@@ -1282,7 +1276,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Is moral judgment accomplished by intuition or conscious reasoning? An answer demands a detailed account of the moral principles in question. We investigated three principles that guide moral judgments: (a) Harm caused by action is worse than harm caused by omission, (b) harm intended as the means to a goal is worse than harm foreseen as the side effect of a goal, and (c) harm involving physical contact with the victim is worse than harm involving no physical contact. Asking whether these principles are invoked to explain moral judgments, we found that subjects generally appealed to the first and third principles in their justifications, but not to the second. This finding has significance for methods and theories of moral psychology: The moral principles used in judgment must be directly compared with those articulated in justification, and doing so shows that some moral principles are available to conscious reasoning whereas others are not.}
       \field{issue}{12}
-      \field{journaltitle}{Psychological science}
+      \field{journaltitle}{Psychological Science}
       \field{title}{The role of conscious reasoning and intuition in moral judgment: testing three principles of harm.}
       \field{volume}{17}
       \field{year}{2006}
@@ -1362,7 +1356,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Popular dual-process models of thinking have long conceived intuition and deliberation as two qualitatively different processes. Single-process-model proponents claim that the difference is a matter of degree and not of kind. Psychologists have been debating the dual-process/single-process question for at least 30 years. In the present article, I argue that it is time to leave the debate behind. I present a critical evaluation of the key arguments and critiques and show that-contra both dual- and single-model proponents-there is currently no good evidence that allows one to decide the debate. Moreover, I clarify that even if the debate were to be solved, it would be irrelevant for psychologists because it does not advance the understanding of the processing mechanisms underlying human thinking.}
       \field{issue}{6}
-      \field{journaltitle}{Perspectives on psychological science}
+      \field{journaltitle}{Perspectives on Psychological Science}
       \field{title}{On Dual- and Single-Process Models of Thinking.}
       \field{volume}{16}
       \field{year}{2021}
@@ -1375,33 +1369,33 @@
     \endentry
     \entry{Dehaene1990}{article}{}{}
       \name{author}{3}{}{%
-        {{un=0,uniquepart=base,hash=f2328aff4a22ffc2bde7ca2842f00b49}{%
+        {{un=0,uniquepart=base,hash=14ff7c970ba747f58e07de2e42e7c5bb}{%
            family={Dehaene},
            familyi={D\bibinitperiod},
-           given={S.},
+           given={Stanislas},
            giveni={S\bibinitperiod},
            givenun=0}}%
-        {{un=0,uniquepart=base,hash=0774aa6b5be828f4b809b2a53da79d3f}{%
+        {{un=0,uniquepart=base,hash=152d4e00d9f2ff059ead02b986fddf58}{%
            family={Dupoux},
            familyi={D\bibinitperiod},
-           given={E.},
+           given={Emmanuel},
            giveni={E\bibinitperiod},
            givenun=0}}%
-        {{un=0,uniquepart=base,hash=71717145cfde4c1fb56863c7cf59ce91}{%
+        {{un=0,uniquepart=base,hash=2db544a969f488fa2ccd883d9724cb88}{%
            family={Mehler},
            familyi={M\bibinitperiod},
-           given={J.},
+           given={Jacques},
            giveni={J\bibinitperiod},
            givenun=0}}%
       }
-      \strng{namehash}{e9f1deece4a5d6e3d6acce1d638fdef9}
-      \strng{fullhash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{fullhashraw}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{bibnamehash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authorbibnamehash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authornamehash}{e9f1deece4a5d6e3d6acce1d638fdef9}
-      \strng{authorfullhash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authorfullhashraw}{900e1c2cc757cc9aa9363b5233e8080c}
+      \strng{namehash}{40db90f32a9abe431756be2e2abb43d3}
+      \strng{fullhash}{51818976775ec724c4bb7466506e020b}
+      \strng{fullhashraw}{51818976775ec724c4bb7466506e020b}
+      \strng{bibnamehash}{51818976775ec724c4bb7466506e020b}
+      \strng{authorbibnamehash}{51818976775ec724c4bb7466506e020b}
+      \strng{authornamehash}{40db90f32a9abe431756be2e2abb43d3}
+      \strng{authorfullhash}{51818976775ec724c4bb7466506e020b}
+      \strng{authorfullhashraw}{51818976775ec724c4bb7466506e020b}
       \field{sortinit}{D}
       \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
       \field{extradatescope}{labelyear}
@@ -1415,7 +1409,7 @@
       \field{title}{Is numerical comparison digital? {A}nalogical and symbolic effects in two-digit number comparison.}
       \field{volume}{16}
       \field{year}{1990}
-      \field{pages}{626\bibrangedash 41}
+      \field{pages}{626\bibrangedash 641}
       \range{pages}{16}
       \keyw{Adult,Attention,Discrimination Learning,Female,Functional Laterality,Humans,Male,Middle Aged,Pilot Projects,Problem Solving,Psychomotor Performance,Reaction Time,2144576}
     \endentry
@@ -1543,6 +1537,8 @@
       \field{title}{Sequential presentation protects memory from catastrophic interference}
       \field{volume}{44}
       \field{year}{2020}
+      \field{pages}{e12828}
+      \range{pages}{-1}
       \verb{doi}
       \verb 10.1111/cogs.12828
       \endverb
@@ -1765,7 +1761,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Is it permissible to harm one to save many? Classic moral dilemmas are often defined by the conflict between a putatively rational response to maximize aggregate welfare (i.e., the utilitarian judgment) and an emotional aversion to harm (i.e., the non-utilitarian judgment). Here, we address two questions. First, what specific aspect of emotional responding is relevant for these judgments? Second, is this aspect of emotional responding selectively reduced in utilitarians or enhanced in non-utilitarians? The results reveal a key relationship between moral judgment and empathic concern in particular (i.e., feelings of warmth and compassion in response to someone in distress). Utilitarian participants showed significantly reduced empathic concern on an independent empathy measure. These findings therefore reveal diminished empathic concern in utilitarian moral judges.}
       \field{issue}{4}
-      \field{journaltitle}{PloS one}
+      \field{journaltitle}{PLoS ONE}
       \field{title}{Low levels of empathic concern predict utilitarian moral judgment.}
       \field{volume}{8}
       \field{year}{2013}
@@ -1813,7 +1809,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Health-adjusted life years (HALYs) are population health measures permitting morbidity and mortality to be simultaneously described within a single number. They are useful for overall estimates of burden of disease, comparisons of the relative impact of specific illnesses and conditions on communities, and in economic analyses. Quality-adjusted life years (QALYs) and disability-adjusted life years (DALYs) are types of HALYs whose original purposes were at variance. Their growing importance and the varied uptake of the methodology by different U.S. and international entities makes it useful to understand their differences as well as their similarities. A brief history of both measures is presented and methods for calculating them are reviewed. Methodological and ethical issues that have been raised in association with HALYs more generally are presented. Finally, we raise concerns about the practice of using different types of HALYs within different decision-making contexts and urge action that builds and clarifies this useful measurement field.}
-      \field{journaltitle}{Annual review of public health}
+      \field{journaltitle}{Annual Review of Public Health}
       \field{title}{{HALYS} and {QALYS} and {DALYS}, Oh My: similarities and differences in summary measures of population Health.}
       \field{volume}{23}
       \field{year}{2002}
@@ -1856,7 +1852,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Empirical studies have shown that decision makers do not usually treat probabilities linearly. Instead, people tend to overweight small probabilities and underweight large probabilities. One way to model such distortions in decision making under risk is through a probability weighting function. We present a nonparametric estimation procedure for assessing the probability weighting function and value function at the level of the individual subject. The evidence in the domain of gains supports a two-parameter weighting function, where each parameter is given a psychological interpretation: one parameter measures how the decision maker discriminates probabilities, and the other parameter measures how attractive the decision maker views gambling. These findings are consistent with a growing body of empirical and theoretical work attempting to establish a psychological rationale for the probability weighting function.}
       \field{issue}{1}
-      \field{journaltitle}{Cognitive psychology}
+      \field{journaltitle}{Cognitive Psychology}
       \field{title}{On the shape of the probability weighting function.}
       \field{volume}{38}
       \field{year}{1999}
@@ -1921,7 +1917,7 @@
       \field{abstract}{The long-standing rationalist tradition in moral psychology emphasizes the role of reason in moral judgment. A more recent trend places increased emphasis on emotion. Although both reason and emotion are likely to play important roles in moral judgment, relatively little is known about their neural correlates, the nature of their interaction, and the factors that modulate their respective behavioral influences in the context of moral judgment. In two functional magnetic resonance imaging (fMRI) studies using moral dilemmas as probes, we apply the methods of cognitive neuroscience to the study of moral judgment. We argue that moral dilemmas vary systematically in the extent to which they engage emotional processing and that these variations in emotional engagement influence moral judgment. These results may shed light on some puzzling patterns in moral judgment observed by contemporary philosophers.}
       \field{issue}{5537}
       \field{journaltitle}{Science}
-      \field{title}{An fMRI investigation of emotional engagement in moral judgment.}
+      \field{title}{An {fMRI} investigation of emotional engagement in moral judgment.}
       \field{volume}{293}
       \field{year}{2001}
       \field{pages}{2105\bibrangedash 2108}
@@ -2060,7 +2056,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Bootstrapping has enormous potential in statistics education and practice, but there are subtle issues and ways to go wrong. For example, the common combination of nonparametric bootstrapping and bootstrap percentile confidence intervals is less accurate than using t -intervals for small samples, though more accurate for larger samples. My goals in this article are to provide a deeper understanding of bootstrap methods-how they work, when they work or not, and which methods work better-and to highlight pedagogical issues. Supplementary materials for this article are available online. [Received December 2014. Revised August 2015].}
       \field{issue}{4}
-      \field{journaltitle}{The American statistician}
+      \field{journaltitle}{The American Statistician}
       \field{title}{What Teachers Should Know About the Bootstrap: Resampling in the Undergraduate Statistics Curriculum.}
       \field{volume}{69}
       \field{year}{2015}
@@ -2247,10 +2243,10 @@
       \field{abstract}{It is widely believed that people are willing to expend greater resources to save the lives of identified victims than to save equal numbers of unidentified or statistical victims. There are many possible causes of this disparity which have not been enumerated previously or tested empirically. We discuss four possible causes of the "identifiable victim effect" and present the results of two studies which indicate that the most important cause of the disparity in treatment of identifiable and statistical lives is that, for identifiable victims, a high proportion of those at risk can be saved. Copyright 1997 by Kluwer Academic Publishers}
       \field{journaltitle}{Journal of Risk and Uncertainty}
       \field{number}{3}
-      \field{title}{Explaining the "Identifiable Victim Effect."}
+      \field{title}{Explaining the ``identifiable victim effect''}
       \field{volume}{14}
       \field{year}{1997}
-      \field{pages}{235\bibrangedash 57}
+      \field{pages}{235\bibrangedash 257}
       \range{pages}{23}
     \endentry
     \entry{Jinkerson2016}{article}{}{}
@@ -2355,6 +2351,9 @@
            giveni={C\bibinitperiod},
            givenun=0}}%
       }
+      \list{location}{1}{%
+        {Oxford}%
+      }
       \list{publisher}{1}{%
         {{O}xford {U}niversity {P}ress}%
       }
@@ -2374,9 +2373,9 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{This is the first of two chapters analysing the role of military lawyers in the contemporary US kill chain. This chapter focuses on deliberate (planned) targeting operations and the routine nature of legal advice at a key location in the US targeting apparatus—the Combined Air Operations Center (CAOC) in Qatar. Military lawyers participate throughout the ‘targeting cycle’ giving legal, operational, and public relations advice. In contrast to inflated claims about the ‘total’ visibility of the battlespace, planned operations are beset with gaps in intelligence and emergent events. Legal oversight is far from complete, given the scale of lawyer deployment. Moreover, the legal frameworks that military lawyers bring to bear on the kill chain are malleable and open to a wide range of interpretations. In practice, this means that the constraining function of targeting law often loses out to its enabling function with consequences for who and what is targeted.}
-      \field{booktitle}{The War Lawyers: The United States, Israel, and Juridical Warfare}
+      \field{chapter}{The Kill Chain (I): Deliberate Targeting}
       \field{isbn}{9780198842927}
-      \field{title}{The Kill Chain (I): Deliberate Targeting}
+      \field{title}{The War Lawyers: The United States, Israel, and Juridical Warfare}
       \field{year}{2020}
       \verb{doi}
       \verb 10.1093/oso/9780198842927.003.0006
@@ -2472,7 +2471,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{A growing body of research has focused on so-called 'utilitarian' judgments in moral dilemmas in which participants have to choose whether to sacrifice one person in order to save the lives of a greater number. However, the relation between such 'utilitarian' judgments and genuine utilitarian impartial concern for the greater good remains unclear. Across four studies, we investigated the relationship between 'utilitarian' judgment in such sacrificial dilemmas and a range of traits, attitudes, judgments and behaviors that either reflect or reject an impartial concern for the greater good of all. In Study 1, we found that rates of 'utilitarian' judgment were associated with a broadly immoral outlook concerning clear ethical transgressions in a business context, as well as with sub-clinical psychopathy. In Study 2, we found that 'utilitarian' judgment was associated with greater endorsement of rational egoism, less donation of money to a charity, and less identification with the whole of humanity, a core feature of classical utilitarianism. In Studies 3 and 4, we found no association between 'utilitarian' judgments in sacrificial dilemmas and characteristic utilitarian judgments relating to assistance to distant people in need, self-sacrifice and impartiality, even when the utilitarian justification for these judgments was made explicit and unequivocal. This lack of association remained even when we controlled for the antisocial element in 'utilitarian' judgment. Taken together, these results suggest that there is very little relation between sacrificial judgments in the hypothetical dilemmas that dominate current research, and a genuine utilitarian approach to ethics.}
       \field{journaltitle}{Cognition}
-      \field{title}{'Utilitarian' judgments in sacrificial moral dilemmas do not reflect impartial concern for the greater good.}
+      \field{title}{``{U}tilitarian'' judgments in sacrificial moral dilemmas do not reflect impartial concern for the greater good.}
       \field{volume}{134}
       \field{year}{2015}
       \field{pages}{193\bibrangedash 209}
@@ -2545,7 +2544,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{[Correction Notice: An Erratum for this article was reported in Vol 125(2) of (see record 2018-15704-001). The copyright attribution was incorrectly listed, and the Creative Commons CC-BY license disclaimer was incorrectly omitted from the author note. The correct copyright is "© 2017 The Author(s)" and the omitted disclaimer is found in the erratum. All versions of this article have been corrected.] Recent research has relied on trolley-type sacrificial moral dilemmas to study utilitarian versus nonutilitarian modes of moral decision-making. This research has generated important insights into people's attitudes toward instrumental harm-that is, the sacrifice of an individual to save a greater number. But this approach also has serious limitations. Most notably, it ignores the positive, altruistic core of utilitarianism, which is characterized by impartial concern for the well-being of everyone, whether near or far. Here, we develop, refine, and validate a new scale-the Oxford Utilitarianism Scale-to dissociate individual differences in the 'negative' (permissive attitude toward instrumental harm) and 'positive' (impartial concern for the greater good) dimensions of utilitarian thinking as manifested in the general population. We show that these are two independent dimensions of proto-utilitarian tendencies in the lay population, each exhibiting a distinct psychological profile. Empathic concern, identification with the whole of humanity, and concern for future generations were positively associated with impartial beneficence but negatively associated with instrumental harm; and although instrumental harm was associated with subclinical psychopathy, impartial beneficence was associated with higher religiosity. Importantly, although these two dimensions were independent in the lay population, they were closely associated in a sample of moral philosophers. Acknowledging this dissociation between the instrumental harm and impartial beneficence components of utilitarian thinking in ordinary people can clarify existing debates about the nature of moral psychology and its relation to moral philosophy as well as generate fruitful avenues for further research. (PsycINFO Database Record (c) 2018 APA, all rights reserved).}
       \field{issue}{2}
-      \field{journaltitle}{Psychological review}
+      \field{journaltitle}{Psychological Review}
       \field{title}{Beyond sacrificial harm: A two-dimensional model of utilitarian psychology.}
       \field{volume}{125}
       \field{year}{2018}
@@ -2555,43 +2554,6 @@
       \verb 10.1037/rev0000093
       \endverb
       \keyw{Decision Making; Empathy; Ethical Theory; Humans; Morals; Psychological Theory}
-    \endentry
-    \entry{Kahneman1979}{article}{}{}
-      \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=90cdea5582a22a9fcc5c0fc0f6a66705}{%
-           family={Kahneman},
-           familyi={K\bibinitperiod},
-           given={D.},
-           giveni={D\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=a349865aebf1e8bcdeecbe70b2ed03b7}{%
-           family={Tversky},
-           familyi={T\bibinitperiod},
-           given={A},
-           giveni={A\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{fullhash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{fullhashraw}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{bibnamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorbibnamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authornamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorfullhash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorfullhashraw}{509ce2e11adab5e923fc0570ef1561ec}
-      \field{sortinit}{K}
-      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Econometrica}
-      \field{number}{2}
-      \field{title}{Prospect Theory: {A}n Analysis of Decision Under Risk}
-      \field{volume}{47}
-      \field{year}{1979}
-      \field{pages}{263\bibrangedash 291}
-      \range{pages}{29}
     \endentry
     \entry{Kahneman2011}{book}{}{}
       \name{author}{1}{}{%
@@ -2606,7 +2568,7 @@
         {London, UK}%
       }
       \list{publisher}{1}{%
-        {Penguin books}%
+        {Penguin Books}%
       }
       \strng{namehash}{d0dcea81f8587e7d56bb5dbe34a39d6c}
       \strng{fullhash}{d0dcea81f8587e7d56bb5dbe34a39d6c}
@@ -2620,11 +2582,50 @@
       \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{978-0-141-03357-0}
       \field{title}{Thinking, fast and slow}
       \field{year}{2011}
+    \endentry
+    \entry{Kahneman1979}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=d0dcea81f8587e7d56bb5dbe34a39d6c}{%
+           family={Kahneman},
+           familyi={K\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a349865aebf1e8bcdeecbe70b2ed03b7}{%
+           family={Tversky},
+           familyi={T\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{fullhash}{33fb220114a193a56ee720525778d4e7}
+      \strng{fullhashraw}{33fb220114a193a56ee720525778d4e7}
+      \strng{bibnamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorbibnamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authornamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorfullhash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorfullhashraw}{33fb220114a193a56ee720525778d4e7}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Econometrica}
+      \field{number}{2}
+      \field{title}{Prospect Theory: {A}n Analysis of Decision Under Risk}
+      \field{volume}{47}
+      \field{year}{1979}
+      \field{pages}{263\bibrangedash 291}
+      \range{pages}{29}
     \endentry
     \entry{Kahneman2021}{book}{}{}
       \name{author}{3}{}{%
@@ -2665,6 +2666,7 @@
       \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{9780008309008}
@@ -2784,9 +2786,9 @@
       \field{abstract}{{Observed choices between risky lotteries are difficult to reconcile with expected utility maximization, both because subjects appear to be too risk averse with regard to small gambles for this to be explained by diminishing marginal utility of wealth, as stressed by Rabin (2000), and because subjects' responses involve a random element. We propose a unified explanation for both anomalies, similar to the explanation given for related phenomena in the case of perceptual judgments: they result from judgments based on imprecise (and noisy) mental representations of the decision situation. In this model, risk aversion results from a sort of perceptual bias-but one that represents an optimal decision rule, given the limitations of the mental representation of the situation. We propose a quantitative model of the noisy mental representation of simple lotteries, based on other evidence regarding numerical cognition, and test its ability to explain the choice frequencies that we observe in a laboratory experiment.}}
       \field{journaltitle}{The Review of Economic Studies}
       \field{number}{4}
-      \field{title}{{Cognitive Imprecision and Small-Stakes Risk Aversion}}
+      \field{title}{Cognitive Imprecision and Small-Stakes Risk Aversion}
       \field{volume}{88}
-      \field{year}{2020}
+      \field{year}{2021}
       \field{pages}{1979\bibrangedash 2013}
       \range{pages}{35}
       \verb{doi}
@@ -2845,8 +2847,8 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Areas of the primate intraparietal cortex have been identified as an important substrate of numerical cognition. In human fMRI studies, activity patterns in these and other areas have allowed researchers to read out the numerosity a subject is viewing, but the relation of such decodable information with behavioral numerical proficiency remains unknown. Here, we estimated the precision of behavioral numerosity discrimination (internal Weber fraction) in twelve adult subjects based on psychophysical testing in a delayed numerosity comparison task outside the scanner. FMRI data were then recorded during a similar task, to obtain the accuracy with which the same sample numerosities could be read out from evoked brain activity patterns, as a measure of the precision of the neuronal representation. Sample numerosities were decodable in both early visual and intra-parietal cortex with approximately equal accuracy on average. In parietal cortex, smaller numerosities were better discriminated than larger numerosities of the same ratio, paralleling smaller behavioral Weber fractions for smaller numerosities. Furthermore, in parietal but not early visual cortex, fMRI decoding performance was correlated with behavioral number discrimination acuity across subjects (subjects with a more precise behavioral Weber fraction measured prior to scanning showed greater discriminability of fMRI activity patterns in intraparietal cortex, and more specifically, the right LIP region). These results suggest a crucial role for intra-parietal cortex in supporting a numerical representation which is explicitly read out for numerical decisions and behavior.}
-      \field{journaltitle}{Cortex; a journal devoted to the study of the nervous system and behavior}
-      \field{title}{Discriminability of numerosity-evoked fMRI activity patterns in human intra-parietal cortex reflects behavioral numerical acuity.}
+      \field{journaltitle}{Cortex}
+      \field{title}{Discriminability of numerosity-evoked {fMRI} activity patterns in human intra-parietal cortex reflects behavioral numerical acuity.}
       \field{volume}{114}
       \field{year}{2019}
       \field{pages}{90\bibrangedash 101}
@@ -2920,8 +2922,8 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issue}{6518}
-      \field{journaltitle}{Science (New York, N.Y.)}
-      \field{title}{Understanding COVID-19 vaccine efficacy.}
+      \field{journaltitle}{Science}
+      \field{title}{Understanding {COVID-19} vaccine efficacy.}
       \field{volume}{370}
       \field{year}{2020}
       \field{pages}{763\bibrangedash 765}
@@ -3066,7 +3068,7 @@
       \field{abstract}{Is calculation possible without language? Or is the human ability for arithmetic dependent on the language faculty? To clarify the relation between language and arithmetic, we studied numerical cognition in speakers of Mundurukú, an Amazonian language with a very small lexicon of number words. Although the Mundurukú lack words for numbers beyond 5, they are able to compare and add large approximate numbers that are far beyond their naming range. However, they fail in exact arithmetic with numbers larger than 4 or 5. Our results imply a distinction between a nonverbal system of number approximation and a language-based counting system for exact number and arithmetic.}
       \field{journaltitle}{Science}
       \field{number}{5695}
-      \field{title}{Exact and approximate arithmetic in an Amazonian indigene group.}
+      \field{title}{Exact and approximate arithmetic in an {Amazonian} indigene group.}
       \field{volume}{306}
       \field{year}{2004}
       \field{pages}{499\bibrangedash 503}
@@ -3268,7 +3270,7 @@
       \field{abstract}{When making many choices, a person can broadly bracket them by assessing the consequences of all of them taken together, or narrowly bracket them by making each choice in isolation. We integrate research conducted in a wide range of decision contexts which shows that choice bracketing is an important determinant of behavior. Because broad bracketing allows people to take into account all the consequences of their actions, it generally leads to choices that yield higher utility. The evidence that we review, however, shows that people often fail to bracket broadly when it would be feasible for them to do so. In addition to documenting the diverse effects of bracketing, we also discuss factors that determine whether people bracket narrowly or broadly. We conclude with a discussion of normative aspects of bracketing and argue that there are some situations in which narrower bracketing results in superior decision making.}
       \field{journaltitle}{Journal of Risk and Uncertainty}
       \field{number}{1}
-      \field{title}{Choice {Bracketing}}
+      \field{title}{Choice Bracketing}
       \field{volume}{19}
       \field{year}{1999}
       \field{dateera}{ce}
@@ -3560,7 +3562,7 @@
            giveni={E\bibinitperiod}}}%
       }
       \list{location}{1}{%
-        {NJ}%
+        {Princeton, NJ}%
       }
       \list{publisher}{1}{%
         {Princeton University Press}%
@@ -3740,6 +3742,9 @@
            given={V.\bibnamedelimi A.},
            giveni={V\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
       }
+      \list{location}{1}{%
+        {London}%
+      }
       \list{publisher}{1}{%
         {Routledge/Taylor \& Francis}%
       }
@@ -3838,7 +3843,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issue}{6}
-      \field{journaltitle}{Psychological science}
+      \field{journaltitle}{Psychological Science}
       \field{title}{Manipulations of emotional context shape moral judgment.}
       \field{volume}{17}
       \field{year}{2006}
@@ -4264,7 +4269,6 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Traditional decision theory assumes that people respond to the exact features of the options available to them, but observed behavior seems much less precise. This review considers ways of introducing imprecision into models of economic decision making and stresses the usefulness of analogies with the way that imprecise perceptual judgments are modeled in psychophysics-the branch of experimental psychology concerned with the quantitative relationship between objective features of an observer&apos;s environment and elicited reports about their subjective appearance. It reviews key ideas from psychophysics, provides examples of the kinds of data that motivate them, and proposes lessons for economic modeling. Applications include stochastic choice, choice under risk, decoy effects in marketing, global game models of strategic interaction, and delayed adjustment of prices in response to monetary disturbances.}
       \field{journaltitle}{Annual Review of Economics}
-      \field{number}{Volume 12, 2020}
       \field{title}{Modeling Imprecision in Perception, Valuation, and Choice}
       \field{type}{Journal Article}
       \field{volume}{12}
@@ -4458,7 +4462,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{This paper studies summary measures of the predictive power of a generalized linear model, paying special attention to a generalization of the multiple correlation coefficient from ordinary linear regression. The population value is the correlation between the response and its conditional expectation given the predictors, and the sample value is the correlation between the observed response and the model predicted value. We compare four estimators of the measure in terms of bias, mean squared error and behaviour in the presence of overparameterization. The sample estimator and a jack-knife estimator usually behave adequately, but a cross-validation estimator has a large negative bias with large mean squared error. One can use bootstrap methods to construct confidence intervals for the population value of the correlation measure and to estimate the degree to which a model selection procedure may provide an overly optimistic measure of the actual predictive power.}
       \field{issue}{13}
-      \field{journaltitle}{Statistics in medicine}
+      \field{journaltitle}{Statistics in Medicine}
       \field{title}{Summarizing the predictive power of a generalized linear model.}
       \field{volume}{19}
       \field{year}{2000}
@@ -4625,15 +4629,6 @@
       \verb{doi}
       \verb 10.1287/mnsc.1070.0711
       \endverb
-      \verb{eprint}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
-      \verb{urlraw}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
-      \verb{url}
-      \verb https://doi.org/10.1287/mnsc.1070.0711
-      \endverb
     \endentry
     \entry{Alexander2021}{inbook}{}{}
       \name{author}{2}{}{%
@@ -4656,6 +4651,9 @@
            familyi={Z\bibinitperiod},
            given={Edward\bibnamedelima N.},
            giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Stanford, CA}%
       }
       \list{publisher}{1}{%
         {Metaphysics Research Lab, Stanford University}%
@@ -4682,7 +4680,7 @@
       \field{booktitle}{The {Stanford} Encyclopedia of Philosophy}
       \field{edition}{{W}inter 2021}
       \field{howpublished}{\url{https://plato.stanford.edu/archives/win2021/entries/ethics-deontological/}}
-      \field{title}{{Deontological Ethics}}
+      \field{title}{Deontological Ethics}
       \field{year}{2021}
     \endentry
     \entry{Altmann2002}{article}{}{}
@@ -5033,7 +5031,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Humans are generally risk averse, preferring smaller certain over larger uncertain outcomes. Economic theories usually explain this by assuming concave utility functions. Here, we provide evidence that risk aversion can also arise from relative underestimation of larger monetary payoffs, a perceptual bias rooted in the noisy logarithmic coding of numerical magnitudes. We confirmed this with psychophysics and functional magnetic resonance imaging, by measuring behavioural and neural acuity of magnitude representations during a magnitude perception task and relating these measures to risk attitudes during separate risky financial decisions. Computational modelling indicated that participants use similar mental magnitude representations in both tasks, with correlated precision across perceptual and risky choices. Participants with more precise magnitude representations in parietal cortex showed less variable behaviour and less risk aversion. Our results highlight that at least some individual characteristics of economic behaviour can reflect capacity limitations in perceptual processing rather than processes that assign subjective values to monetary outcomes.}
       \field{issue}{9}
-      \field{journaltitle}{Nature human behaviour}
+      \field{journaltitle}{Nature Human Behaviour}
       \field{title}{Individual risk attitudes arise from noise in neurocognitive magnitude representations.}
       \field{volume}{7}
       \field{year}{2023}
@@ -5495,7 +5493,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{The process of numeric comparison was investigated. Four groups of 10 5s were asked to judge which of two digits or which of two dot patterns was numerically larger. Stimuli were either digits or dot patterns in familiar, unfamiliar, or random configurations. Mean reaction time was systematically related to the difference between logarithms of the stimulus values. A single numeric comparison process gave good account of the data for all Stimulus types. This process was well described by a random walk model with variable step size and fixed boundaries. Reaction time matrices were fur- ther analyzed using Kruskal's 1964 multidimensional scaling program MD- SCAL, and the recovered stimulus configurations were successfully simulated from a simple version of the model.}
       \field{issue}{6}
-      \field{journaltitle}{Journal of experimental psychology}
+      \field{journaltitle}{Journal of Experimental Psychology}
       \field{title}{Comparisons of digits and dot patterns.}
       \field{volume}{103}
       \field{year}{1974}
@@ -5562,8 +5560,8 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Most people hold that it is wrong to sacrifice some humans to save a greater number of humans. Do people also think that it is wrong to sacrifice some animals to save a greater number of animals, or do they answer such questions about harm to animals by engaging in a utilitarian cost-benefit calculation? Across 10 studies ( = 4,662), using hypothetical and real-life sacrificial moral dilemmas, we found that participants considered it more permissible to harm a few animals to save a greater number of animals than to harm a few humans to save a greater number of humans. This was explained by a reduced general aversion to harm animals compared with humans, which was partly driven by participants perceiving animals to suffer less and to have lower cognitive capacity than humans. However, the effect persisted even in cases where animals were described as having greater suffering capacity and greater cognitive capacity than some humans, and even when participants felt more socially connected to animals than to humans. The reduced aversion to harming animals was thus also partly due to -the tendency to ascribe lower moral value to animals due to their species-membership alone. In sum, our studies show that deontological constraints against instrumental harm are not absolute but get weaker the less people morally value the respective entity. These constraints are strongest for humans, followed by dogs, chimpanzees, pigs, and finally inanimate objects. (PsycInfo Database Record (c) 2021 APA, all rights reserved).}
       \field{issue}{5}
-      \field{journaltitle}{Journal of experimental psychology. General}
-      \field{title}{Utilitarianism for animals, Kantianism for people? Harming animals and humans for the greater good.}
+      \field{journaltitle}{Journal of Experimental Psychology: General}
+      \field{title}{Utilitarianism for animals, {Kantianism} for people? {H}arming animals and humans for the greater good.}
       \field{volume}{150}
       \field{year}{2021}
       \field{pages}{1008\bibrangedash 1039}
@@ -5660,7 +5658,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Current theories hypothesize that moral judgments are difficult because rational and emotional decision processes compete. We present a fundamentally different theory of moral judgment: the Subjective Utilitarian Theory of moral judgment. The Subjective Utilitarian Theory posits that people try to identify and save the competing item with the greatest "personal value." Moral judgments become difficult only when the competing items have similar personal values. In Experiment 1, we estimate the personal values of 104 items. In Experiments 2-5, we show that the distributional overlaps of the estimated personal values account for over 90\% of the variance in reaction times (RTs) and response choices in a moral judgment task. Our model fundamentally restructures our understanding of moral judgments from a competition between decision processes to a competition between similarly valued items.}
       \field{issue}{10}
-      \field{journaltitle}{Journal of experimental psychology. General}
+      \field{journaltitle}{Journal of Experimental Psychology: General}
       \field{title}{A subjective utilitarian theory of moral judgment.}
       \field{volume}{145}
       \field{year}{2016}
@@ -5703,7 +5701,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Dual-process theories of moral judgment suggest that responses to moral dilemmas are guided by two moral principles: the principle of deontology states that the morality of an action depends on the intrinsic nature of the action (e.g., harming others is wrong regardless of its consequences); the principle of utilitarianism implies that the morality of an action is determined by its consequences (e.g., harming others is acceptable if it increases the well-being of a greater number of people). Despite the proposed independence of the moral inclinations reflecting these principles, previous work has relied on operationalizations in which stronger inclinations of one kind imply weaker inclinations of the other kind. The current research applied Jacoby's (1991) process dissociation procedure to independently quantify the strength of deontological and utilitarian inclinations within individuals. Study 1 confirmed the usefulness of process dissociation for capturing individual differences in deontological and utilitarian inclinations, revealing positive correlations of both inclinations to moral identity. Moreover, deontological inclinations were uniquely related to empathic concern, perspective-taking, and religiosity, whereas utilitarian inclinations were uniquely related to need for cognition. Study 2 demonstrated that cognitive load selectively reduced utilitarian inclinations, with deontological inclinations being unaffected. In Study 3, a manipulation designed to enhance empathy increased deontological inclinations, with utilitarian inclinations being unaffected. These findings provide evidence for the independent contributions of deontological and utilitarian inclinations to moral judgments, resolving many theoretical ambiguities implied by previous research.}
       \field{issue}{2}
-      \field{journaltitle}{Journal of personality and social psychology}
+      \field{journaltitle}{Journal of Personality and Social Psychology}
       \field{title}{Deontological and utilitarian inclinations in moral decision making: a process dissociation approach.}
       \field{volume}{104}
       \field{year}{2013}
@@ -5789,7 +5787,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Is moral judgment accomplished by intuition or conscious reasoning? An answer demands a detailed account of the moral principles in question. We investigated three principles that guide moral judgments: (a) Harm caused by action is worse than harm caused by omission, (b) harm intended as the means to a goal is worse than harm foreseen as the side effect of a goal, and (c) harm involving physical contact with the victim is worse than harm involving no physical contact. Asking whether these principles are invoked to explain moral judgments, we found that subjects generally appealed to the first and third principles in their justifications, but not to the second. This finding has significance for methods and theories of moral psychology: The moral principles used in judgment must be directly compared with those articulated in justification, and doing so shows that some moral principles are available to conscious reasoning whereas others are not.}
       \field{issue}{12}
-      \field{journaltitle}{Psychological science}
+      \field{journaltitle}{Psychological Science}
       \field{title}{The role of conscious reasoning and intuition in moral judgment: testing three principles of harm.}
       \field{volume}{17}
       \field{year}{2006}
@@ -5869,7 +5867,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Popular dual-process models of thinking have long conceived intuition and deliberation as two qualitatively different processes. Single-process-model proponents claim that the difference is a matter of degree and not of kind. Psychologists have been debating the dual-process/single-process question for at least 30 years. In the present article, I argue that it is time to leave the debate behind. I present a critical evaluation of the key arguments and critiques and show that-contra both dual- and single-model proponents-there is currently no good evidence that allows one to decide the debate. Moreover, I clarify that even if the debate were to be solved, it would be irrelevant for psychologists because it does not advance the understanding of the processing mechanisms underlying human thinking.}
       \field{issue}{6}
-      \field{journaltitle}{Perspectives on psychological science}
+      \field{journaltitle}{Perspectives on Psychological Science}
       \field{title}{On Dual- and Single-Process Models of Thinking.}
       \field{volume}{16}
       \field{year}{2021}
@@ -5882,33 +5880,33 @@
     \endentry
     \entry{Dehaene1990}{article}{}{}
       \name{author}{3}{}{%
-        {{un=0,uniquepart=base,hash=f2328aff4a22ffc2bde7ca2842f00b49}{%
+        {{un=0,uniquepart=base,hash=14ff7c970ba747f58e07de2e42e7c5bb}{%
            family={Dehaene},
            familyi={D\bibinitperiod},
-           given={S.},
+           given={Stanislas},
            giveni={S\bibinitperiod},
            givenun=0}}%
-        {{un=0,uniquepart=base,hash=0774aa6b5be828f4b809b2a53da79d3f}{%
+        {{un=0,uniquepart=base,hash=152d4e00d9f2ff059ead02b986fddf58}{%
            family={Dupoux},
            familyi={D\bibinitperiod},
-           given={E.},
+           given={Emmanuel},
            giveni={E\bibinitperiod},
            givenun=0}}%
-        {{un=0,uniquepart=base,hash=71717145cfde4c1fb56863c7cf59ce91}{%
+        {{un=0,uniquepart=base,hash=2db544a969f488fa2ccd883d9724cb88}{%
            family={Mehler},
            familyi={M\bibinitperiod},
-           given={J.},
+           given={Jacques},
            giveni={J\bibinitperiod},
            givenun=0}}%
       }
-      \strng{namehash}{e9f1deece4a5d6e3d6acce1d638fdef9}
-      \strng{fullhash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{fullhashraw}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{bibnamehash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authorbibnamehash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authornamehash}{e9f1deece4a5d6e3d6acce1d638fdef9}
-      \strng{authorfullhash}{900e1c2cc757cc9aa9363b5233e8080c}
-      \strng{authorfullhashraw}{900e1c2cc757cc9aa9363b5233e8080c}
+      \strng{namehash}{40db90f32a9abe431756be2e2abb43d3}
+      \strng{fullhash}{51818976775ec724c4bb7466506e020b}
+      \strng{fullhashraw}{51818976775ec724c4bb7466506e020b}
+      \strng{bibnamehash}{51818976775ec724c4bb7466506e020b}
+      \strng{authorbibnamehash}{51818976775ec724c4bb7466506e020b}
+      \strng{authornamehash}{40db90f32a9abe431756be2e2abb43d3}
+      \strng{authorfullhash}{51818976775ec724c4bb7466506e020b}
+      \strng{authorfullhashraw}{51818976775ec724c4bb7466506e020b}
       \field{sortinit}{D}
       \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
       \field{extradatescope}{labelyear}
@@ -5922,7 +5920,7 @@
       \field{title}{Is numerical comparison digital? {A}nalogical and symbolic effects in two-digit number comparison.}
       \field{volume}{16}
       \field{year}{1990}
-      \field{pages}{626\bibrangedash 41}
+      \field{pages}{626\bibrangedash 641}
       \range{pages}{16}
       \keyw{Adult,Attention,Discrimination Learning,Female,Functional Laterality,Humans,Male,Middle Aged,Pilot Projects,Problem Solving,Psychomotor Performance,Reaction Time,2144576}
     \endentry
@@ -6098,6 +6096,8 @@
       \field{title}{Sequential presentation protects memory from catastrophic interference}
       \field{volume}{44}
       \field{year}{2020}
+      \field{pages}{e12828}
+      \range{pages}{-1}
       \verb{doi}
       \verb 10.1111/cogs.12828
       \endverb
@@ -6272,7 +6272,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Is it permissible to harm one to save many? Classic moral dilemmas are often defined by the conflict between a putatively rational response to maximize aggregate welfare (i.e., the utilitarian judgment) and an emotional aversion to harm (i.e., the non-utilitarian judgment). Here, we address two questions. First, what specific aspect of emotional responding is relevant for these judgments? Second, is this aspect of emotional responding selectively reduced in utilitarians or enhanced in non-utilitarians? The results reveal a key relationship between moral judgment and empathic concern in particular (i.e., feelings of warmth and compassion in response to someone in distress). Utilitarian participants showed significantly reduced empathic concern on an independent empathy measure. These findings therefore reveal diminished empathic concern in utilitarian moral judges.}
       \field{issue}{4}
-      \field{journaltitle}{PloS one}
+      \field{journaltitle}{PLoS ONE}
       \field{title}{Low levels of empathic concern predict utilitarian moral judgment.}
       \field{volume}{8}
       \field{year}{2013}
@@ -6320,7 +6320,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Health-adjusted life years (HALYs) are population health measures permitting morbidity and mortality to be simultaneously described within a single number. They are useful for overall estimates of burden of disease, comparisons of the relative impact of specific illnesses and conditions on communities, and in economic analyses. Quality-adjusted life years (QALYs) and disability-adjusted life years (DALYs) are types of HALYs whose original purposes were at variance. Their growing importance and the varied uptake of the methodology by different U.S. and international entities makes it useful to understand their differences as well as their similarities. A brief history of both measures is presented and methods for calculating them are reviewed. Methodological and ethical issues that have been raised in association with HALYs more generally are presented. Finally, we raise concerns about the practice of using different types of HALYs within different decision-making contexts and urge action that builds and clarifies this useful measurement field.}
-      \field{journaltitle}{Annual review of public health}
+      \field{journaltitle}{Annual Review of Public Health}
       \field{title}{{HALYS} and {QALYS} and {DALYS}, Oh My: similarities and differences in summary measures of population Health.}
       \field{volume}{23}
       \field{year}{2002}
@@ -6363,7 +6363,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Empirical studies have shown that decision makers do not usually treat probabilities linearly. Instead, people tend to overweight small probabilities and underweight large probabilities. One way to model such distortions in decision making under risk is through a probability weighting function. We present a nonparametric estimation procedure for assessing the probability weighting function and value function at the level of the individual subject. The evidence in the domain of gains supports a two-parameter weighting function, where each parameter is given a psychological interpretation: one parameter measures how the decision maker discriminates probabilities, and the other parameter measures how attractive the decision maker views gambling. These findings are consistent with a growing body of empirical and theoretical work attempting to establish a psychological rationale for the probability weighting function.}
       \field{issue}{1}
-      \field{journaltitle}{Cognitive psychology}
+      \field{journaltitle}{Cognitive Psychology}
       \field{title}{On the shape of the probability weighting function.}
       \field{volume}{38}
       \field{year}{1999}
@@ -6428,7 +6428,7 @@
       \field{abstract}{The long-standing rationalist tradition in moral psychology emphasizes the role of reason in moral judgment. A more recent trend places increased emphasis on emotion. Although both reason and emotion are likely to play important roles in moral judgment, relatively little is known about their neural correlates, the nature of their interaction, and the factors that modulate their respective behavioral influences in the context of moral judgment. In two functional magnetic resonance imaging (fMRI) studies using moral dilemmas as probes, we apply the methods of cognitive neuroscience to the study of moral judgment. We argue that moral dilemmas vary systematically in the extent to which they engage emotional processing and that these variations in emotional engagement influence moral judgment. These results may shed light on some puzzling patterns in moral judgment observed by contemporary philosophers.}
       \field{issue}{5537}
       \field{journaltitle}{Science}
-      \field{title}{An fMRI investigation of emotional engagement in moral judgment.}
+      \field{title}{An {fMRI} investigation of emotional engagement in moral judgment.}
       \field{volume}{293}
       \field{year}{2001}
       \field{pages}{2105\bibrangedash 2108}
@@ -6567,7 +6567,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Bootstrapping has enormous potential in statistics education and practice, but there are subtle issues and ways to go wrong. For example, the common combination of nonparametric bootstrapping and bootstrap percentile confidence intervals is less accurate than using t -intervals for small samples, though more accurate for larger samples. My goals in this article are to provide a deeper understanding of bootstrap methods-how they work, when they work or not, and which methods work better-and to highlight pedagogical issues. Supplementary materials for this article are available online. [Received December 2014. Revised August 2015].}
       \field{issue}{4}
-      \field{journaltitle}{The American statistician}
+      \field{journaltitle}{The American Statistician}
       \field{title}{What Teachers Should Know About the Bootstrap: Resampling in the Undergraduate Statistics Curriculum.}
       \field{volume}{69}
       \field{year}{2015}
@@ -6754,10 +6754,10 @@
       \field{abstract}{It is widely believed that people are willing to expend greater resources to save the lives of identified victims than to save equal numbers of unidentified or statistical victims. There are many possible causes of this disparity which have not been enumerated previously or tested empirically. We discuss four possible causes of the "identifiable victim effect" and present the results of two studies which indicate that the most important cause of the disparity in treatment of identifiable and statistical lives is that, for identifiable victims, a high proportion of those at risk can be saved. Copyright 1997 by Kluwer Academic Publishers}
       \field{journaltitle}{Journal of Risk and Uncertainty}
       \field{number}{3}
-      \field{title}{Explaining the "Identifiable Victim Effect."}
+      \field{title}{Explaining the ``identifiable victim effect''}
       \field{volume}{14}
       \field{year}{1997}
-      \field{pages}{235\bibrangedash 57}
+      \field{pages}{235\bibrangedash 257}
       \range{pages}{23}
     \endentry
     \entry{Jinkerson2016}{article}{}{}
@@ -6862,6 +6862,9 @@
            giveni={C\bibinitperiod},
            givenun=0}}%
       }
+      \list{location}{1}{%
+        {Oxford}%
+      }
       \list{publisher}{1}{%
         {{O}xford {U}niversity {P}ress}%
       }
@@ -6881,9 +6884,9 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{This is the first of two chapters analysing the role of military lawyers in the contemporary US kill chain. This chapter focuses on deliberate (planned) targeting operations and the routine nature of legal advice at a key location in the US targeting apparatus—the Combined Air Operations Center (CAOC) in Qatar. Military lawyers participate throughout the ‘targeting cycle’ giving legal, operational, and public relations advice. In contrast to inflated claims about the ‘total’ visibility of the battlespace, planned operations are beset with gaps in intelligence and emergent events. Legal oversight is far from complete, given the scale of lawyer deployment. Moreover, the legal frameworks that military lawyers bring to bear on the kill chain are malleable and open to a wide range of interpretations. In practice, this means that the constraining function of targeting law often loses out to its enabling function with consequences for who and what is targeted.}
-      \field{booktitle}{The War Lawyers: The United States, Israel, and Juridical Warfare}
+      \field{chapter}{The Kill Chain (I): Deliberate Targeting}
       \field{isbn}{9780198842927}
-      \field{title}{The Kill Chain (I): Deliberate Targeting}
+      \field{title}{The War Lawyers: The United States, Israel, and Juridical Warfare}
       \field{year}{2020}
       \verb{doi}
       \verb 10.1093/oso/9780198842927.003.0006
@@ -6991,7 +6994,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{[Correction Notice: An Erratum for this article was reported in Vol 125(2) of (see record 2018-15704-001). The copyright attribution was incorrectly listed, and the Creative Commons CC-BY license disclaimer was incorrectly omitted from the author note. The correct copyright is "© 2017 The Author(s)" and the omitted disclaimer is found in the erratum. All versions of this article have been corrected.] Recent research has relied on trolley-type sacrificial moral dilemmas to study utilitarian versus nonutilitarian modes of moral decision-making. This research has generated important insights into people's attitudes toward instrumental harm-that is, the sacrifice of an individual to save a greater number. But this approach also has serious limitations. Most notably, it ignores the positive, altruistic core of utilitarianism, which is characterized by impartial concern for the well-being of everyone, whether near or far. Here, we develop, refine, and validate a new scale-the Oxford Utilitarianism Scale-to dissociate individual differences in the 'negative' (permissive attitude toward instrumental harm) and 'positive' (impartial concern for the greater good) dimensions of utilitarian thinking as manifested in the general population. We show that these are two independent dimensions of proto-utilitarian tendencies in the lay population, each exhibiting a distinct psychological profile. Empathic concern, identification with the whole of humanity, and concern for future generations were positively associated with impartial beneficence but negatively associated with instrumental harm; and although instrumental harm was associated with subclinical psychopathy, impartial beneficence was associated with higher religiosity. Importantly, although these two dimensions were independent in the lay population, they were closely associated in a sample of moral philosophers. Acknowledging this dissociation between the instrumental harm and impartial beneficence components of utilitarian thinking in ordinary people can clarify existing debates about the nature of moral psychology and its relation to moral philosophy as well as generate fruitful avenues for further research. (PsycINFO Database Record (c) 2018 APA, all rights reserved).}
       \field{issue}{2}
-      \field{journaltitle}{Psychological review}
+      \field{journaltitle}{Psychological Review}
       \field{title}{Beyond sacrificial harm: A two-dimensional model of utilitarian psychology.}
       \field{volume}{125}
       \field{year}{2018}
@@ -7053,7 +7056,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{A growing body of research has focused on so-called 'utilitarian' judgments in moral dilemmas in which participants have to choose whether to sacrifice one person in order to save the lives of a greater number. However, the relation between such 'utilitarian' judgments and genuine utilitarian impartial concern for the greater good remains unclear. Across four studies, we investigated the relationship between 'utilitarian' judgment in such sacrificial dilemmas and a range of traits, attitudes, judgments and behaviors that either reflect or reject an impartial concern for the greater good of all. In Study 1, we found that rates of 'utilitarian' judgment were associated with a broadly immoral outlook concerning clear ethical transgressions in a business context, as well as with sub-clinical psychopathy. In Study 2, we found that 'utilitarian' judgment was associated with greater endorsement of rational egoism, less donation of money to a charity, and less identification with the whole of humanity, a core feature of classical utilitarianism. In Studies 3 and 4, we found no association between 'utilitarian' judgments in sacrificial dilemmas and characteristic utilitarian judgments relating to assistance to distant people in need, self-sacrifice and impartiality, even when the utilitarian justification for these judgments was made explicit and unequivocal. This lack of association remained even when we controlled for the antisocial element in 'utilitarian' judgment. Taken together, these results suggest that there is very little relation between sacrificial judgments in the hypothetical dilemmas that dominate current research, and a genuine utilitarian approach to ethics.}
       \field{journaltitle}{Cognition}
-      \field{title}{'Utilitarian' judgments in sacrificial moral dilemmas do not reflect impartial concern for the greater good.}
+      \field{title}{``{U}tilitarian'' judgments in sacrificial moral dilemmas do not reflect impartial concern for the greater good.}
       \field{volume}{134}
       \field{year}{2015}
       \field{pages}{193\bibrangedash 209}
@@ -7062,43 +7065,6 @@
       \verb 10.1016/j.cognition.2014.10.005
       \endverb
       \keyw{Adult; Altruism; Ethical Theory; Female; Humans; Judgment; Male; Morals; Altruism; Impartiality; Moral dilemmas; Moral judgment; Psychopathy; Utilitarianism}
-    \endentry
-    \entry{Kahneman1979}{article}{}{}
-      \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=90cdea5582a22a9fcc5c0fc0f6a66705}{%
-           family={Kahneman},
-           familyi={K\bibinitperiod},
-           given={D.},
-           giveni={D\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=a349865aebf1e8bcdeecbe70b2ed03b7}{%
-           family={Tversky},
-           familyi={T\bibinitperiod},
-           given={A},
-           giveni={A\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{fullhash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{fullhashraw}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{bibnamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorbibnamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authornamehash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorfullhash}{509ce2e11adab5e923fc0570ef1561ec}
-      \strng{authorfullhashraw}{509ce2e11adab5e923fc0570ef1561ec}
-      \field{sortinit}{K}
-      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Econometrica}
-      \field{number}{2}
-      \field{title}{Prospect Theory: {A}n Analysis of Decision Under Risk}
-      \field{volume}{47}
-      \field{year}{1979}
-      \field{pages}{263\bibrangedash 291}
-      \range{pages}{29}
     \endentry
     \entry{Kahneman2011}{book}{}{}
       \name{author}{1}{}{%
@@ -7113,7 +7079,7 @@
         {London, UK}%
       }
       \list{publisher}{1}{%
-        {Penguin books}%
+        {Penguin Books}%
       }
       \strng{namehash}{d0dcea81f8587e7d56bb5dbe34a39d6c}
       \strng{fullhash}{d0dcea81f8587e7d56bb5dbe34a39d6c}
@@ -7127,6 +7093,7 @@
       \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{978-0-141-03357-0}
@@ -7172,6 +7139,7 @@
       \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{isbn}{9780008309008}
@@ -7179,6 +7147,44 @@
       \field{subtitle}{A flaw in human judgment}
       \field{title}{Noise}
       \field{year}{2021}
+    \endentry
+    \entry{Kahneman1979}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=d0dcea81f8587e7d56bb5dbe34a39d6c}{%
+           family={Kahneman},
+           familyi={K\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a349865aebf1e8bcdeecbe70b2ed03b7}{%
+           family={Tversky},
+           familyi={T\bibinitperiod},
+           given={A},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{fullhash}{33fb220114a193a56ee720525778d4e7}
+      \strng{fullhashraw}{33fb220114a193a56ee720525778d4e7}
+      \strng{bibnamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorbibnamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authornamehash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorfullhash}{33fb220114a193a56ee720525778d4e7}
+      \strng{authorfullhashraw}{33fb220114a193a56ee720525778d4e7}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Econometrica}
+      \field{number}{2}
+      \field{title}{Prospect Theory: {A}n Analysis of Decision Under Risk}
+      \field{volume}{47}
+      \field{year}{1979}
+      \field{pages}{263\bibrangedash 291}
+      \range{pages}{29}
     \endentry
     \entry{Kassambara2023b}{manual}{}{}
       \name{author}{1}{}{%
@@ -7291,9 +7297,9 @@
       \field{abstract}{{Observed choices between risky lotteries are difficult to reconcile with expected utility maximization, both because subjects appear to be too risk averse with regard to small gambles for this to be explained by diminishing marginal utility of wealth, as stressed by Rabin (2000), and because subjects' responses involve a random element. We propose a unified explanation for both anomalies, similar to the explanation given for related phenomena in the case of perceptual judgments: they result from judgments based on imprecise (and noisy) mental representations of the decision situation. In this model, risk aversion results from a sort of perceptual bias-but one that represents an optimal decision rule, given the limitations of the mental representation of the situation. We propose a quantitative model of the noisy mental representation of simple lotteries, based on other evidence regarding numerical cognition, and test its ability to explain the choice frequencies that we observe in a laboratory experiment.}}
       \field{journaltitle}{The Review of Economic Studies}
       \field{number}{4}
-      \field{title}{{Cognitive Imprecision and Small-Stakes Risk Aversion}}
+      \field{title}{Cognitive Imprecision and Small-Stakes Risk Aversion}
       \field{volume}{88}
-      \field{year}{2020}
+      \field{year}{2021}
       \field{pages}{1979\bibrangedash 2013}
       \range{pages}{35}
       \verb{doi}
@@ -7352,8 +7358,8 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Areas of the primate intraparietal cortex have been identified as an important substrate of numerical cognition. In human fMRI studies, activity patterns in these and other areas have allowed researchers to read out the numerosity a subject is viewing, but the relation of such decodable information with behavioral numerical proficiency remains unknown. Here, we estimated the precision of behavioral numerosity discrimination (internal Weber fraction) in twelve adult subjects based on psychophysical testing in a delayed numerosity comparison task outside the scanner. FMRI data were then recorded during a similar task, to obtain the accuracy with which the same sample numerosities could be read out from evoked brain activity patterns, as a measure of the precision of the neuronal representation. Sample numerosities were decodable in both early visual and intra-parietal cortex with approximately equal accuracy on average. In parietal cortex, smaller numerosities were better discriminated than larger numerosities of the same ratio, paralleling smaller behavioral Weber fractions for smaller numerosities. Furthermore, in parietal but not early visual cortex, fMRI decoding performance was correlated with behavioral number discrimination acuity across subjects (subjects with a more precise behavioral Weber fraction measured prior to scanning showed greater discriminability of fMRI activity patterns in intraparietal cortex, and more specifically, the right LIP region). These results suggest a crucial role for intra-parietal cortex in supporting a numerical representation which is explicitly read out for numerical decisions and behavior.}
-      \field{journaltitle}{Cortex; a journal devoted to the study of the nervous system and behavior}
-      \field{title}{Discriminability of numerosity-evoked fMRI activity patterns in human intra-parietal cortex reflects behavioral numerical acuity.}
+      \field{journaltitle}{Cortex}
+      \field{title}{Discriminability of numerosity-evoked {fMRI} activity patterns in human intra-parietal cortex reflects behavioral numerical acuity.}
       \field{volume}{114}
       \field{year}{2019}
       \field{pages}{90\bibrangedash 101}
@@ -7427,8 +7433,8 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issue}{6518}
-      \field{journaltitle}{Science (New York, N.Y.)}
-      \field{title}{Understanding COVID-19 vaccine efficacy.}
+      \field{journaltitle}{Science}
+      \field{title}{Understanding {COVID-19} vaccine efficacy.}
       \field{volume}{370}
       \field{year}{2020}
       \field{pages}{763\bibrangedash 765}
@@ -7573,7 +7579,7 @@
       \field{abstract}{Is calculation possible without language? Or is the human ability for arithmetic dependent on the language faculty? To clarify the relation between language and arithmetic, we studied numerical cognition in speakers of Mundurukú, an Amazonian language with a very small lexicon of number words. Although the Mundurukú lack words for numbers beyond 5, they are able to compare and add large approximate numbers that are far beyond their naming range. However, they fail in exact arithmetic with numbers larger than 4 or 5. Our results imply a distinction between a nonverbal system of number approximation and a language-based counting system for exact number and arithmetic.}
       \field{journaltitle}{Science}
       \field{number}{5695}
-      \field{title}{Exact and approximate arithmetic in an Amazonian indigene group.}
+      \field{title}{Exact and approximate arithmetic in an {Amazonian} indigene group.}
       \field{volume}{306}
       \field{year}{2004}
       \field{pages}{499\bibrangedash 503}
@@ -7775,7 +7781,7 @@
       \field{abstract}{When making many choices, a person can broadly bracket them by assessing the consequences of all of them taken together, or narrowly bracket them by making each choice in isolation. We integrate research conducted in a wide range of decision contexts which shows that choice bracketing is an important determinant of behavior. Because broad bracketing allows people to take into account all the consequences of their actions, it generally leads to choices that yield higher utility. The evidence that we review, however, shows that people often fail to bracket broadly when it would be feasible for them to do so. In addition to documenting the diverse effects of bracketing, we also discuss factors that determine whether people bracket narrowly or broadly. We conclude with a discussion of normative aspects of bracketing and argue that there are some situations in which narrower bracketing results in superior decision making.}
       \field{journaltitle}{Journal of Risk and Uncertainty}
       \field{number}{1}
-      \field{title}{Choice {Bracketing}}
+      \field{title}{Choice Bracketing}
       \field{volume}{19}
       \field{year}{1999}
       \field{dateera}{ce}
@@ -8067,7 +8073,7 @@
            giveni={E\bibinitperiod}}}%
       }
       \list{location}{1}{%
-        {NJ}%
+        {Princeton, NJ}%
       }
       \list{publisher}{1}{%
         {Princeton University Press}%
@@ -8247,6 +8253,9 @@
            given={V.\bibnamedelimi A.},
            giveni={V\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
       }
+      \list{location}{1}{%
+        {London}%
+      }
       \list{publisher}{1}{%
         {Routledge/Taylor \& Francis}%
       }
@@ -8345,7 +8354,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issue}{6}
-      \field{journaltitle}{Psychological science}
+      \field{journaltitle}{Psychological Science}
       \field{title}{Manipulations of emotional context shape moral judgment.}
       \field{volume}{17}
       \field{year}{2006}
@@ -8771,7 +8780,6 @@
       \field{labeltitlesource}{title}
       \field{abstract}{Traditional decision theory assumes that people respond to the exact features of the options available to them, but observed behavior seems much less precise. This review considers ways of introducing imprecision into models of economic decision making and stresses the usefulness of analogies with the way that imprecise perceptual judgments are modeled in psychophysics-the branch of experimental psychology concerned with the quantitative relationship between objective features of an observer&apos;s environment and elicited reports about their subjective appearance. It reviews key ideas from psychophysics, provides examples of the kinds of data that motivate them, and proposes lessons for economic modeling. Applications include stochastic choice, choice under risk, decoy effects in marketing, global game models of strategic interaction, and delayed adjustment of prices in response to monetary disturbances.}
       \field{journaltitle}{Annual Review of Economics}
-      \field{number}{Volume 12, 2020}
       \field{title}{Modeling Imprecision in Perception, Valuation, and Choice}
       \field{type}{Journal Article}
       \field{volume}{12}
@@ -8965,7 +8973,7 @@
       \field{labeltitlesource}{title}
       \field{abstract}{This paper studies summary measures of the predictive power of a generalized linear model, paying special attention to a generalization of the multiple correlation coefficient from ordinary linear regression. The population value is the correlation between the response and its conditional expectation given the predictors, and the sample value is the correlation between the observed response and the model predicted value. We compare four estimators of the measure in terms of bias, mean squared error and behaviour in the presence of overparameterization. The sample estimator and a jack-knife estimator usually behave adequately, but a cross-validation estimator has a large negative bias with large mean squared error. One can use bootstrap methods to construct confidence intervals for the population value of the correlation measure and to estimate the degree to which a model selection procedure may provide an overly optimistic measure of the actual predictive power.}
       \field{issue}{13}
-      \field{journaltitle}{Statistics in medicine}
+      \field{journaltitle}{Statistics in Medicine}
       \field{title}{Summarizing the predictive power of a generalized linear model.}
       \field{volume}{19}
       \field{year}{2000}

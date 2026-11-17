@@ -1,0 +1,748 @@
+---
+title: "Moral numbers - Claude refusals in the rerun of the Experiment 3 LLM simulations"
+author: |
+    | Ansgar D. Endress & Peter Ayton
+    | City St George's, University of London
+bibliography: /Users/endress/ansgar.bib
+csl: /Users/endress/csl_files/science.csl
+output:
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    citation_package: natbib
+    header-includes:
+        - \newcommand{\RR}{\mathrm{RR}}
+    includes:
+#      in_header: ansgar.sty
+    toc: false
+    number_sections: true
+    keep_tex: true
+    fig_caption: true
+    highlight: tango
+  html_notebook:
+    theme: spacelab
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    mathjax: default
+    highlight: tango
+  html_document:
+    theme: spacelab
+    number_sections: yes
+    df_print: paged
+    toc: yes
+    toc_float: yes
+    fig_caption: true
+    highlight: tango
+---
+
+
+```{r llm-extract-code, eval = FALSE, include = FALSE}
+# Extract code to run on the command line, which is much faster than in the GUI
+
+knitr::purl("moral_numbers_LLMs_exp3_claude_refusals.Rmd",
+            output = "moral_numbers_LLMs_exp3_claude_refusals.R")
+
+lintr::lint("moral_numbers_LLMs_exp3_claude_refusals.R")
+```
+
+```{r claude-refusals-guard, include = FALSE}
+# In the rerun of Experiment 3 (moral_numbers_LLMs_exp3_rerun.Rmd), some requests to Claude Sonnet 5.5 returned
+# empty or cut-off answers. Resent requests were blocked by the API with stop_reason "refusal"
+# (category "reasoning_extraction"). This file works on the SAVED results of the rerun: it detects these trials,
+# describes where they occur, and (only if REPLAY_REFUSED_TRIALS is TRUE) resends these requests to record the
+# refusal information returned by the API. No simulations are rerun.
+# It is standalone and must never be knitted as a child of moral_numbers.Rmd.
+
+if (isTRUE(get0("PARENT_RMD_EXISTS"))) {
+    stop("moral_numbers_LLMs_exp3_claude_refusals.Rmd is standalone and must not be knitted as a child document.")
+}
+
+OUTPUT_FILE_PREFIX <- "llm_exp3_fixed_prompt"
+EXP3_IDS <- c("exp2b", "exp2ac")
+
+CLAUDE_MODEL <- "claude-sonnet-5-5"
+CLAUDE_REASONING_EFFORTS <- c("low", "medium", "high")
+
+# Set to TRUE to resend the refused requests (costs a few dollars for all of them; use N_REPLAY_MAX for a test)
+REPLAY_REFUSED_TRIALS <- FALSE
+N_REPLAY_MAX <- Inf
+```
+
+
+
+```{r llm-setup, echo = FALSE, include=FALSE, eval = !isTRUE(get0("PARENT_RMD_EXISTS"))}
+#rm (list=ls())
+
+options(digits = 3,
+        knitr.kable.NA = '')
+knitr::opts_chunk$set(
+    # Run the chunk
+    eval = TRUE,
+    # Don't include source code
+    echo = FALSE,
+    # Print warnings to console rather than the output file
+    warning = FALSE,
+    # Stop on errors
+    error = FALSE,
+    # Print message to console rather than the output file
+    message = FALSE,
+    # Include chunk output into output
+    include = TRUE,
+    # Don't reformat R code
+    tidy = FALSE,
+    # Center images
+    fig.align = 'center',
+    # Default image width
+    out.width = '80%')
+
+# other knits options are here:
+# https://yihui.name/knitr/options/
+```
+
+```{r llm-define-parameters-old, eval = !isTRUE(get0("PARENT_RMD_EXISTS"))}
+
+EXPERIMENT_DIR <- here::here("experiments")
+HELPER_DIR <- here::here("code", "helper_functions")
+OUTPUT_DIR <- here::here("code", "output")
+
+# Set seed to Cesar's birthday
+set.seed(1207100)
+```
+
+
+```{r llm-load-libraries, include = FALSE, message = TRUE, warning = TRUE, eval = !isTRUE(get0("PARENT_RMD_EXISTS"))}
+
+if (Sys.info()[["user"]] %in% c("ansgar", "endress")){
+    source ("/Users/endress/R.ansgar/ansgarlib/R/tt.R")
+    source ("/Users/endress/R.ansgar/ansgarlib/R/null.R")
+    #source ("helper_functions.R")
+} else {
+    # Note that these will probably not be the latest versions
+    source("http://endress.org/progs/tt.R")
+    source("http://endress.org/progs/null.R")
+}
+
+
+
+
+librarian::shelf(
+    # Those are not loaded in moral_numbers.Rmd
+    httr,
+    jsonlite,
+
+    # Those are
+    tidyverse,
+    stringr,
+    knitr,
+    kableExtra,
+    rlang,
+    glue,
+    ggthemes,
+)
+
+load_helper_files(HELPER_DIR)
+
+# Set default theme
+theme_set(ggthemes::theme_clean(14))
+theme_update(legend.position = "bottom",
+             legend.justification = "center")
+```
+
+```{r llm-track-correspondance-between-experiments-in-paper-and-in-the-log-files-copied, eval = !isTRUE(get0("PARENT_RMD_EXISTS"))}
+
+dat.moral.numbers.exp.correspondance <- list(
+    # Basic experiment
+    list(
+        experimentID.data = "1", 
+        experimentID.paper = "1a"
+    ),
+    # Replication with the conditions related to small number processing and the first item removed
+    list(
+        experimentID.data = "1b", 
+        experimentID.paper = "1b"
+    ),
+    # 2a and 2b are switched
+    # Ratio vs. victims
+    list(
+        experimentID.data = "2b", 
+        experimentID.paper = "3a"
+    ),
+    # list(
+    #     experimentID.data = "2a", 
+    #     experimentID.paper = "2b"
+    # ),
+    # list(
+    #     experimentID.data = "2c", 
+    #     experimentID.paper = "2c"
+    # ),
+    # Ratio vs. utility
+    # -   Exp 2a and 2c are replications of one another.
+    # -   Exp 2d: Smaller differences in the number of victims
+    # -   Exp 2b: Vs victims
+    # -   Order in paper (2b => 2a), (2a,c,d = > 2bcd)
+    list(
+        experimentID.data = "2a", 
+        experimentID.paper = "3b.1"
+    ),
+    list(
+        experimentID.data = "2c", 
+        experimentID.paper = "3b.2"
+    ),
+    # This is the combined experiment
+    list(
+        experimentID.data = "2ac", 
+        experimentID.paper = "3b"
+    ),
+    list(
+        experimentID.data = "2d", 
+        experimentID.paper = "3c"
+    ),
+    # Moral vs. economic choices
+    list(
+        experimentID.data = "4", 
+        experimentID.paper = "2"
+    ),
+    # Failed attempts to make the victims salient: 5 - 7
+    # list(
+    #     experimentID.data = "5", 
+    #     experimentID.paper = "-1"
+    # ),
+    # list(
+    #     experimentID.data = "6", 
+    #     experimentID.paper = "-2"
+    # ),
+    # list(
+    #     experimentID.data = "7", 
+    #     experimentID.paper = "-3"
+    # ),
+    # Succesful attempt to make victims salient
+    list(
+        experimentID.data = "8", 
+        experimentID.paper = "4"
+    ),
+    # Search for asymptote
+    # list(
+    #     experimentID.data = "9a", 
+    #     experimentID.paper = "for SI"
+    # ),
+    list(
+        experimentID.data = "9a", 
+        experimentID.paper = "AS" # AS = asymptote search
+    ),
+    # Succesful attempt to make victims salient with higher ratios
+    list(
+        experimentID.data = "10", 
+        experimentID.paper = "5"
+    ),
+    # Replication of experiment 10
+    list(
+        experimentID.data = "11",
+        experimentID.paper = "6"
+    ),
+    # Combined vivacity experiments (8 + 10, 10 + 11)
+    list(
+        experimentID.data = "8+10",
+        experimentID.paper = "4+5"
+    ),
+    list(
+        experimentID.data = "10+11",
+        experimentID.paper = "5+6"
+    )
+) %>%
+    tibble::enframe(name = NULL, value = "data") %>%
+    tidyr::unnest_wider(data) %>%
+    dplyr::mutate(dplyr::across(dplyr::everything(), ~ stringr::str_c("exp", .x)))
+
+
+```
+
+```{r claude-refusals-load-data}
+# Saved results of the three Claude runs and the metadata of the rerun (settings used in the runs)
+
+# File name: <prefix>.<model>[.<reasoning effort>].RData, as in make_llm_output_file_name() in the rerun Rmd
+make_llm_output_file_name_claude_refusals <- function(run_name){
+    here::here(OUTPUT_DIR, stringr::str_c(OUTPUT_FILE_PREFIX, ".", run_name, ".RData"))
+}
+
+load(make_llm_output_file_name_claude_refusals("metadata"))
+
+dat_claude <- purrr::map(
+    CLAUDE_REASONING_EFFORTS,
+    \(reasoning_effort) load_file_as_value(
+        make_llm_output_file_name_claude_refusals(glue::glue("{CLAUDE_MODEL}.{reasoning_effort}"))
+    )
+) %>%
+    purrr::list_rbind()
+
+if (!"error" %in% names(dat_claude)) {
+    dat_claude <- dat_claude %>%
+        dplyr::mutate(error = NA_character_)
+}
+
+stopifnot(
+    "Failed conversations (API errors) in the Claude runs" =
+        all(is.na(dat_claude$error)),
+    "Expected 5,760 trials per Claude run" =
+        all(table(dat_claude$reasoning_effort) == 5760)
+)
+
+# Answer types:
+# - digit: the answer starts with a digit from 1 to 6 (the cleaned answer is valid)
+# - text_with_digit: a text answer ending with a single digit from 1 to 6
+# - empty: no text (the request was refused)
+# - text_without_digit: a text answer without a final digit (e.g., cut off)
+# The rows of a conversation are in the order in which the requests were sent.
+dat_claude <- dat_claude %>%
+    dplyr::group_by(reasoning_effort, subj) %>%
+    dplyr::mutate(trial = dplyr::row_number()) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+        answer_type = dplyr::case_when(
+            is.na(response_raw) | !nzchar(stringr::str_trim(response_raw)) ~ "empty",
+            stringr::str_detect(response_raw, "^\\s*[1-6](\\D|$)") ~ "digit",
+            stringr::str_detect(response_raw, "(?<![0-9])[1-6][\\s.)*]*$") ~ "text_with_digit",
+            TRUE ~ "text_without_digit"
+        ),
+        answer_type = factor(answer_type, levels = c("digit", "text_with_digit", "empty", "text_without_digit")),
+        refused = answer_type %in% c("empty", "text_without_digit"),
+        reasoning_effort = factor(reasoning_effort, levels = CLAUDE_REASONING_EFFORTS)
+    ) %>%
+    # What the conversation history contained before this trial
+    dplyr::group_by(reasoning_effort, subj) %>%
+    dplyr::mutate(
+        # Did any of the earlier answers contain text that was fed back into the conversation (text answers ending with a digit)?
+        earlier_text_answer = dplyr::lag(cumsum(answer_type == "text_with_digit"), default = 0) > 0,
+        # Was any of the earlier responses refused? 
+        earlier_refusal = dplyr::lag(cumsum(refused), default = 0) > 0,
+        history = dplyr::case_when(
+            earlier_refusal ~ "earlier refused answer",
+            earlier_text_answer ~ "earlier text answer",
+            TRUE ~ "only digits"
+        ),
+        history = factor(history, levels = c("only digits", "earlier text answer", "earlier refused answer"))
+    ) %>%
+    dplyr::ungroup()
+
+# Readable column names and values for the tables
+format_refusal_table <- function(dat = .){
+    dat %>%
+        dplyr::mutate(dplyr::across(dplyr::any_of(c("ratioOrder", "answer_type", "refusal_category")),
+                                    ~ stringr::str_replace_all(.x, "_", " "))) %>%
+        dplyr::rename(dplyr::any_of(c(
+            Experiment = "experimentID",
+            `Option order` = "ratioOrder",
+            `First refused trial` = "first_refused_trial",
+            `Scenario` = "first_refused_title",
+            `N (scenario)` = "n_scenario",
+            `Text answers before` = "n_text_answers_before"
+        ))) %>%
+        dplyr::rename_with(~ stringr::str_replace_all(.x, "_", " ") %>%
+                               stringr::str_to_sentence())
+}
+```
+
+# Refused answers in the Claude runs
+
+```{r claude-refusals-summary-numbers, include = FALSE}
+# Numbers for the text
+dat_claude_refusal_summary <- dat_claude %>%
+    dplyr::group_by(reasoning_effort) %>%
+    dplyr::summarize(
+        n_empty = sum(answer_type == "empty"),
+        n_cut_off = sum(answer_type == "text_without_digit"),
+        .groups = "drop"
+    )
+
+prop_refused_exp3b <- mean(dat_claude$experimentID[dat_claude$refused] == "exp2ac")
+
+dat_claude_refusal_history <- dat_claude %>%
+    dplyr::filter(trial > 1) %>%
+    dplyr::group_by(history) %>%
+    dplyr::summarize(
+        n = dplyr::n(),
+        n_refused = sum(refused),
+        prop_refused = mean(refused),
+        .groups = "drop"
+    )
+```
+
+In the three runs with Claude Sonnet 5.5 (low, medium and high reasoning effort; 5,760 trials each), `r paste(dat_claude_refusal_summary$n_empty, collapse = ", ")` answers were empty, and `r paste(dat_claude_refusal_summary$n_cut_off, collapse = ", ")` further answers were text without a rating (e.g., cut off). We count both as refused. `r round(100 * prop_refused_exp3b)`% of the refused answers occurred in Experiment 3b, where the ratio is pitted against utility.
+
+Refusals never occurred as long as the conversation history only contained ratings (`r dat_claude_refusal_history$n_refused[dat_claude_refusal_history$history == "only digits"]` of `r format(dat_claude_refusal_history$n[dat_claude_refusal_history$history == "only digits"], big.mark = ",")` trials). They occurred only after Claude had answered with text, which was then fed back into the conversation as its earlier answer (`r round(100 * dat_claude_refusal_history$prop_refused[dat_claude_refusal_history$history == "earlier text answer"], 1)`% of these trials), and were frequent once an earlier answer had been refused (`r round(100 * dat_claude_refusal_history$prop_refused[dat_claude_refusal_history$history == "earlier refused answer"])`%).
+
+```{r claude-refusals-answer-types}
+# Answer types per cell and reasoning effort
+dat_claude %>%
+    dplyr::count(experimentID, condition, ratioOrder, reasoning_effort, answer_type) %>%
+    tidyr::pivot_wider(
+        names_from = answer_type,
+        values_from = n,
+        values_fill = 0,
+        names_expand = TRUE
+    ) %>%
+    # The grouping variables of rowwise() are excluded from c_across(), so n is the sum over the answer types
+    dplyr::rowwise(experimentID, condition, ratioOrder, reasoning_effort) %>%
+    dplyr::mutate(
+        n = sum(dplyr::c_across(dplyr::everything())),
+        prop_refused = (empty + text_without_digit) / n
+    ) %>%
+    dplyr::ungroup() %>%
+    format_exp_info() %>%
+    dplyr::mutate(condition = relabel_conds_llm(condition)) %>%
+    dplyr::arrange(experimentID, condition, ratioOrder, reasoning_effort) %>%
+    format_refusal_table() %>%
+    knitr::kable(
+        caption = "Answer types of Claude Sonnet 5.5 per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility), condition, option order and reasoning effort. Empty and cut-off answers (text without digit) are counted as refused.",
+        digits = 3,
+        booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r claude-refusals-by-trial, eval = FALSE}
+# Refused answers by trial position (same information as the figure claude-refusals-plot-by-trial)
+dat_claude %>%
+    dplyr::group_by(reasoning_effort, trial) %>%
+    dplyr::summarize(prop_refused = mean(refused), .groups = "drop") %>%
+    tidyr::pivot_wider(
+        names_from = trial,
+        names_prefix = "trial_",
+        values_from = prop_refused
+    ) %>%
+    knitr::kable(
+        caption = "Proportion of refused answers by trial position in the conversation.",
+        digits = 3,
+        booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r claude-refusals-by-history}
+# Refused answers by the content of the conversation history
+dat_claude %>%
+    dplyr::filter(trial > 1) %>%
+    dplyr::group_by(reasoning_effort, history) %>%
+    dplyr::summarize(
+        n = dplyr::n(),
+        n_refused = sum(refused),
+        prop_refused = mean(refused),
+        .groups = "drop"
+    ) %>%
+    format_refusal_table() %>%
+    knitr::kable(
+        caption = "Refused answers by what the conversation history contained before the trial (trials 2 to 12).",
+        digits = 3,
+        booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r claude-refusals-n-conversations}
+# Conversations with refused answers
+dat_claude_refused_conversations <- dat_claude %>%
+    dplyr::group_by(experimentID, condition, reasoning_effort, ratioOrder, subj) %>%
+    dplyr::filter(any(refused)) %>%
+    dplyr::summarize(
+        first_refused_trial = min(trial[refused]),
+        first_refused_title = title[refused][1],
+        n_refused = sum(refused),
+        n_text_answers_before = sum(answer_type == "text_with_digit" & trial < first_refused_trial),
+        .groups = "drop"
+    ) %>%
+    format_exp_info() %>%
+    # relabel_conds_llm() also has the levels of Experiments 2 and 6 (neutral, vivid)
+    dplyr::mutate(condition = droplevels(relabel_conds_llm(condition)))
+
+dat_claude_refused_conversations %>%
+    dplyr::count(experimentID, condition, reasoning_effort, name = "n_conversations", .drop = FALSE) %>%
+    dplyr::arrange(experimentID, condition, reasoning_effort) %>%
+    format_refusal_table() %>%
+    knitr::kable(
+        caption = "Number of conversations (simulated participants) with at least one refused answer (out of 120 per experiment, condition and reasoning effort).",
+        booktabs = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c("striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header")) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r claude-refusals-conversations}
+# List of the conversations with refused answers.
+# Within experiment, condition, reasoning effort and option order, the scenarios of the first refused answer are
+# ordered by their frequency (n_scenario: number of conversations whose first refused answer was this scenario).
+dat_claude_refused_conversations %>%
+    dplyr::add_count(experimentID, condition, reasoning_effort, ratioOrder, first_refused_title, name = "n_scenario") %>%
+    dplyr::arrange(experimentID, condition, reasoning_effort, ratioOrder, dplyr::desc(n_scenario), first_refused_title, first_refused_trial) %>%
+    dplyr::relocate(n_scenario, .after = first_refused_title) %>%
+    # The simulated participant IDs are too long for the table
+    dplyr::select(-subj) %>%
+    format_refusal_table() %>%
+    # Short column names so that the table fits on the page
+    dplyr::rename(
+        Effort = `Reasoning effort`,
+        Order = `Option order`,
+        `First trial` = `First refused trial`,
+        `Text before` = `Text answers before`
+    ) %>%
+    knitr::kable(
+        caption = "Conversations with refused answers: reasoning effort, option order, trial and scenario of the first refused answer, number of conversations whose first refused answer was this scenario (N (scenario)), number of refused answers, and number of text answers before the first refused answer (Text before).",
+        booktabs = TRUE,
+        longtable = TRUE) %>%
+    # scale_down does not work with longtable; smaller font instead
+    kableExtra::kable_styling(latex_options = c("striped",
+        "hold_position",
+        "repeat_header"),
+        font_size = 7) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r claude-refusals-plot-by-trial, fig.cap = "Proportion of refused answers of Claude Sonnet 5.5 by trial position and reasoning effort."}
+dat_claude %>%
+    dplyr::group_by(reasoning_effort, trial) %>%
+    dplyr::summarize(prop_refused = mean(refused), .groups = "drop") %>%
+    dplyr::mutate(reasoning_effort = factor(reasoning_effort, levels = CLAUDE_REASONING_EFFORTS)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = trial, y = prop_refused, color = reasoning_effort)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::scale_x_continuous(breaks = 1:12) +
+    ggplot2::labs(
+        x = "Trial",
+        y = "Proportion refused",
+        color = "Reasoning effort"
+    )
+```
+
+```{r claude-refusals-replay}
+# Resend the refused requests and record the refusal information returned by the API.
+# Each request is rebuilt from the SAVED conversation: prompts of trials 1..t, and the answers of trials 1..t-1 as
+# they were fed back into the conversation (column response; see get_api_response_incremental()).
+# System prompt and options are those of the runs (metadata of the rerun).
+# The request body is built by make_llm_body_reasoning() (helper functions), as in the runs; it reads LLM_OPTIONS.
+LLM_OPTIONS <- llm_exp3_rerun_metadata$llm_options
+
+send_llm_request_full_claude_refusals <- function(model, messages, system_prompt, reasoning_effort) {
+    # Differs from send_llm_request(): returns the whole parsed response (status, stop_reason, stop_details,
+    # content block types, text, output tokens) instead of only the answer, and does not stop on non-200 status.
+    # Same retry settings as send_llm_request().
+    response <- httr::RETRY(
+        verb = "POST",
+        url = get_model_url(model),
+        httr::add_headers(.headers = make_llm_header(model)),
+        httr::content_type_json(),
+        encode = "json",
+        body = jsonlite::toJSON(
+            make_llm_body_reasoning(model, messages, system_prompt, NULL, reasoning_effort),
+            auto_unbox = TRUE
+        ),
+        times = llm_exp3_rerun_metadata$llm_options$max_attempts,
+        pause_base = 30,
+        pause_min = 10,
+        pause_cap = 60,
+        terminate_on = c(400, 401)
+    )
+
+    parsed <- httr::content(response, as = "parsed")
+
+    tibble::tibble(
+        status = httr::status_code(response),
+        stop_reason = parsed$stop_reason %||% NA_character_,
+        refusal_category = parsed$stop_details$category %||% NA_character_,
+        refusal_explanation = parsed$stop_details$explanation %||% NA_character_,
+        content_types = paste(purrr::map_chr(parsed$content %||% list(), "type"), collapse = ","),
+        text = paste(
+            unlist(purrr::map(purrr::keep(parsed$content %||% list(), ~ .x$type == "text"), "text")),
+            collapse = " "
+        ),
+        output_tokens = parsed$usage$output_tokens %||% NA_integer_,
+        error_message = parsed$error$message %||% NA_character_
+    )
+}
+
+replay_file <- make_llm_output_file_name_claude_refusals(glue::glue("{CLAUDE_MODEL}.refusal_replays"))
+
+if (isTRUE(REPLAY_REFUSED_TRIALS)) {
+
+    # Load API keys from .Renviron (not .profile)
+    ANTHROPIC_API_KEY <- Sys.getenv("ANTHROPIC_API_KEY")
+
+    # get_model_url() looks up the URL in LLM_URLS
+    LLM_URLS <- c(
+        claude = "https://api.anthropic.com/v1/messages"
+    )
+
+    dat_claude_replays <- dat_claude %>%
+        dplyr::filter(refused) %>%
+        dplyr::slice_head(n = min(N_REPLAY_MAX, sum(dat_claude$refused))) %>%
+        dplyr::select(reasoning_effort, experimentID, condition, ratioOrder, subj, trial, title, answer_type) %>%
+        dplyr::mutate(
+            replay = purrr::pmap(
+                list(reasoning_effort, subj, trial),
+                \(reasoning_effort_refused, subj_refused, trial_refused) {
+
+                    dat_conversation <- dat_claude %>%
+                        dplyr::filter(
+                            reasoning_effort == reasoning_effort_refused,
+                            subj == subj_refused,
+                            trial <= trial_refused
+                        ) %>%
+                        dplyr::arrange(trial)
+
+                    messages <- tibble::tibble(
+                        role = c(rep(c("user", "assistant"), times = trial_refused - 1), "user"),
+                        message = c(
+                            as.vector(rbind(
+                                dat_conversation$prompt[seq_len(trial_refused - 1)],
+                                dat_conversation$response[seq_len(trial_refused - 1)]
+                            )),
+                            dat_conversation$prompt[trial_refused]
+                        )
+                    ) %>%
+                        compose_llm_messages(model = CLAUDE_MODEL)
+
+                    send_llm_request_full_claude_refusals(
+                        model = CLAUDE_MODEL,
+                        messages = messages,
+                        system_prompt = llm_exp3_rerun_metadata$system_prompts$comparison,
+                        reasoning_effort = reasoning_effort_refused
+                    )
+                }
+            )
+        ) %>%
+        tidyr::unnest(replay)
+
+    save(
+        dat_claude_replays,
+        file = replay_file
+    )
+}
+
+# Load the replays (also after resending the requests)
+if (file.exists(replay_file)) {
+    load(replay_file)
+}
+```
+
+```{r claude-refusals-replay-numbers, include = FALSE}
+# Numbers for the text (NA if the refused requests have not been resent)
+n_replay <- function(type, refused_again_only) {
+    if (!exists("dat_claude_replays")) return(NA_integer_)
+    sum(
+        dat_claude_replays$answer_type == type &
+            (!refused_again_only | dat_claude_replays$stop_reason %in% "refusal")
+    )
+}
+```
+
+To find out why these answers were refused, we resent each refused request with the same conversation, that is, with the prompts of all trials up to the refused one and Claude's earlier answers as they had been fed back into the conversation, as well as the same system prompt and settings. `r n_replay("empty", TRUE)` of `r n_replay("empty", FALSE)` requests with an originally empty answer and `r n_replay("text_without_digit", TRUE)` of `r n_replay("text_without_digit", FALSE)` requests with a cut-off answer were refused again, all with the stop reason *refusal* and the category *reasoning_extraction*. According to the explanation returned by the API, the requests were blocked as they seemed to violate the Terms of Service restrictions on reverse engineering or duplicating model outputs. The refusals thus came from a filter of the API against the extraction of model outputs, triggered by Claude's own text answers in the conversation history, rather than from a judgement about the content of the scenarios.
+
+```{r claude-refusals-replay-stop-reasons, eval = FALSE}
+# Superseded by claude-refusals-replay-reproduced (same stop reasons and categories)
+# Only if the refused requests have been resent (an eval chunk option would be evaluated when purling)
+if (exists("dat_claude_replays")) {
+    dat_claude_replays %>%
+        dplyr::count(reasoning_effort, answer_type, status, stop_reason, refusal_category) %>%
+        knitr::kable(
+            caption = "Resent refused requests: status, stop reason and refusal category returned by the API.",
+            booktabs = TRUE) %>%
+        kableExtra::kable_styling(latex_options = c("striped",
+            "scale_down",
+            "hold_position",
+            "repeat_header")) %>%
+        kableExtra::kable_classic_2()
+}
+```
+
+```{r claude-refusals-replay-reproduced}
+# How many of the refused requests were refused again when they were resent with the same conversation
+if (exists("dat_claude_replays")) {
+    dat_claude_replays_formatted <- dat_claude_replays %>%
+        dplyr::mutate(
+            reasoning_effort = factor(reasoning_effort, levels = CLAUDE_REASONING_EFFORTS),
+            refused_again = stop_reason %in% "refusal"
+        ) %>%
+        format_exp_info() %>%
+        dplyr::mutate(condition = droplevels(relabel_conds_llm(condition)))
+
+    # Trials
+    dat_claude_replays_formatted %>%
+        dplyr::group_by(experimentID, condition, reasoning_effort, answer_type) %>%
+        dplyr::summarize(
+            n_resent = dplyr::n(),
+            n_refused_again = sum(refused_again),
+            prop_refused_again = mean(refused_again),
+            refusal_category = paste(unique(stats::na.omit(refusal_category)), collapse = ", "),
+            .groups = "drop"
+        ) %>%
+        dplyr::arrange(experimentID, condition, reasoning_effort, answer_type) %>%
+        format_refusal_table() %>%
+        knitr::kable(
+            caption = "Refused requests resent with the same conversation (prompts and earlier answers): number of resent requests, number and proportion refused again, and refusal category returned by the API, per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility), condition, reasoning effort and type of the original answer.",
+            digits = 3,
+            booktabs = TRUE) %>%
+        kableExtra::kable_styling(latex_options = c("striped",
+            "scale_down",
+            "hold_position",
+            "repeat_header")) %>%
+        kableExtra::kable_classic_2()
+}
+```
+
+```{r claude-refusals-replay-reproduced-conversations}
+# The same per conversation (simulated participant)
+if (exists("dat_claude_replays")) {
+    dat_claude_replays_formatted %>%
+        dplyr::group_by(experimentID, condition, reasoning_effort, subj) %>%
+        dplyr::summarize(
+            all_refused_again = all(refused_again),
+            any_refused_again = any(refused_again),
+            .groups = "drop"
+        ) %>%
+        dplyr::group_by(experimentID, condition, reasoning_effort) %>%
+        dplyr::summarize(
+            n_conversations = dplyr::n(),
+            n_all_refused_again = sum(all_refused_again),
+            n_any_refused_again = sum(any_refused_again),
+            .groups = "drop"
+        ) %>%
+        dplyr::arrange(experimentID, condition, reasoning_effort) %>%
+        format_refusal_table() %>%
+        knitr::kable(
+            caption = "Conversations with resent requests: number of conversations, number in which all resent requests were refused again, and number in which at least one was refused again.",
+            booktabs = TRUE) %>%
+        kableExtra::kable_styling(latex_options = c("striped",
+            "scale_down",
+            "hold_position",
+            "repeat_header")) %>%
+        kableExtra::kable_classic_2()
+}
+```
+
+```{r claude-refusals-replay-explanations}
+# Only if the refused requests have been resent
+if (exists("dat_claude_replays")) {
+    dat_claude_replays %>%
+        dplyr::filter(!is.na(refusal_explanation)) %>%
+        dplyr::distinct(refusal_category, refusal_explanation) %>%
+        format_refusal_table() %>%
+        knitr::kable(
+            caption = "Explanations returned with the refusals.",
+            booktabs = TRUE) %>%
+        # No scale_down: the explanation is wrapped in a fixed-width column instead
+        kableExtra::kable_styling(latex_options = c("striped",
+            "hold_position",
+            "repeat_header")) %>%
+        kableExtra::column_spec(2, width = "12cm") %>%
+        kableExtra::kable_classic_2()
+}
+```

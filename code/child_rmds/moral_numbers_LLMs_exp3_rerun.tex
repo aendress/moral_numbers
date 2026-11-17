@@ -1,0 +1,485 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage[]{natbib}
+\bibliographystyle{plainnat}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  pdftitle={Moral numbers - rerun of the Experiment 3 LLM simulations with the corrected comparison prompt},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Moral numbers - rerun of the Experiment 3 LLM simulations with the corrected comparison prompt}
+\author{Ansgar D. Endress \& Peter Ayton\\
+City St George's, University of London}
+\date{}
+
+\begin{document}
+\maketitle
+
+\subsection{Methods}\label{methods}
+
+We compared the responses of humans to those of several frontier (i.e., state-of-the-art) large language models (LLMs). We focused on three experiments: In Experiment 2, we asked whether LLMs are sensitive to the \emph{beneficiary:victim} Weber ratio in moral and economic scenarios. In Experiment 3, we directly pitted Weber ratios against harm (the number of victims in Experiment 3a) and utility (the net number of survivors in Experiment 3b). Finally, in Experiment 6, we tested how LLMs react to manipulations of the vividness of the victims' deaths.
+
+\subsubsection{Models and parameters}\label{models-and-parameters}
+
+We tested Mistral Medium 3.5, GPT-6 luna (low reasoning), GPT-6 luna (medium reasoning), GPT-6 luna (high reasoning), Claude Sonnet 5.5 (low reasoning), Claude Sonnet 5.5 (medium reasoning), Claude Sonnet 5.5 (high reasoning), Gemini 3.8 flash (low reasoning), Gemini 3.8 flash (medium reasoning), Gemini 3.8 flash (high reasoning), Deepseek flash (no reasoning), Deepseek flash (medium reasoning), Deepseek flash (high reasoning), Qwen3.7-plus (no reasoning), and Qwen3.7-plus (reasoning). We chose these models because they reflect a range of jurisdictions (China, France and USA) and thus potentially differences in training corpora and alignment procedures (i.e., post-training procedures used to shape model behavior according to values determined by the model creators and their jurisdictions). We used different versions of OpenAI's GPT models because, during initial non-systematic exploration, some models seemed more deontological than others, and because this allowed us to set the reasoning effort parameter in GPT-5 mini. (This parameter controls how many internal and intermediate reasoning steps the model generates before producing its final response.) We also explored several smaller models run on a local computer through ollama (\url{https://ollama.com/}), namely Llama 3.2 (3.2B), Mistral (7.2B), and Mistral nemo (12.2B).
+
+For models that support these options, we used the parameters given in Table \ref{tab:LLM-option-print} or their equivalents. The system prompts (general instructions on how the model should respond, passed to the model prior to the experimental trials) are given in Table \ref{tab:LLM-system-prompt-print}.
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:LLM-option-print}API parameters and the models for which each was included in the request body. GPT-4 = GPT-4o mini, GPT-4.1, GPT-4.1 mini; GPT-5 = GPT-5 mini (all reasoning effort levels); Local = Llama 3.2, Mistral 7.2B, Mistral nemo (Ollama). Dashes indicate parameters defined in \texttt{LLM\_OPTIONS} but not passed to any model. \texttt{max\_output\_tokens} is passed under model-specific field names (\texttt{max\_tokens} for GPT-4, Claude, Mistral, Qwen; \texttt{maxTokens} for Deepseek).}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{lrll}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Description} & \textbf{Available in}\\
+\midrule
+\cellcolor{gray!10}{max\_attempts} & \cellcolor{gray!10}{10.0} & \cellcolor{gray!10}{Max. API call retries on failure} & \cellcolor{gray!10}{All models (client-side)}\\
+max\_output\_tokens & 10.0 & Max. tokens in model response & GPT-4, Claude, Mistral, Deepseek, Qwen\\
+\cellcolor{gray!10}{max\_output\_tokens\_reasoning} & \cellcolor{gray!10}{16000.0} & \cellcolor{gray!10}{Max. tokens in model response incl. reasoning (reasoning switched on)} & \cellcolor{gray!10}{Claude Sonnet 5.5, Deepseek flash, Qwen3.7-plus}\\
+temperature & 0.1 & Response randomness (0 = deterministic) & GPT-4, Claude, Gemini, Mistral, Deepseek, Qwen, Local\\
+\cellcolor{gray!10}{top\_k} & \cellcolor{gray!10}{40.0} & \cellcolor{gray!10}{Top-K token sampling cutoff} & \cellcolor{gray!10}{Qwen}\\
+\addlinespace
+top\_p & 1.0 & Nucleus sampling probability & Gemini\\
+\cellcolor{gray!10}{n} & \cellcolor{gray!10}{1.0} & \cellcolor{gray!10}{Number of completions per request} & \cellcolor{gray!10}{GPT-4, GPT-5, Mistral, Qwen}\\
+frequency\_penalty & 0.0 & Penalizes already-frequent tokens & ---\\
+\cellcolor{gray!10}{presence\_penalty} & \cellcolor{gray!10}{0.0} & \cellcolor{gray!10}{Penalizes tokens seen so far} & \cellcolor{gray!10}{---}\\
+num\_ctx & 8192.0 & Context window size (tokens) & Local\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:LLM-system-prompt-print}System prompts used in all experiments, giving the models general instructions on how to respond.}
+\centering
+\begin{tabular}[t]{>{\raggedright\arraybackslash}p{0.5\linewidth}>{\raggedright\arraybackslash}p{0.5\linewidth}}
+\toprule
+\textbf{Rating on 6-point scale (all experiments but Exp. 3)} & \textbf{Choice between two situations (Exp. 3)}\\
+\midrule
+You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked about the acceptability of an action, respond on a 6-point scale (1 = completely unacceptable, 6 = completely acceptable). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable. & You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked to choose between two options, respond on a 6-point scale (1 = definitely Option A, 6 = definitely Option B). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Procedure}\label{procedure}
+
+We kept the procedure as closely as possible to the human experiments, where participants rated multiple scenarios in each experiment. We achieved this by treating trials as an ongoing, incremental conversation. On the first trial, the API calls contained the system prompt as well as the first scenario. On the second trial, they contained the system prompt, the first scenario together with the model's answer on the first trial (provided as a message from the \emph{assistant} role or the equivalent in other models), as well as the second scenario. Finally, on the last trial, the API calls contained the system prompt, all previous scenarios together with the model's answers, as well as the last scenario. The main procedure difference to the human experiments is thus that it would not be meaningful to treat the contrast in Experiments 2 or 6 (moral vs.~economic and vivid vs.~neutral) as within-participant contrasts.
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:number-of-trials-print}Experimental design summary for LLM simulations. Each cell in the Latin square design was tested with 10 independent response sets, with each response treated as a simulated participant. The table shows the number of conditions (cells), simulated participants, trials per participant, and total responses for each experiment. In Experiment 6, \emph{Group} refers to two different sets of victim and beneficiary numbers crossed with the neutral/vivid manipulation, resulting in four conditions total.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{llrrrr}
+\toprule
+\multicolumn{2}{c}{\textbf{ }} & \multicolumn{4}{c}{\textbf{Number of}} \\
+\cmidrule(l{3pt}r{3pt}){3-6}
+\textbf{Condition} & \textbf{Group} & \textbf{ Cells} & \textbf{ Participants} & \textbf{ Trials/Participant} & \textbf{ Responses}\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Exp. 3a}}\\
+\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{24} & \cellcolor{gray!10}{120} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{\vphantom{1} 1440}\\
+\hspace{1em}Economic &  & 24 & 120 & 12 & \vphantom{1} 1440\\
+\addlinespace[0.3em]
+\multicolumn{6}{l}{\textbf{Exp. 3b}}\\
+\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{24} & \cellcolor{gray!10}{120} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{1440}\\
+\hspace{1em}Economic &  & 24 & 120 & 12 & 1440\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+As in the human experiments, our simulations used a latin square design, spanned by the available scenarios in each cell and the number conditions (see SI \ref{app:design}). Given this design, we obtained 5 sets of independent responses per cell in the Latin square. In Experiment 6, and as in the human experiments, we used two counterbalanced sets of number conditions, involving different numbers of victims and beneficiaries.
+
+For each design cell, we obtained 10 simulated participants (i.e., independent conversations with the models) for each model, resulting in the numbers of cells, (simulated) participants, trials per participant, and responses given in Table \ref{tab:number-of-trials-print}. In total, we simulated 480 simulated participants, with a total of 5760 responses.
+
+\subsection{Verification}\label{verification}
+
+\begin{verbatim}
+## # A tibble: 8 x 4
+##   model             reasoning_effort n_invalid examples                         
+##   <chr>             <chr>                <int> <chr>                            
+## 1 claude-sonnet-5-5 high                   458 "Option A: lose 20, save 800 (ne~
+## 2 claude-sonnet-5-5 low                    884 "Option A: lose 100, save 400 → ~
+## 3 claude-sonnet-5-5 medium                 756 "Option A: lose 100, save 400 (n~
+## 4 deepseek-flash    high                     1 ""                               
+## 5 deepseek-flash    medium                   3 ""                               
+## 6 gemini-3.8-flash  high                    10 ""                               
+## 7 gemini-3.8-flash  low                     16 "Option A:\nNet gain: Save 40 - ~
+## 8 gemini-3.8-flash  medium                  17 ""
+\end{verbatim}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:verify-llm-results}Valid responses per model and cell.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{llllrrr}
+\toprule
+model & reasoning\_effort & experimentID & condition & n\_valid & n\_expected & prop\_valid\\
+\midrule
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{868} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.603}\\
+claude-sonnet-5-5 & medium & exp2ac & economic & 993 & 1440 & 0.690\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1108} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.769}\\
+claude-sonnet-5-5 & low & exp2ac & moral & 1149 & 1440 & 0.798\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{1162} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.807}\\
+\addlinespace
+claude-sonnet-5-5 & high & exp2ac & moral & 1322 & 1440 & 0.918\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1415} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.983}\\
+claude-sonnet-5-5 & low & exp2b & moral & 1421 & 1440 & 0.987\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{1431} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.994}\\
+claude-sonnet-5-5 & high & exp2b & economic & 1433 & 1440 & 0.995\\
+\addlinespace
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{1434} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.996}\\
+gemini-3.8-flash & low & exp2ac & moral & 1434 & 1440 & 0.996\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{1435} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.997}\\
+gemini-3.8-flash & high & exp2b & moral & 1435 & 1440 & 0.997\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1435} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.997}\\
+\addlinespace
+gemini-3.8-flash & low & exp2b & moral & 1435 & 1440 & 0.997\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1436} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.997}\\
+gemini-3.8-flash & medium & exp2b & moral & 1436 & 1440 & 0.997\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1438} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.999}\\
+deepseek-flash & medium & exp2b & moral & 1438 & 1440 & 0.999\\
+\addlinespace
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{1439} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.999}\\
+deepseek-flash & high & exp2ac & economic & 1439 & 1440 & 0.999\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1439} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.999}\\
+deepseek-flash & high & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+\addlinespace
+deepseek-flash & high & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+deepseek-flash & medium & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+deepseek-flash & off & exp2ac & moral & 1440 & 1440 & 1.000\\
+\addlinespace
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+deepseek-flash & off & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gemini-3.8-flash & high & exp2b & economic & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+\addlinespace
+gemini-3.8-flash & medium & exp2ac & economic & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gpt-6-luna & high & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gpt-6-luna & high & exp2b & moral & 1440 & 1440 & 1.000\\
+\addlinespace
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gpt-6-luna & low & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gpt-6-luna & low & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+\addlinespace
+gpt-6-luna & medium & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+gpt-6-luna & medium & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+llama3.2 &  & exp2ac & moral & 1440 & 1440 & 1.000\\
+\addlinespace
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+llama3.2 &  & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+mistral &  & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+\addlinespace
+mistral &  & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+mistral-medium-latest &  & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+mistral-medium-latest &  & exp2b & moral & 1440 & 1440 & 1.000\\
+\addlinespace
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+mistral-nemo &  & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+mistral-nemo &  & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+\addlinespace
+qwen3.7-plus & off & exp2ac & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+qwen3.7-plus & off & exp2b & moral & 1440 & 1440 & 1.000\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+qwen3.7-plus & on & exp2ac & moral & 1440 & 1440 & 1.000\\
+\addlinespace
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1.000}\\
+qwen3.7-plus & on & exp2b & moral & 1440 & 1440 & 1.000\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:verify-llm-results}Distribution of preference ratings (after inversion; 6 = high-ratio option) per model, cell and option order.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{lllllrrrrrrrr}
+\toprule
+model & reasoning\_effort & experimentID & condition & ratioOrder & rating\_1 & rating\_2 & rating\_3 & rating\_4 & rating\_5 & rating\_6 & M & SD\\
+\midrule
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{149} & \cellcolor{gray!10}{83} & \cellcolor{gray!10}{55} & \cellcolor{gray!10}{232} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{3.78} & \cellcolor{gray!10}{1.35}\\
+claude-sonnet-5-5 & high & exp2ac & economic & high\_ratio\_second & 10 & 236 & 50 & 88 & 185 & 0 & 3.36 & 1.35\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{95} & \cellcolor{gray!10}{51} & \cellcolor{gray!10}{76} & \cellcolor{gray!10}{212} & \cellcolor{gray!10}{25} & \cellcolor{gray!10}{4.02} & \cellcolor{gray!10}{1.30}\\
+claude-sonnet-5-5 & low & exp2ac & economic & high\_ratio\_second & 8 & 121 & 52 & 83 & 141 & 0 & 3.56 & 1.29\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{95} & \cellcolor{gray!10}{57} & \cellcolor{gray!10}{76} & \cellcolor{gray!10}{241} & \cellcolor{gray!10}{13} & \cellcolor{gray!10}{4.02} & \cellcolor{gray!10}{1.25}\\
+\addlinespace
+claude-sonnet-5-5 & medium & exp2ac & economic & high\_ratio\_second & 3 & 189 & 55 & 92 & 169 & 0 & 3.46 & 1.30\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{251} & \cellcolor{gray!10}{112} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{129} & \cellcolor{gray!10}{227} & \cellcolor{gray!10}{3.45} & \cellcolor{gray!10}{2.22}\\
+deepseek-flash & high & exp2ac & economic & high\_ratio\_second & 366 & 148 & 0 & 12 & 104 & 89 & 2.45 & 1.91\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{252} & \cellcolor{gray!10}{98} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{134} & \cellcolor{gray!10}{227} & \cellcolor{gray!10}{3.49} & \cellcolor{gray!10}{2.21}\\
+deepseek-flash & medium & exp2ac & economic & high\_ratio\_second & 375 & 129 & 0 & 4 & 126 & 86 & 2.49 & 1.95\\
+\addlinespace
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{66} & \cellcolor{gray!10}{162} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{202} & \cellcolor{gray!10}{290} & \cellcolor{gray!10}{4.36} & \cellcolor{gray!10}{1.87}\\
+deepseek-flash & off & exp2ac & economic & high\_ratio\_second & 144 & 236 & 0 & 0 & 336 & 4 & 3.22 & 1.73\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{599} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{17} & \cellcolor{gray!10}{51} & \cellcolor{gray!10}{38} & \cellcolor{gray!10}{1.65} & \cellcolor{gray!10}{1.51}\\
+gemini-3.8-flash & high & exp2ac & economic & high\_ratio\_second & 709 & 2 & 0 & 2 & 3 & 4 & 1.06 & 0.48\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{672} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{1.22} & \cellcolor{gray!10}{0.93}\\
+\addlinespace
+gemini-3.8-flash & low & exp2ac & economic & high\_ratio\_second & 673 & 14 & 23 & 3 & 3 & 0 & 1.11 & 0.49\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{646} & \cellcolor{gray!10}{28} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{20} & \cellcolor{gray!10}{1.31} & \cellcolor{gray!10}{1.06}\\
+gemini-3.8-flash & medium & exp2ac & economic & high\_ratio\_second & 711 & 1 & 2 & 1 & 4 & 1 & 1.04 & 0.38\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{689} & \cellcolor{gray!10}{31} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1.04} & \cellcolor{gray!10}{0.20}\\
+gpt-6-luna & high & exp2ac & economic & high\_ratio\_second & 594 & 111 & 0 & 0 & 5 & 10 & 1.25 & 0.74\\
+\addlinespace
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{644} & \cellcolor{gray!10}{27} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{43} & \cellcolor{gray!10}{1.37} & \cellcolor{gray!10}{1.24}\\
+gpt-6-luna & low & exp2ac & economic & high\_ratio\_second & 523 & 73 & 0 & 9 & 4 & 111 & 1.93 & 1.81\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{710} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1.04} & \cellcolor{gray!10}{0.38}\\
+gpt-6-luna & medium & exp2ac & economic & high\_ratio\_second & 653 & 48 & 0 & 0 & 1 & 18 & 1.20 & 0.82\\
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{144} & \cellcolor{gray!10}{182} & \cellcolor{gray!10}{143} & \cellcolor{gray!10}{177} & \cellcolor{gray!10}{71} & \cellcolor{gray!10}{3.78} & \cellcolor{gray!10}{1.30}\\
+\addlinespace
+llama3.2 &  & exp2ac & economic & high\_ratio\_second & 121 & 169 & 118 & 180 & 128 & 4 & 3.05 & 1.38\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{225} & \cellcolor{gray!10}{309} & \cellcolor{gray!10}{24} & \cellcolor{gray!10}{122} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{28} & \cellcolor{gray!10}{2.27} & \cellcolor{gray!10}{1.31}\\
+mistral &  & exp2ac & economic & high\_ratio\_second & 76 & 1 & 100 & 50 & 373 & 120 & 4.39 & 1.46\\
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{275} & \cellcolor{gray!10}{445} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{2.62} & \cellcolor{gray!10}{0.49}\\
+mistral-medium-latest &  & exp2ac & economic & high\_ratio\_second & 0 & 0 & 2 & 718 & 0 & 0 & 4.00 & 0.05\\
+\addlinespace
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{187} & \cellcolor{gray!10}{497} & \cellcolor{gray!10}{27} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3.75} & \cellcolor{gray!10}{0.54}\\
+mistral-nemo &  & exp2ac & economic & high\_ratio\_second & 0 & 7 & 612 & 98 & 3 & 0 & 3.13 & 0.38\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{390} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{118} & \cellcolor{gray!10}{212} & \cellcolor{gray!10}{3.13} & \cellcolor{gray!10}{2.34}\\
+qwen3.7-plus & off & exp2ac & economic & high\_ratio\_second & 445 & 86 & 0 & 0 & 0 & 189 & 2.43 & 2.15\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{334} & \cellcolor{gray!10}{72} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{116} & \cellcolor{gray!10}{191} & \cellcolor{gray!10}{3.09} & \cellcolor{gray!10}{2.23}\\
+\addlinespace
+qwen3.7-plus & on & exp2ac & economic & high\_ratio\_second & 481 & 46 & 4 & 10 & 38 & 141 & 2.31 & 2.06\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{22} & \cellcolor{gray!10}{118} & \cellcolor{gray!10}{46} & \cellcolor{gray!10}{42} & \cellcolor{gray!10}{285} & \cellcolor{gray!10}{98} & \cellcolor{gray!10}{4.22} & \cellcolor{gray!10}{1.50}\\
+claude-sonnet-5-5 & high & exp2ac & moral & high\_ratio\_second & 16 & 268 & 79 & 88 & 260 & 0 & 3.43 & 1.37\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{73} & \cellcolor{gray!10}{24} & \cellcolor{gray!10}{41} & \cellcolor{gray!10}{354} & \cellcolor{gray!10}{122} & \cellcolor{gray!10}{4.63} & \cellcolor{gray!10}{1.28}\\
+claude-sonnet-5-5 & low & exp2ac & moral & high\_ratio\_second & 12 & 173 & 64 & 121 & 153 & 0 & 3.44 & 1.28\\
+\addlinespace
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{26} & \cellcolor{gray!10}{75} & \cellcolor{gray!10}{15} & \cellcolor{gray!10}{15} & \cellcolor{gray!10}{346} & \cellcolor{gray!10}{146} & \cellcolor{gray!10}{4.63} & \cellcolor{gray!10}{1.41}\\
+claude-sonnet-5-5 & medium & exp2ac & moral & high\_ratio\_second & 3 & 189 & 39 & 58 & 249 & 1 & 3.68 & 1.38\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{201} & \cellcolor{gray!10}{85} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{71} & \cellcolor{gray!10}{363} & \cellcolor{gray!10}{4.03} & \cellcolor{gray!10}{2.26}\\
+deepseek-flash & high & exp2ac & moral & high\_ratio\_second & 377 & 96 & 0 & 0 & 64 & 183 & 2.76 & 2.20\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{245} & \cellcolor{gray!10}{92} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{60} & \cellcolor{gray!10}{323} & \cellcolor{gray!10}{3.70} & \cellcolor{gray!10}{2.32}\\
+\addlinespace
+deepseek-flash & medium & exp2ac & moral & high\_ratio\_second & 352 & 159 & 0 & 3 & 65 & 141 & 2.57 & 2.03\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{227} & \cellcolor{gray!10}{176} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{16} & \cellcolor{gray!10}{301} & \cellcolor{gray!10}{3.42} & \cellcolor{gray!10}{2.28}\\
+deepseek-flash & off & exp2ac & moral & high\_ratio\_second & 55 & 113 & 0 & 0 & 242 & 310 & 4.65 & 1.72\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{698} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{1.09} & \cellcolor{gray!10}{0.59}\\
+gemini-3.8-flash & high & exp2ac & moral & high\_ratio\_second & 715 & 0 & 0 & 0 & 0 & 0 & 1.00 & 0.00\\
+\addlinespace
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{686} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{1.13} & \cellcolor{gray!10}{0.68}\\
+gemini-3.8-flash & low & exp2ac & moral & high\_ratio\_second & 699 & 9 & 6 & 0 & 0 & 0 & 1.03 & 0.21\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{686} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{20} & \cellcolor{gray!10}{1.17} & \cellcolor{gray!10}{0.88}\\
+gemini-3.8-flash & medium & exp2ac & moral & high\_ratio\_second & 708 & 4 & 0 & 0 & 0 & 3 & 1.03 & 0.33\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{640} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{25} & \cellcolor{gray!10}{43} & \cellcolor{gray!10}{1.45} & \cellcolor{gray!10}{1.36}\\
+\addlinespace
+gpt-6-luna & high & exp2ac & moral & high\_ratio\_second & 541 & 74 & 0 & 0 & 0 & 105 & 1.83 & 1.75\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{611} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{94} & \cellcolor{gray!10}{1.68} & \cellcolor{gray!10}{1.69}\\
+gpt-6-luna & low & exp2ac & moral & high\_ratio\_second & 429 & 55 & 0 & 0 & 12 & 224 & 2.70 & 2.29\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{640} & \cellcolor{gray!10}{34} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{44} & \cellcolor{gray!10}{1.36} & \cellcolor{gray!10}{1.21}\\
+gpt-6-luna & medium & exp2ac & moral & high\_ratio\_second & 609 & 34 & 0 & 2 & 1 & 74 & 1.57 & 1.53\\
+\addlinespace
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{27} & \cellcolor{gray!10}{124} & \cellcolor{gray!10}{164} & \cellcolor{gray!10}{124} & \cellcolor{gray!10}{181} & \cellcolor{gray!10}{100} & \cellcolor{gray!10}{3.84} & \cellcolor{gray!10}{1.43}\\
+llama3.2 &  & exp2ac & moral & high\_ratio\_second & 139 & 173 & 100 & 168 & 131 & 9 & 3.01 & 1.45\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{495} & \cellcolor{gray!10}{162} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{63} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1.49} & \cellcolor{gray!10}{0.88}\\
+mistral &  & exp2ac & moral & high\_ratio\_second & 1 & 1 & 56 & 13 & 268 & 381 & 5.35 & 0.88\\
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{97} & \cellcolor{gray!10}{588} & \cellcolor{gray!10}{35} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{2.91} & \cellcolor{gray!10}{0.42}\\
+\addlinespace
+mistral-medium-latest &  & exp2ac & moral & high\_ratio\_second & 0 & 0 & 60 & 621 & 39 & 0 & 3.97 & 0.37\\
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{50} & \cellcolor{gray!10}{313} & \cellcolor{gray!10}{351} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3.43} & \cellcolor{gray!10}{0.63}\\
+mistral-nemo &  & exp2ac & moral & high\_ratio\_second & 0 & 30 & 410 & 247 & 33 & 0 & 3.39 & 0.64\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{391} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{90} & \cellcolor{gray!10}{239} & \cellcolor{gray!10}{3.16} & \cellcolor{gray!10}{2.38}\\
+qwen3.7-plus & off & exp2ac & moral & high\_ratio\_second & 225 & 304 & 0 & 0 & 0 & 191 & 2.75 & 2.00\\
+\addlinespace
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2ac} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{174} & \cellcolor{gray!10}{35} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{48} & \cellcolor{gray!10}{452} & \cellcolor{gray!10}{4.48} & \cellcolor{gray!10}{2.18}\\
+qwen3.7-plus & on & exp2ac & moral & high\_ratio\_second & 302 & 35 & 4 & 13 & 53 & 313 & 3.58 & 2.37\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{87} & \cellcolor{gray!10}{623} & \cellcolor{gray!10}{5.86} & \cellcolor{gray!10}{0.38}\\
+claude-sonnet-5-5 & high & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 3 & 130 & 586 & 5.81 & 0.40\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{15} & \cellcolor{gray!10}{284} & \cellcolor{gray!10}{419} & \cellcolor{gray!10}{5.56} & \cellcolor{gray!10}{0.54}\\
+\addlinespace
+claude-sonnet-5-5 & low & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 6 & 144 & 570 & 5.78 & 0.43\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{308} & \cellcolor{gray!10}{368} & \cellcolor{gray!10}{5.48} & \cellcolor{gray!10}{0.64}\\
+claude-sonnet-5-5 & medium & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 7 & 150 & 561 & 5.77 & 0.44\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+deepseek-flash & high & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 11 & 709 & 5.98 & 0.12\\
+\addlinespace
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{718} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.05}\\
+deepseek-flash & medium & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 1 & 718 & 6.00 & 0.04\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{37} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{683} & \cellcolor{gray!10}{5.79} & \cellcolor{gray!10}{0.88}\\
+deepseek-flash & off & exp2b & economic & high\_ratio\_second & 0 & 11 & 0 & 0 & 1 & 708 & 5.94 & 0.49\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{31} & \cellcolor{gray!10}{689} & \cellcolor{gray!10}{5.96} & \cellcolor{gray!10}{0.20}\\
+\addlinespace
+gemini-3.8-flash & high & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 1 & 17 & 702 & 5.97 & 0.17\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{22} & \cellcolor{gray!10}{698} & \cellcolor{gray!10}{5.97} & \cellcolor{gray!10}{0.17}\\
+gemini-3.8-flash & low & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 6 & 714 & 5.99 & 0.09\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{35} & \cellcolor{gray!10}{685} & \cellcolor{gray!10}{5.95} & \cellcolor{gray!10}{0.22}\\
+gemini-3.8-flash & medium & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 19 & 697 & 5.97 & 0.16\\
+\addlinespace
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+gpt-6-luna & high & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{16} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{699} & \cellcolor{gray!10}{5.88} & \cellcolor{gray!10}{0.75}\\
+gpt-6-luna & low & exp2b & economic & high\_ratio\_second & 10 & 0 & 0 & 2 & 2 & 706 & 5.92 & 0.60\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{719} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.19}\\
+\addlinespace
+gpt-6-luna & medium & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{123} & \cellcolor{gray!10}{180} & \cellcolor{gray!10}{157} & \cellcolor{gray!10}{172} & \cellcolor{gray!10}{87} & \cellcolor{gray!10}{3.88} & \cellcolor{gray!10}{1.29}\\
+llama3.2 &  & exp2b & economic & high\_ratio\_second & 74 & 179 & 152 & 181 & 131 & 3 & 3.17 & 1.28\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{39} & \cellcolor{gray!10}{158} & \cellcolor{gray!10}{200} & \cellcolor{gray!10}{192} & \cellcolor{gray!10}{36} & \cellcolor{gray!10}{95} & \cellcolor{gray!10}{3.43} & \cellcolor{gray!10}{1.38}\\
+mistral &  & exp2b & economic & high\_ratio\_second & 1 & 4 & 91 & 39 & 225 & 360 & 5.17 & 1.05\\
+\addlinespace
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{20} & \cellcolor{gray!10}{446} & \cellcolor{gray!10}{36} & \cellcolor{gray!10}{187} & \cellcolor{gray!10}{31} & \cellcolor{gray!10}{3.67} & \cellcolor{gray!10}{1.03}\\
+mistral-medium-latest &  & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 42 & 297 & 381 & 5.47 & 0.61\\
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{66} & \cellcolor{gray!10}{641} & \cellcolor{gray!10}{13} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3.93} & \cellcolor{gray!10}{0.32}\\
+mistral-nemo &  & exp2b & economic & high\_ratio\_second & 0 & 5 & 607 & 107 & 1 & 0 & 3.14 & 0.37\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{706} & \cellcolor{gray!10}{5.92} & \cellcolor{gray!10}{0.62}\\
+\addlinespace
+qwen3.7-plus & off & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+qwen3.7-plus & on & exp2b & economic & high\_ratio\_second & 0 & 0 & 0 & 0 & 3 & 717 & 6.00 & 0.06\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{439} & \cellcolor{gray!10}{268} & \cellcolor{gray!10}{5.35} & \cellcolor{gray!10}{0.52}\\
+claude-sonnet-5-5 & high & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 19 & 187 & 514 & 5.69 & 0.52\\
+\addlinespace
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{13} & \cellcolor{gray!10}{461} & \cellcolor{gray!10}{246} & \cellcolor{gray!10}{5.32} & \cellcolor{gray!10}{0.51}\\
+claude-sonnet-5-5 & low & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 14 & 335 & 352 & 5.48 & 0.54\\
+\cellcolor{gray!10}{claude-sonnet-5-5} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{510} & \cellcolor{gray!10}{205} & \cellcolor{gray!10}{5.28} & \cellcolor{gray!10}{0.48}\\
+claude-sonnet-5-5 & medium & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 14 & 363 & 337 & 5.45 & 0.54\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{717} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.19}\\
+\addlinespace
+deepseek-flash & high & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 7 & 713 & 5.99 & 0.10\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{716} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.07}\\
+deepseek-flash & medium & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 9 & 709 & 5.99 & 0.11\\
+\cellcolor{gray!10}{deepseek-flash} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{710} & \cellcolor{gray!10}{5.94} & \cellcolor{gray!10}{0.47}\\
+deepseek-flash & off & exp2b & moral & high\_ratio\_second & 3 & 10 & 0 & 0 & 0 & 707 & 5.92 & 0.57\\
+\addlinespace
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{715} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+gemini-3.8-flash & high & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{715} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+gemini-3.8-flash & low & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{gemini-3.8-flash} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{716} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+\addlinespace
+gemini-3.8-flash & medium & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{719} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.04}\\
+gpt-6-luna & high & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{23} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{689} & \cellcolor{gray!10}{5.82} & \cellcolor{gray!10}{0.90}\\
+gpt-6-luna & low & exp2b & moral & high\_ratio\_second & 11 & 0 & 0 & 0 & 0 & 709 & 5.92 & 0.61\\
+\addlinespace
+\cellcolor{gray!10}{gpt-6-luna} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00}\\
+gpt-6-luna & medium & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 1 & 719 & 6.00 & 0.04\\
+\cellcolor{gray!10}{llama3.2} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{123} & \cellcolor{gray!10}{179} & \cellcolor{gray!10}{125} & \cellcolor{gray!10}{181} & \cellcolor{gray!10}{110} & \cellcolor{gray!10}{3.96} & \cellcolor{gray!10}{1.35}\\
+llama3.2 &  & exp2b & moral & high\_ratio\_second & 97 & 189 & 122 & 171 & 130 & 11 & 3.11 & 1.37\\
+\cellcolor{gray!10}{mistral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{234} & \cellcolor{gray!10}{270} & \cellcolor{gray!10}{87} & \cellcolor{gray!10}{91} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{29} & \cellcolor{gray!10}{2.25} & \cellcolor{gray!10}{1.28}\\
+\addlinespace
+mistral &  & exp2b & moral & high\_ratio\_second & 0 & 0 & 52 & 12 & 148 & 508 & 5.54 & 0.85\\
+\cellcolor{gray!10}{mistral-medium-latest} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{16} & \cellcolor{gray!10}{415} & \cellcolor{gray!10}{115} & \cellcolor{gray!10}{157} & \cellcolor{gray!10}{17} & \cellcolor{gray!10}{3.64} & \cellcolor{gray!10}{0.92}\\
+mistral-medium-latest &  & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 92 & 457 & 171 & 5.11 & 0.59\\
+\cellcolor{gray!10}{mistral-nemo} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{213} & \cellcolor{gray!10}{494} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{3.68} & \cellcolor{gray!10}{0.51}\\
+mistral-nemo &  & exp2b & moral & high\_ratio\_second & 0 & 5 & 450 & 243 & 22 & 0 & 3.39 & 0.56\\
+\addlinespace
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{off} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{713} & \cellcolor{gray!10}{5.98} & \cellcolor{gray!10}{0.28}\\
+qwen3.7-plus & off & exp2b & moral & high\_ratio\_second & 0 & 0 & 0 & 0 & 0 & 720 & 6.00 & 0.00\\
+\cellcolor{gray!10}{qwen3.7-plus} & \cellcolor{gray!10}{on} & \cellcolor{gray!10}{exp2b} & \cellcolor{gray!10}{moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{719} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.19}\\
+qwen3.7-plus & on & exp2b & moral & high\_ratio\_second & 1 & 0 & 0 & 0 & 0 & 719 & 5.99 & 0.19\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\bibliography{/Users/endress/ansgar.bib}
+
+\end{document}

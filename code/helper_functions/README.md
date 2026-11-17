@@ -18,6 +18,11 @@ General-purpose data manipulation and formatting utilities used throughout the d
 | `split_condition_name` | Parses experiment condition labels into constituent parts |
 | `convert.dates.and.calculate.duration` | Converts Qualtrics timestamps and computes survey completion duration |
 | `parse_free_text_number` | Converts free-text numeric responses (e.g. age) to numbers: collapses whitespace and extracts the first number (`" 35 "`, `"35 years"` → `35`) |
+| `L_EXP_ID_SUFFIXES` | Registry of experiment-ID suffixes marking pseudo-experiments, in their required order: `<expID_clean>[.scenarioExcluded][.vivacityManipulationWorking]` |
+| `parse_exp_id` | Internal helper: splits experiment IDs into the clean ID and suffix flags (`scenarios_excluded`, `vivacity_filtered`); stops on unknown suffixes or wrong order |
+| `make_exp_id` | Builds canonical experiment IDs from a clean ID and suffix flags (inverse of `parse_exp_id`); use wherever pseudo-experiment IDs are created |
+| `select_exps` | Selects experiments/pseudo-experiments from a data frame (rows) or a vector of IDs, by clean ID and suffix flags (TRUE/FALSE/NA); `scenarios_excluded = TRUE` uses the scenario-excluded version where one exists (`l_exp_with_scenario_exclusions`, or a scenario-excluded pooled experiment in the data); `require_single_version = TRUE` stops unless exactly one version per experiment remains |
+| `pool_exps` | Pools several experiments into one combined ID (e.g. `exp8+10`), separately for each version: original versions, scenario-excluded versions (excluded version where it exists, original otherwise), and vivacity-filtered/unfiltered; returns only the pooled rows |
 | `get_native_english_share` | Percentage of participants (per grouping) who list English among their free-text native language(s); missing responses are excluded |
 | `summarize.first.by.subj.then.by.overall` | Two-stage summarisation: first within participant, then across participants |
 | `get.rating.mean.se` | Computes mean and standard error of ratings |
@@ -28,8 +33,8 @@ General-purpose data manipulation and formatting utilities used throughout the d
 | `rename.terms` | Renames model terms to human-readable labels for display |
 | `combine_exps` | Merges data from multiple experiments into a single data frame |
 | `get.original.experimentID` | Maps internal experiment IDs to the original experiment labels |
-| `format_exp_info` | Formats experiment ID strings for display in tables and figures |
-| `filter_vivacity_exps` | Filters the dataset to experiments with a vivacity manipulation |
+| `format_exp_info` | Formats experiment ID strings for display in tables and figures; shows `.vivacityManipulationWorking` as "(filtered)" and drops `.scenarioExcluded` unless `show_scenario_exclusion = TRUE` |
+| `filter_vivacity_exps` | Filters the dataset to experiments with a vivacity manipulation (all versions, matched on the clean experiment ID) |
 | `summarize.ratings` | Summarises raw and binary ratings (mean, SE, p-value, effect size) across participants |
 
 ---
@@ -42,7 +47,7 @@ Psychophysical model functions: the core Weber-ratio acceptability model, bootst
 |---|---|
 | `discriminability.fnc` | Computes discriminability (d') between two quantities under Weber's law |
 | `acceptability.fnc` | Core model: predicted probability of a sacrificial decision being acceptable given w, α, and ratio |
-| `generate_bootstrap_samples` | Draws bootstrap samples of participants (with replacement) |
+| `generate_bootstrap_samples` | Draws bootstrap samples of participants (with replacement); `verbose` shows the output of the parallel workers |
 | `bootstrap.weber.ratio` | Fits the one-parameter (w) model to each bootstrap sample |
 | `bootstrap.weber.ratio.new` | Updated version of bootstrap w fitting with additional output |
 | `get.by.subj.weber.ratio` | Estimates w separately for each participant |
@@ -126,7 +131,7 @@ Functions for algorithmically identifying the asymptotic ratio range in vivacity
 | `get.ratio.before.asymptote` | Identifies the largest ratio below the asymptote using paired Wilcoxon or McNemar tests against the rightmost ratio |
 | `add_experimentID_to_cond_find_asympt` | Expands a condition data frame by replicating it for each of a set of experiment IDs |
 | `get.ratio.before.asymptote.bootstrap` | Applies `get.ratio.before.asymptote` to a single bootstrap sample across all conditions |
-| `run_bootstrap_fit_for_asymptote` | Runs the full bootstrap asymptote-identification procedure in batches, with parallelisation via `furrr` |
+| `run_bootstrap_fit_for_asymptote` | Runs the full bootstrap asymptote-identification procedure in batches, with parallelisation via `furrr`; `verbose` prints the search progress |
 
 ---
 
@@ -161,7 +166,6 @@ Label and classification utilities for LLM data: model type assignment, display-
 
 | Function | Description |
 |---|---|
-| `mfv` | Returns the most frequent value of a vector, coercing to numeric when possible |
 | `classify_models` | Adds a `model_type` column (`"cloud"` / `"local"`) based on `LLM_LABELS_TIBBLE` |
 | `relabel_models` | Maps internal model identifiers to display labels via `LLM_LABELS`, returning a factor with Humans first then alphabetically sorted models |
 | `relabel_conds_llm` | Converts condition strings to title case and returns a factor with levels `Moral`, `Economic`, `Neutral`, `Vivid` |
@@ -198,15 +202,16 @@ Low-level API utilities for querying frontier and local LLMs: URL dispatch, head
 
 | Function | Description |
 |---|---|
-| `get_model_url` | Returns the API endpoint URL for a given model name, dispatching by provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, Qwen, Ollama) |
+| `get_model_url` | Returns the API endpoint URL for a given model name, dispatching by provider (OpenAI, Anthropic, Google, Mistral, DeepSeek, Qwen, Ollama); models in `LLMS$local` always go to Ollama |
 | `make_llm_header` | Builds the HTTP authentication headers for a given model's API |
 | `make_llm_body` | Constructs the JSON request body for a given model, encoding messages, temperature, token limits, and provider-specific parameters |
-| `parse_llm_response` | Extracts the text content from an API response object, dispatching by provider |
-| `send_llm_request` | Sends a POST request to an LLM API with retry logic (including 429 rate-limit backoff) and returns the parsed text response |
+| `make_llm_body_reasoning` | Request bodies for the models of the Experiment 3 rerun (GPT-6 luna, Claude Sonnet 5.5, Gemini 3.8 Flash, deepseek-flash, Qwen3.7-plus, local models); takes the reasoning effort as fifth argument (`body_fn` of `send_llm_request`); other models get `make_llm_body()` |
+| `parse_llm_response` | Extracts the text content from an API response object, dispatching by provider (Claude: text blocks by type; Gemini: thought parts skipped); with `keep_reasoning = TRUE` returns `list(answer, reasoning)` (Claude thinking summaries, Gemini thoughts, DeepSeek/Qwen `reasoning_content`; `NA` for OpenAI) |
+| `send_llm_request` | Sends a POST request to an LLM API with retry logic (including 429 rate-limit backoff) and returns the parsed text response; stops with the provider's message on any non-200 status. Optional `reasoning_effort` and `body_fn` (default `make_llm_body`; called with the effort as fifth argument when it is not `NA`) and `keep_reasoning` |
 | `compose_llm_messages` | Converts a data frame of `role`/`message` pairs into the provider-specific message list format required by the API |
-| `get_api_response_incremental` | Builds a multi-turn message list from a conversation data frame and calls `send_llm_request`; handles different system prompt conventions per provider |
-| `get_api_response_wrapper_df` | Wrapper for `get_api_response_incremental` that iterates over rows of a grouped data frame, filling in responses one by one with error handling |
-| `make_prompt` | Constructs a trial prompt string by substituting `n_saved`, `n_victims`, etc. into a template, with special handling for two-option (Exp. 2) prompts |
+| `get_api_response_incremental` | Builds a multi-turn message list from a conversation data frame (previous answers only, no reasoning) and calls `send_llm_request`; handles different system prompt conventions per provider; passes `reasoning_effort`, `body_fn`, `keep_reasoning` through; `clean_answer = TRUE` (default) keeps only the leading digits of the answer |
+| `get_api_response_wrapper_df` | Wrapper for `get_api_response_incremental` that iterates over rows of a grouped data frame, filling in responses one by one with error handling; takes the reasoning effort from `dat_grp$reasoning_effort` if present; `keep_reasoning = TRUE` adds a `reasoning` column; `stop_on_error = TRUE` stops at the first failed request instead of recording `NA`; cleans the answers itself (leading digits); `keep_raw_response = TRUE` adds a `response_raw` column with the uncleaned answers |
+| `make_prompt` | Constructs a trial prompt string by substituting `n_saved`, `n_victims`, etc. into a template, with special handling for two-option (Exp. 2) prompts; `option_labels` sets the labels of the two options (default `c("1", "2")`) |
 
 ---
 
@@ -219,4 +224,6 @@ Plotting functions for the LLM comparison analyses: model fit plots, predictor c
 | `get_dat_fit_for_plot_llm` | LLM-specific version of `get_dat_fit_for_plot`; extracts w/α estimates from `dat_llm_fits_1_param` or `dat_llm_fits_2_param` and returns a wide-format data frame for use with `create.fit.plot.llm` |
 | `create.fit.plot.llm` | LLM-specific version of `create.fit.plot`; plots observed acceptability with model fit curves, supporting group and facet variables with `droplevels()`-based level handling to avoid phantom factor warnings |
 | `create.predictor.comparison.plot.llm` | LLM-specific version of `create.predictor.comparison.plot`; assembles a 2×2 panel of acceptability by ratio, proportion saved, number of victims, and utility, with optional model fit overlay |
-| `make_llm_exp2_joint_plot` | Creates the 2D joint preference scatter plot (Exp. 3a vs. Exp. 3b ratings) with per-condition quadrant frames (border-only, in human colour), quadrant labels, and optional ggrepel text labels; parameterised by `base_size`, `label_size`, `add_repel`, and `repel_size` |
+| `prepare_llm_internal_exp2_plot_data` | Prepares the plot data for the LLM version of internal exp2 (paper Exp. 3a/3b) for a single version (`scenarios_excluded` passed to `select_exps()`): experiment labels, preference categories, 95% CIs and model order; returns `list(long, wide_by_experiment, wide_by_condition)`: `wide_by_experiment` (one row per model and condition, columns per experiment) is used by `make_llm_exp2_joint_plot`, `wide_by_condition` (one row per model and experiment, columns per condition) by `make_llm_exp3_moral_economic_plot` |
+| `make_llm_exp2_joint_plot` | Creates the 2D joint preference scatter plot (Exp. 3a vs. Exp. 3b ratings) from the `wide_by_experiment` data of `prepare_llm_internal_exp2_plot_data` (`dat`), with per-condition quadrant frames (border-only, in human colour), quadrant labels, and optional ggrepel text labels; parameterised by `base_size`, `label_size`, `add_repel`, and `repel_size` |
+| `make_llm_exp3_moral_economic_plot` | Scatter plot of the preference for the high-ratio option in moral (y) vs. economic (x) dilemmas, one point per model and one panel per experiment (Exp. 3a, 3b), from the `wide_by_condition` data of `prepare_llm_internal_exp2_plot_data`; diagonal (no moral/economic difference), quadrant labels naming the preferred option, frame around the humans' quadrant; optional `experiments` filter, `facet_row` (column for rows of panels, e.g. the option order) and ggrepel labels (`base_size`, `label_size`, `add_repel`, `repel_size`) |

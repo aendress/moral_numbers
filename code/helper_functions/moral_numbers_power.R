@@ -139,7 +139,9 @@ simulate_and_check_significance_wrapper <- function(dat.conds = .,
                             )
                     ) %>%
                     dplyr::pull(ia_signif)
-            }) %>%
+            },
+            .options = furrr::furrr_options(seed = TRUE)
+            ) %>%
                 mean())
         }, .keep = TRUE) %>%
         dplyr::ungroup()

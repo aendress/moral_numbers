@@ -237,11 +237,13 @@ get.ratio.before.asymptote.bootstrap <- function(dat = ., dat_cond, verbose = TR
 }
 
 # wrapper to run bootstrap fits
+# verbose: print the progress of the asymptote search and the output of the parallel workers
 run_bootstrap_fit_for_asymptote <- function(dat, v.exps,
                                             dat_cond,
                                             subj_col = ResponseId,
                                             n_samples = N_BOOTSTRAP,
-                                            bootstrap_batch_size = BOOTSTRAP_BATCH_SIZE) {
+                                            bootstrap_batch_size = BOOTSTRAP_BATCH_SIZE,
+                                            verbose = FALSE) {
     subj_col <- rlang::enquo(subj_col)
 
     gc() # Clean up memory just in case
@@ -253,7 +255,7 @@ run_bootstrap_fit_for_asymptote <- function(dat, v.exps,
             vivacity == "vivid",
             experimentID %in% v.exps
         ) %>%
-        generate_bootstrap_samples(subj_col = !!subj_col, n_samples = n_samples, reindex_subj_col = TRUE) %>%
+        generate_bootstrap_samples(subj_col = !!subj_col, n_samples = n_samples, reindex_subj_col = TRUE, verbose = verbose) %>%
         split_by_length(bootstrap_batch_size)
 
     gc() # Clean up memory just in case
@@ -276,13 +278,13 @@ run_bootstrap_fit_for_asymptote <- function(dat, v.exps,
                                                              v.exps,
                                                              dat_cond
                                                          ),
-                                                         verbose = !RECALCULATE_EVERYTHING_APP
+                                                         verbose = verbose
                     )
                 },
                 .id = "bootstrap_sample",
                 furrr_options(
                     seed = TRUE,
-                    stdout = !RECALCULATE_EVERYTHING_APP
+                    stdout = verbose
                 )
             ) %>%
                 dplyr::mutate(

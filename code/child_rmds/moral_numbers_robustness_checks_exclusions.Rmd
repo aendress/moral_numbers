@@ -1,0 +1,621 @@
+# APP: Robustness to errors in the scenario wording {#app:scenario-errors}
+
+In Experiments 3 and 4, the wording of one scenario contained an error. This appendix describes both errors and reports the corresponding robustness analyses.
+
+## Experiment 3: Excluding the Aqueduct in the desert scenario {#app:scenario-errors-exp3}
+
+In the economic (but not the moral) version of the *Aqueduct in the desert* scenario of Experiment 3 (Experiments 3a--3c), the second option named the wrong farm as the beneficiary: water diverted to the Blackfield farm was said to save crops in the Sandharbor farm, which is the farm saved by the first option. For example, participants read (error in bold):
+
+> Fields in the Burning Barren desert are supplied with water through a series of aqueducts. One day, the main supplies to the Sandharbor farm and the Blackfield farm have a leak, but there is only one repair crew available. The crops in both Sandharbor and Blackfield will be lost if nothing is done. This leaves the repair crew with two options:
+>
+> *Option 1:* Switch the supply meant for the Midcross farm to the Sandharbor farm. This would destroy 100 acres of crops in the Midcross farm but would save 400 acres of crops in the Sandharbor farm.
+>
+> *Option 2:* Switch the supply meant for the Dullspring farm to the Blackfield farm. This would destroy 1000 acres of crops in the Dullspring farm but save 1600 acres of crops in the **Sandharbor** farm.
+
+The moral version of the scenario and all numbers were correct. As the second option explicitly diverted the water to the Blackfield farm, and the error concerned only the name of the farm, it is unlikely that participants noticed it. We therefore kept the scenario in the analyses reported in the main text. Here, we report the main analyses of Experiment 3 with the scenario excluded, in both its moral and its economic versions. 
+
+### Human participants
+
+```{r exp2-binom-p-for-text-scenario-excluded, include = FALSE}
+
+# Binomial p values (economic condition) quoted in the text below
+get_exp2_economic_p_binom <- function(exp_id, measure_type, excl) {
+    dat.moral.numbers.exp2.descriptives %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = exp_id,
+            scenarios_excluded = excl
+        ) %>%
+        dplyr::filter(
+            measure == measure_type,
+            block == "Both",
+            decisionType == "economic"
+        ) %>%
+        dplyr::pull(p_binom) %>%
+        sprintf("%.3f", .) %>%
+        stringr::str_remove("^0")
+}
+```
+
+Excluding the scenario left the mean preferences virtually unchanged (Figure \ref{fig:exp2-plot-bin-scenario-excluded}, Table \ref{tab:exp2-descriptives-print-scenario-excluded}). The generalized linear mixed models yielded the same pattern of results as in the main analysis (Table \ref{tab:exp2-lmer-print-scenario-excluded}): endorsement of the high-ratio options was greater in the economic than in the moral condition in Experiment 3a, but greater in the moral than in the economic condition in Experiments 3b and 3c.
+
+The only differences concerned the economic conditions of Experiments 3b and 3c, where the preference for utility over Weber ratios was weak in the main analysis as well. There, the conclusions of the binomial test on the number of participants whose mean rating exceeded chance level changed. In Experiment 3b, the test changed from significant to marginally significant when mean ratings were computed from the raw ratings ($p$ = `r get_exp2_economic_p_binom("exp2ac", "raw", TRUE)`, compared to $p$ = `r get_exp2_economic_p_binom("exp2ac", "raw", FALSE)` in the main analysis), but remained significant when they were computed from the binarized ratings. In Experiment 3c, the test changed from significant to marginally significant for the binarized ratings ($p$ = `r get_exp2_economic_p_binom("exp2d", "bin", TRUE)`, compared to $p$ = `r get_exp2_economic_p_binom("exp2d", "bin", FALSE)`), whereas for the raw ratings, it changed from marginally significant to reaching the significance threshold ($p$ = `r get_exp2_economic_p_binom("exp2d", "raw", TRUE)`, compared to $p$ = `r get_exp2_economic_p_binom("exp2d", "raw", FALSE)`). All other tests against chance led to the same conclusions in both analyses, and the direction of all preferences was unchanged: participants still preferred Weber ratios over harm in both the moral and the economic conditions, and preferred Weber ratios over utility in the moral condition.
+
+```{r exp2-plot-bin-scenario-excluded, fig.width = 8.5, fig.cap = "Results of Experiment 3 for responses recoded in terms of a binary acceptable/unacceptable decision. The Aqueduct in the desert scenario was excluded (moral and economic versions). The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Orange circles represent individual participants."}
+
+p.moral.numbers.exp2.m.scenario.excluded <- dat.moral.numbers.exp2.m %>%
+    dplyr::filter(measure == "bin") %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = TRUE) %>%
+    format_exp_info(wrap = TRUE) %>%
+    dplyr::mutate(experimentID = stringr::str_to_sentence(experimentID)) %>%
+    dplyr::mutate(decisionType = stringr::str_to_title(decisionType)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = decisionType, y = rating)) %>%
+    violin_plot_template(yintercept = 0.5, dotsize = 0.2) +
+    ggplot2::scale_y_continuous("Rating in favor of high ratio option") +
+    ggplot2::labs(x = "Decision type") +
+    ggplot2::facet_wrap(~experimentID, scales = "free_y")
+
+p.moral.numbers.exp2.m.scenario.excluded
+```
+
+```{r exp2-plot-raw-scenario-excluded}
+# Not printed in main text, so nothing done here either
+```
+
+```{r exp2-descriptives-print-scenario-excluded}
+
+# The binomial thresholds in the footnote depend only on the number of participants,
+# which is identical in both versions
+dat.moral.numbers.exp2.descriptives %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = TRUE) %>%
+    dplyr::select(-N_above_chance_level, -P_above_chance_level, -N_binom_threshold) %>%
+    format_exp_info() %>%
+    dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp", "Exp. ")) %>%
+    dplyr::mutate(measure = dplyr::case_when(
+        measure == "bin" ~ "Binarized ratings",
+        measure == "raw" ~ "Raw ratings",
+        TRUE ~ measure
+    )) %>%
+    dplyr::filter(block == "Both") %>%
+    dplyr::select(-block) %>%
+    dplyr::mutate(
+        dplyr::across(
+            dplyr::starts_with("p_"),
+            fix_zero_p_values
+        )
+    ) %>%
+    dplyr::arrange(measure, experimentID, dplyr::desc(decisionType)) %>%
+    dplyr::rename_with(replace_default_column_labels) %>%
+    tidyr::unite(experimentID.measure, Experiment, measure, sep = " - ") %>%
+    kable.packed("experimentID.measure",
+                 caption = "Descriptives for Experiment 3, with the Aqueduct in the desert scenario excluded (moral and economic versions). Binarized ratings are derived from the 6-point scale by converting values below 3.5 to 0 and values above 3.5 to 1. $M$ is the mean across participants (chance level = 0.5 for binarized ratings, 3.5 for raw ratings). $SE$ = standard error. $p$ (Wilcoxon) is a two-tailed Wilcoxon signed-rank test against chance. $p$ (binomial) tests whether the number of participants whose mean rating exceeded chance is significantly greater or smaller than expected by chance (one-tailed binomial test, significant in either direction); participants at exactly the chance level were counted as not exceeding chance.",
+                 booktabs = TRUE,
+                 longtable = FALSE
+    ) %>%
+    kableExtra::kable_styling(
+        bootstrap_options = "striped",
+        latex_options = c("striped", "hold_position", "repeat_header"), # , "scale_down"),
+        full_width = FALSE
+    ) %>%
+    kableExtra::column_spec(2, width = "10em") %>%
+    kableExtra::add_footnote(label = stringr::str_c("Given the number of participants, the proportion of participants preferring the high-ratio option would be significant by a binomial test when the proportions reach the following thresholds: ", moral.numbers.exp2.binom.sig.thresholds)) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r exp2-lmer-calculate-scenario-excluded}
+# Experiment 2a and c combined
+moral.numbers.exp2ac.bin.lmer1.scenario.excluded <- lme4::glmer(
+    rating.bin ~ decisionType * block +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.moral.numbers %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp2a", "exp2c"),
+            scenarios_excluded = TRUE
+        ) %>%
+        dplyr::filter(comparisonType == "ratio_vs_utility") %>%
+        dplyr::mutate(
+            decisionType = factor(
+                decisionType,
+                levels = rev(unique(sort(decisionType)))
+            )
+        )
+)
+
+
+moral.numbers.exp2ac.bin.lmer2.scenario.excluded <- stats::update(
+    moral.numbers.exp2ac.bin.lmer1.scenario.excluded,
+    ~ . - (1 | scenarioID)
+)
+
+
+# Keep model 2 so we can show interaction in table
+
+
+# Experiment 2d
+moral.numbers.exp2d.bin.lmer1.scenario.excluded <- lme4::glmer(
+    rating.bin ~ decisionType * block +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.moral.numbers %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp2d",
+            scenarios_excluded = TRUE
+        ) %>%
+        dplyr::filter(comparisonType == "ratio_vs_utility") %>%
+        dplyr::mutate(
+            decisionType = factor(
+                decisionType,
+                levels = rev(unique(sort(decisionType)))
+            )
+        )
+)
+
+
+moral.numbers.exp2d.bin.lmer2.scenario.excluded <- stats::update(
+    moral.numbers.exp2d.bin.lmer1.scenario.excluded,
+    ~ . - (1 | scenarioID)
+)
+
+
+# Experiment 2b
+moral.numbers.exp2b.bin.lmer1.scenario.excluded <- lme4::glmer(
+    rating.bin ~ decisionType * block +
+        (1 | ResponseId) + (1 | scenarioID),
+    # control=glmerControl(optimizer="bobyqa"),
+    family = "binomial",
+    data = dat.moral.numbers %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp2a", "exp2b", "exp2c", "exp2d"),
+            scenarios_excluded = TRUE
+        ) %>%
+        dplyr::filter(!stringr::str_detect(comparisonType, "ratio_vs_utility")) %>%
+        dplyr::mutate(decisionType = factor(
+            decisionType,
+            levels = rev(unique(sort(decisionType)))
+        )
+        )
+)
+
+moral.numbers.exp2b.bin.lmer2.scenario.excluded <- stats::update(
+    moral.numbers.exp2b.bin.lmer1.scenario.excluded,
+    ~ . - (1 | scenarioID)
+)
+
+```
+
+```{r exp2-lmer-print-scenario-excluded}
+list(
+    "Exp. 3a: Weber ratios vs. harm"          = moral.numbers.exp2b.bin.lmer2.scenario.excluded,   # exp2b in data
+    "Exp. 3b: Weber ratios vs. utility (1)"   = moral.numbers.exp2ac.bin.lmer2.scenario.excluded,  # exp2a+c combined
+    "Exp. 3c: Weber ratios vs. utility (2)"   = moral.numbers.exp2d.bin.lmer2.scenario.excluded    # exp2d in data
+) %>%
+    purrr::map(
+        \(x) extract.results.from.binary.model(x, output.wide = TRUE)
+    ) %>%
+    purrr::list_rbind(names_to = "lmer.label") %>%
+    dplyr::select(-t_log, -p_log) %>%
+    rename.terms(term) %>%
+    dplyr::mutate(
+        term = stringr::str_wrap(term, 25),
+        dplyr::across(
+            dplyr::where(is.numeric),
+            ~ ifelse(.x > 1,
+                     round(.x, 2),
+                     signif(.x, 3)
+            )
+        )
+    ) %>%
+    fix_zero_p_values(p_or) %>%
+    #highlight_rows_by_p_value(p_col = p_or, cols = -lmer.label, format = "latex") %>%
+    kable.packed("lmer.label",
+                 caption = "Results in Experiment 3, with the Aqueduct in the desert scenario excluded (moral and economic versions), from generalized linear mixed models with a logit link function (binomial family) and the fixed factor predictors Domain (moral vs. economic) and Block (first vs. second), their interaction as well as random intercepts for participants. The dependent variable was the endorsement of high-ratio options. Following \\cite{Baayen2008}, we removed all fixed and random predictors that did not contribute to the model likelihood. As a result, we kept only participants as random factors. While it did not contribute to the model likelihood either, we kept the interaction between Domain and Block.",
+                 col.names = c("Effect", "Estimate", "SE", "CI", "Estimate", "SE", "CI", "t", "p"),
+                 escape = FALSE,
+                 booktabs = TRUE
+    ) %>%
+    kableExtra::add_header_above(c(" " = 1, "Log-odds space" = 3, "Odds-ratio space" = 3, " " = 2)) %>%
+    kableExtra::kable_styling(
+        bootstrap_options = "striped",
+        latex_options = c("striped", "hold_position", "scale_down")
+    ) %>%
+    # kableExtra::column_spec(1, width = "15em") %>%
+    # kableExtra::column_spec(4, width = "4em") %>%
+    # kableExtra::column_spec(9, width = "4em") %>%
+    kableExtra::kable_classic_2()
+```
+
+
+### Large language models
+
+In the simulations with large language models, the wording of the economic version of the Aqueduct in the desert scenario was corrected, so that no robustness check is required.
+
+<!-- The LLM analyses without the Aqueduct in the desert scenario were removed: the scenario was corrected in the
+Experiment 3 rerun (moral_numbers_LLMs_exp3_rerun.Rmd). Removed: the text above and the chunks
+plot-llm-results-exp2-forest-scenario-excluded, plot-llm-results-exp2-local-forest-scenario-excluded,
+plot-llm-exp2-joint-preference-plot-scenario-excluded and print-exp2-descriptives-print-details-scenario-excluded
+(see the safety copy moral_numbers_robustness_checks_exclusions.Rmd.20261028_225729). -->
+
+
+
+## Experiment 4: Including the Hospital Power Outage scenario {#app:scenario-errors-exp4}
+
+In the *Hospital Power Outage* scenario of Experiment 4, the acceptability question reversed the victims and the beneficiaries. In the vivid version, participants read (error in bold; $N_\text{saved}$ and $N_\text{victims}$ stand for the numbers of beneficiaries and victims on a given trial):
+
+> During a city-wide power outage, a major hospital needs to rely on backup generators to keep patients on life support alive. The electrical engineer on site receives a warning that the generators of the main operating block are overheating and will lose power in the next 5 minutes. The engineer can still change the cabling to connect the main operating block with the generators of a building with many people on life support. This would kill the patients on life support. However, this would save the patients in the operating block who are currently being operated on, being prepared for, or recovering from, an operation. Their anesthesia would ensure that these patients would not suffer.
+>
+> You are the engineer on site. If you decide to switch the cabling, you will save the $N_\text{saved}$ patients in the operating block, but will kill $N_\text{victims}$ patients on life support, who will die a painful death by asphyxiation.
+>
+> How acceptable is it to switch the cabling, thus killing $N_\text{victims}$ patients in the **operating block** to save $N_\text{saved}$ patients **on life support**?
+
+While the scenario described switching the cabling as saving the patients in the operating block at the expense of the patients on life support, the acceptability question stated the opposite trade-off. The neutral version differed mainly in that the engineer was described in the third person and the patients on life support were said to die in their sleep; its acceptability question contained the same error. The severity question, which asked whether dying during anesthesia or dying on life support was more horrific, was correct in both versions. As participants might have rated the trade-off stated in the question rather than the one described in the scenario, their ratings of this scenario cannot be interpreted. We therefore excluded the scenario from all analyses of Experiment 4 reported in the main text, as well as from the failed attempt to make the victims more salient that used the same materials (Appendix \ref{app:failed-vivacity-manipulations}); Experiments 5 and 6 did not include this scenario. Here, we report the analyses of Experiment 4 including all scenarios.
+
+Including the scenario did not change the results (Tables \ref{tab:exp8-all-scenarios-descriptives-print} to \ref{tab:exp8-all-scenarios-fits-bootstrap-with-forced-w-print}, Figures \ref{fig:exp8-all-scenarios-plot-bin} to \ref{fig:exp8-all-scenarios-rr-vs-weber-ratio-and-alpha-bootstrap-plot}). The relative risk was positively correlated with the *beneficiary:victim* ratio, the regression slope of the relative risk on the ratio was significant for participants for whom the vivacity manipulation was successful, and the attentional weight of the victims ($\alpha$) was larger in the vivid than in the neutral condition. Moreover, the results of Experiment 4 were replicated in Experiments 5 and 6, which did not include this scenario.
+
+```{r exp8-all-scenarios-descriptives-print}
+
+dat.moral.numbers.exp8.all.scenarios.for.table <- dat.moral.numbers.m.across.subj %>%
+    dplyr::filter(blocks == "all") %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    dplyr::select(-blocks) %>%
+    format_exp_info() %>%
+    dplyr::arrange(experimentID)
+
+dat.moral.numbers.exp8.all.scenarios.for.table %>%
+    dplyr::mutate(
+        dplyr::across(dplyr::ends_with(".p"), fix_zero_p_values)
+    ) %>%
+    dplyr::mutate(
+        Condition = dplyr::coalesce(decisionType, vivacity),
+        .keep = "unused",
+        .after = experimentID
+    ) %>%
+    dplyr::select(-experimentID) %>%
+    knitr::kable(
+        caption = "Descriptive statistics for Experiment 4 with all scenarios. Each row summarises one number condition. Raw ratings are on a 1--6 acceptability scale; binary ratings reflect the proportion of \"acceptable\" responses. Cohen's $d$ is the standardised difference from the scale midpoint (3.5). Rows labelled (filtered) include only participants for whom the vivacity manipulation was successful.",
+        col.names = c(
+            "Condition",
+            "Ratio", "Victims", "Beneficiaries", "Participants",
+            "M", "SE", "p", "Cohen's $d$",
+            "M", "SE", "p"
+        ),
+        booktabs = TRUE,
+        longtable = TRUE,
+        digits = 3,
+        escape = FALSE
+    ) %>%
+    kableExtra::add_header_above(c(" " = 2, "Number of" = 3, "Raw ratings" = 4, "Binary ratings" = 3), bold = TRUE) %>%
+    kableExtra::kable_classic_2() %>%
+    kableExtra::kable_styling(
+        font_size = 7,
+        latex_options = c(
+            "hold_position",
+            "striped"
+        )
+    ) %>%
+    # For long table, pack_rows must come last
+    # See https://github.com/haozhu233/kableExtra/issues/476
+    kableExtra::pack_rows(index =
+                              dat.moral.numbers.exp8.all.scenarios.for.table %>%
+                              dplyr::mutate(
+                                  Condition = dplyr::coalesce(decisionType, vivacity),
+                                  .keep = "unused",
+                                  .after = experimentID
+                              ) %>%
+                              make.pack.index(experimentID))
+```
+
+```{r exp8-all-scenarios-plot-bin, fig.cap = "Binary acceptability ratings for Experiment 4 with all scenarios (including Hospital Power Outage) as a function of the \\emph{beneficiary:victim} ratio, for both blocks combined. Filtered panels show only participants for whom the vivacity manipulation was successful (see main text for exclusion criteria); unfiltered panels show all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants, with $w$ and $\\alpha$ estimated separately for each condition (two-parameter fits).", fig.height = 6, fig.width = 10, out.extra = "keepaspectratio"}
+
+l.exp.vivacity.model.comp.plots.bin %>%
+    # Experiment 4, original-scenario versions (unfiltered and filtered participants) only
+    purrr::keep_at(
+        \(ids) ids %in% select_exps(
+            ids,
+            require_single_version = FALSE,
+            expID_clean = "exp8",
+            scenarios_excluded = FALSE
+        )
+    ) %>%
+    purrr::imap(~ {
+
+        dat_id <- parse_exp_id(.y)
+
+        expID <- dat_id$expID_clean
+
+        expID_paper <- format_exp_info(expID)
+
+        isFiltered <- ifelse(
+            dat_id$vivacity_filtered,
+            " (filtered)",
+            " (unfiltered)"
+        )
+
+        purrr::pluck(.x, "all", "plot.by.ratio") +
+            ggplot2::theme(
+                axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1),
+                axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 12)),
+                legend.position = "bottom",
+                plot.title = ggplot2::element_text(size = 10)
+            ) +
+            ggplot2::labs(title = stringr::str_wrap(stringr::str_c(expID_paper, isFiltered), 25)) +
+            ggplot2::scale_x_continuous(
+                breaks =
+                    purrr::pluck(
+                        l.moral.numbers.ratios,
+                        expID
+                    ),
+                trans = "log2"
+            )
+
+    }
+    ) %>%
+    ggpubr::ggarrange(
+        plotlist = .,
+        ncol = 2, nrow = 1,
+        labels = "auto",
+        legend = "bottom",
+        common.legend = TRUE
+    )
+
+```
+
+```{r exp8-all-scenarios-plot-filtered, fig.cap = "Results of Experiment 4, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. All scenarios are included. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio"}
+
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp8",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = TRUE
+    )
+)
+
+```
+
+```{r exp8-all-scenarios-plot-unfiltered, fig.cap = "Results of Experiment 4 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. All scenarios are included. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio"}
+
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp8",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = FALSE
+    )
+)
+
+```
+
+```{r exp8-all-scenarios-rr-correlations-no-bootstrap-print}
+dat.moral.numbers.rr.correlations.no.bootstrap %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    format_exp_info() %>%
+    dplyr::arrange(experimentID) %>%
+    fix_zero_p_values(p) %>%
+    knitr::kable(
+        caption = "Spearman correlations between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiment 4 with all scenarios, computed from observed (non-bootstrapped) acceptance rates. A positive $\\rho$ indicates that the difference in acceptability between the vivid and neutral conditions diminishes as the ratio increases.",
+        col.names = c("Experiment", "$\\rho$", "$p$"),
+        booktabs = TRUE,
+        escape = FALSE) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r exp8-all-scenarios-fits-bootstrap-with-forced-w-plot, fig.cap = "Bootstrap samples of the $\\alpha$ parameter in Experiment 4, with the $w$ parameter set to the bootstrap fit obtained in the neutral condition. All scenarios are included."}
+dat.moral.numbers.bootstrap.forced.w %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    format_exp_info() %>%
+    na.omit() %>%
+    ggplot2::ggplot(ggplot2::aes(x = vivacity, y = a)) %>%
+    violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
+    ggplot2::labs(y = latex2exp::TeX("$\\alpha$")) +
+    # ggplot2::scale_y_log10()
+    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = ggplot2::labeller(blocks = ggplot2::label_both))
+```
+
+```{r exp8-all-scenarios-relative-risk-slope-print}
+dat.moral.numbers.rr.by.ratios.bootstrap.fit.summary %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    dplyr::select(experimentID, dplyr::starts_with("slope"), dplyr::starts_with("cor")) %>%
+    format_exp_info() %>%
+    dplyr::arrange(experimentID) %>%
+    dplyr::mutate(dplyr::across(dplyr::ends_with("_Z_p"), fix_zero_p_values)) %>%
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), scales::label_scientific(digits = 3))) %>%
+    dplyr::select(-dplyr::ends_with("_N")) %>%
+    knitr::kable(
+        caption = "Bootstrap estimates of the linear regression slope and Spearman correlation between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiment 4 with all scenarios (10,000 bootstrap samples). Each bootstrap sample yields average acceptance rates per ratio and condition; we then derive $\\RR$ and regress it against the \\textit{beneficiary:victim} ratio. The table reports the mean estimate, its Monte Carlo (MC) error, the $z$-score, the two-tailed $p$-value, and the 95\\% percentile interval (PI) for both the regression slope and the Spearman correlation.",
+        col.names = c(
+            "Experiment",
+            names(.)[-1] %>%
+                stringr::str_remove("^(slope_|cor_)") %>%
+                stringr::str_remove("^pi.") %>%
+                stringr::str_replace("Z_p", "p") %>%
+                stringr::str_replace("mc_error", "MC Error")
+        ),
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::add_header_above(c(" " = 4, "95% PI" = 2, " " = 5, "95% PI" = 2, " " = 2), bold = FALSE) %>%
+    kableExtra::add_header_above(c(" " = 1, "Regression slope" = 7, "Spearman correlation" = 7), bold = TRUE) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position"
+    )) %>%
+    kableExtra::kable_classic_2()
+```
+
+```{r exp8-all-scenarios-bootstrap-fits-print}
+
+dat_bootstrap_fit_1_2_param_for_table %>% 
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    format_exp_info() %>%
+    dplyr::arrange(type, experimentID, cond) %>%
+    dplyr::select(-type) %>%
+    dplyr::mutate(dplyr::across(dplyr::ends_with("_Z_p"), fix_zero_p_values)) %>%
+    knitr::kable(
+        caption = "Two-parameter bootstrap fits for Experiment 4 with all scenarios. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean. \\textit{MC Error}: Monte Carlo standard error of the bootstrap mean ($\\mathrm{SD}/\\sqrt{N-1}$). 95\\% PI: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z}: $Z$-score of the vivid condition relative to the bootstrap distribution in the neutral condition ($(M_{\\mathrm{vivid}} - M_{\\mathrm{neutral}}) / SD_{\\mathrm{neutral}}$). \\textit{p}: two-tailed $p$-value for $Z$. In contrast to Table \\ref{tab:exp8-all-scenarios-fits-bootstrap-with-forced-w-print}, $w$ was not constrained for any fit shown here.",
+        col.names = c(
+            "Experiment",
+            # "Blocks",
+            "Condition",
+            "N",
+            rep(c(" ", " ", "lower", "upper", " ", " "), 2)
+        ),
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::add_header_above(c(" " = 3, "M" = 1, "MC Error" = 1, "95% PI" = 2, "Z" = 1, "p" = 1, "M" = 1, "MC Error" = 1, "95% PI" = 2, "Z" = 1, "p" = 1), bold = FALSE) %>%
+    kableExtra::add_header_above(c(" " = 3, "$w$" = 6, "$\\\\alpha$" = 6), bold = FALSE, align = "c", escape = FALSE) %>%
+    kableExtra::kable_classic_2() %>%
+    # For long table, pack_rows must come last
+    # See https://github.com/haozhu233/kableExtra/issues/476
+    kableExtra::pack_rows(index = dat_bootstrap_fit_1_2_param_for_table %>%
+                              select_exps(
+                                  require_single_version = FALSE,
+                                  expID_clean = "exp8",
+                                  scenarios_excluded = FALSE
+                              ) %>%
+                              make.pack.index(type))
+```
+
+```{r exp8-all-scenarios-fits-bootstrap-with-forced-w-print}
+dat.moral.numbers.bootstrap.forced.w.for.table %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    ) %>%
+    format_exp_info() %>%
+    dplyr::mutate(
+        dplyr::across(
+            dplyr::matches("p_Z"),
+            fix_zero_p_values
+        )
+    ) %>% 
+    dplyr::arrange(experimentID) %>%
+    kable.packed(
+        "experimentID",
+        caption = "Bootstrap estimates of $\\alpha$, with $w$ fixed to the one-parameter bootstrap fit from the neutral condition (Experiment 4 with all scenarios). \\textit{w (neutral)}: the $w$ value used to constrain the fit. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean of $\\alpha$. \\textit{SD}: standard deviation of the bootstrap distribution. 95\\% percentile interval: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z} (within Neutral and Vivid groups): $Z$-score of $\\alpha$ against the null value of 1 ($(M - 1) / SD$). \\textit{Z} (Vivid vs.\\ Neutral): $Z$-score of the vivid $\\alpha$ relative to the neutral bootstrap distribution ($(M_{\\mathrm{vivid}} - M_{\\mathrm{neutral}}) / SD_{\\mathrm{neutral}}$). \\textit{p}: two-tailed $p$-value for $Z$.",
+        col.names = names(dat.moral.numbers.bootstrap.forced.w.for.table[, -1]) %>%
+            stringr::str_remove("^a_") %>%
+            stringr::str_remove("_(neutral|vivid)$") %>%
+            stringr::str_remove("^pi.") %>%
+            stringr::str_remove("(_Z)*_vs(_.+)*$"),
+        booktabs = TRUE,
+        escape = FALSE,
+        longtable = FALSE
+    ) %>%
+    kableExtra::add_header_above(
+        c(
+            " " = 4,
+            "95% percentile interval" = 2,
+            "Z score vs. 1" = 2,
+            " " = 3,
+            "95% percentile interval" = 2,
+            "Z score vs. 1" = 2,
+            # "Z score vs. neutral" = 2),
+            " " = 2
+        ),
+        italic = TRUE,
+        bold = FALSE
+    ) %>%
+    kableExtra::add_header_above(
+        c(" " = 1, "Neutral" = 7, "Vivid" = 7, "Vivid vs. Neutral" = 2),
+        bold = TRUE
+    ) %>%
+    # kableExtra::add_header_above(c(" " = 6, "95% Percentile interval" = 2)) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position",
+        "repeat_header"
+    )) %>%
+    kableExtra::kable_classic_2()
+```
+
+
+```{r exp8-all-scenarios-rr-vs-weber-ratio-and-alpha-bootstrap-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$, left panels) and bootstrap distribution of the attentional weight of victims parameter ($\\alpha$, right panels) in Experiment 4 with all scenarios (including Hospital Power Outage), for all participants and for participants for whom the vividness manipulation was effective. In the left panels, circles show bootstrap means and error bars show 95\\% percentile intervals (10,000 bootstrap samples); the line shows a linear regression fit and the shaded area its 95\\% confidence interval. The $w$ parameter is fixed to the bootstrap estimate from the neutral condition. The horizontal line marks $\\alpha = 1$ (no shift in attentional weight).", fig.width = 8, fig.height = 9, out.height = "0.7\\textheight", out.extra = "keepaspectratio"}
+
+# Pair RR and alpha plots per experiment, stripping individual titles and borders
+list(
+    l_moral_numbers_rr_plot_filtered_unfiltered,
+    l_plots_fits_bootstrap_a_with_forced_w
+) %>%
+    # Experiment 4, original-scenario versions, unfiltered and filtered participants. Indexing by
+    # name (rather than keep_at()) puts both lists in the same order, so that pmap() pairs the plots
+    # of the same experiment version
+    purrr::map(\(l) l[select_exps(
+        names(l_moral_numbers_rr_plot_filtered_unfiltered),
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = FALSE
+    )]) %>%
+    purrr::pmap(\(rr, a) {
+        list(
+            rr,
+            a
+        ) %>%
+            purrr::map(\(x) x +
+                           ggplot2::labs(title = NULL) +
+                           ggplot2::theme(plot.background = ggplot2::element_rect(colour = NA, fill = NA))
+            )
+    }
+) %>%
+    # Arrange each pair side by side, add experiment name as row title, and border the group
+    # (pmap inherits names from the first list, used by imap as `name`)
+    purrr::imap(\(pair, name) {
+        p <- ggpubr::ggarrange(
+            plotlist = pair,
+            ncol = 2,
+            nrow = 1,
+            widths = c(2, 1)
+        ) %>%
+            ggpubr::annotate_figure(
+                top = ggpubr::text_grob(format_exp_info(name), face = "bold")
+            )
+        cowplot::ggdraw(p) +
+            ggplot2::theme(plot.background = ggplot2::element_rect(colour = "black", fill = NA, linewidth = 1))
+    }) %>%
+    # Stack rows for all experiments into a single figure
+    ggpubr::ggarrange(
+        plotlist = .,
+        ncol = 1,
+        nrow = 2,
+        labels = "auto",
+        common.legend = FALSE,
+        legend = "bottom"
+    )
+
+```
+

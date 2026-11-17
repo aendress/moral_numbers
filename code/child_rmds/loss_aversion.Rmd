@@ -229,7 +229,7 @@ dat_prospect_demo_tk <- create_data_for_prospect_demo(
 ```
 
 
-```{r tk-plot, fig.cap = "Comparison of the current model (EA) and the Tversky and Kahneman (1992) model, with parameterization $\\lambda = 2.25$, $\\alpha = \\beta = 0.88$. The $w$ parameter was set to a large value ($w = 10$) to approximate the quasi-linear behavior of the Tversky and Kahneman (1992) function. Because both models use arbitrary units, the output of the Tversky and Kahneman (1992) model was scaled so that the maxima of both functions coincide. The two models produce closely overlapping value functions across the full range of relative changes."}
+```{r tk-plot, fig.cap = "Comparison of the current model (EA, for Endress \\& Ayton) and the Tversky and Kahneman (1992) model, with parameterization $\\lambda = 2.25$, $\\alpha = \\beta = 0.88$. The $w$ parameter was set to a large value ($w = 10$) to approximate the quasi-linear behavior of the Tversky and Kahneman (1992) function. Because both models use arbitrary units, the output of the Tversky and Kahneman (1992) model was scaled so that the maxima of both functions coincide. The two models produce closely overlapping value functions across the full range of relative changes."}
 
 dat_prospect_demo_tk %>% 
     ggplot(aes(x = relative_change, y = value, group = Model, col = Model, lty = Model)) +
@@ -246,7 +246,7 @@ dat_prospect_demo_tk %>%
 
 ```
 
-In Figure \ref{fig:tk-plot}, we show that our model can mimic the functional form assumed by [@Tversky1992]. We use their parameterization ($\text{utility} = |C|^\alpha - \lambda |C|^\beta$, with $\lambda = 2.25$ and $\alpha = \beta = 0.88$, but see below). We thus set the $w$ parameter to a large value to make it quasi-linear as in their function ($w = 10$). Given that both models use arbitrary units, we multiplied the output of the Tversky and Kahneman model so that the maximum y value coincide for both models. As shown in Figure \ref{fig:tk-plot}, both models behave fairly similarly.
+In Figure \ref{fig:tk-plot}, we show that our model can mimic the functional form assumed by [@Tversky1992]. We use their parameterization ($\text{utility} = C^\alpha$ for $C \geq 0$ and $\text{utility} = -\lambda (-C)^\beta$ for $C < 0$, with $\lambda = 2.25$ and $\alpha = \beta = 0.88$, but see below). We thus set the $w$ parameter to a large value to make it quasi-linear as in their function ($w = 10$). Given that both models use arbitrary units, we multiplied the output of the Tversky and Kahneman model so that the maximum y value coincide for both models. As shown in Figure \ref{fig:tk-plot}, both models behave fairly similarly.
 
 ## Variability of $\lambda$ estimates
 
@@ -262,10 +262,10 @@ In standard prospect theory, utilities are integrated with probability informati
 
 ## Monotonicity behavior [We will probably remove this section eventually, but I keep it in case I have a better idea for the proof]
 
-In this section, we investigate whether the relative utility of losses vs. gains is growing. With the acceptability given by $1 + \log_2 \Phi\left(\frac{R-1}{\sqrt{2}w \sqrt(R^2 + 1)}\right)$, we get
+In this section, we investigate whether the relative utility of losses vs. gains is growing. With the acceptability given by $1 + \log_2 \Phi\left(\frac{R-1}{w \sqrt(R^2 + 1)}\right)$, we get
 
 $$
-G(C) =  \frac{1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{\sqrt{2}w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right)}{1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{\sqrt{2}w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)} = \frac{1 + \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{E^2 + (E-C)^2}} \right)}{1 + \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{(E+C)^2 + E^2}} \right)}
+G(C) =  \frac{1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right)}{1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)} = \frac{1 + \log_2 \Phi \left( \frac{C}{w \sqrt{E^2 + (E-C)^2}} \right)}{1 + \log_2 \Phi \left( \frac{C}{w \sqrt{(E+C)^2 + E^2}} \right)}
 $$
 
 where we assume that $C$ is non-negative. While the derivative is cumbersome to calculate, is easy to see that $G(C) > 1$ for all $C's$ between $0$ and $E$, and that $G(C)$ must be locally growing for at least some $C$ in the neighborhood of $0$.
@@ -279,5 +279,5 @@ To avoid differentiating an unwieldy function, we consider the difference in uti
 
 
 $$
-H(C) =  1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{\sqrt{2}w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right) - \left(1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{\sqrt{2}w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)\right) = \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{E^2 + (E-C)^2}} \right) -  \log_2 \Phi \left( \frac{C}{\sqrt{2}w \sqrt{(E+C)^2 + E^2}} \right)
+H(C) =  1 + \log_2 \Phi \left( \frac{\frac{E}{E-C} - 1}{w \sqrt{\left(\frac{E}{E-C}\right)^2 + 1}} \right) - \left(1 + \log_2 \Phi \left( \frac{\frac{E+C}{E} - 1}{w \sqrt{\left(\frac{E+C}{E}\right)^2 + 1}} \right)\right) = \log_2 \Phi \left( \frac{C}{w \sqrt{E^2 + (E-C)^2}} \right) -  \log_2 \Phi \left( \frac{C}{w \sqrt{(E+C)^2 + E^2}} \right)
 $$

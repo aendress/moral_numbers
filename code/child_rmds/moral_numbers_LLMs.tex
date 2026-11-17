@@ -38,6 +38,8 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
 \newcounter{none} % for unnumbered tables
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
@@ -45,9 +47,6 @@
 \makeatletter
 \patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
 \makeatother
-% Allow footnotes in longtable head/foot
-\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
-\makesavenoteenv{longtable}
 \usepackage{graphicx}
 \makeatletter
 \newsavebox\pandoc@box
@@ -76,7 +75,8 @@
 \usepackage{float}
 \usepackage{colortbl}
 \usepackage{pdflscape}
-\usepackage{tabu}
+\usepackage{tabularx}
+\usepackage{xltabular}
 \usepackage{threeparttable}
 \usepackage{threeparttablex}
 \usepackage[normalem]{ulem}
@@ -85,6 +85,10 @@
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
 \hypersetup{
   pdftitle={Moral numbers - comparison between humans and LLMs},
   hidelinks,
@@ -104,13 +108,15 @@ We compared the responses of humans to those of several frontier (i.e., state-of
 
 \subsubsection{Models and parameters}\label{models-and-parameters}
 
-We tested GPT-4o mini, GPT-4.1 mini, GPT-5 mini (minimal reasoning), GPT-5 mini (medium reasoning), GPT-5 mini (high reasoning), Claude Sonnet 4.5, Gemini 2.5 flash, Mistral Medium, Deepseek, and Qwen-plus. We chose these models because they reflect a range of jurisdictions (China, France and USA) and thus potentially differences in training corpora and alignment procedures (i.e., post-training procedures used to shape model behavior according to values determined by the model creators and their jurisdictions). We used different versions of OpenAI's GPT models because, during initial non-systematic exploration, some models seemed more deontological than others, and because this allowed us to set the reasoning effort parameter in GPT-5 mini. (This parameter controls how many internal and intermediate reasoning steps the model generates before producing its final response.) We also explored several smaller models run on a local computer through ollama (\url{https://ollama.com/}), namely Llama 3.2 (3.2B), Mistral (7.2B), and Mistral nemo (12.2B).
+In Experiments 2 and 6, we tested GPT-4o mini, GPT-4.1 mini, GPT-5 mini (minimal reasoning), GPT-5 mini (medium reasoning), GPT-5 mini (high reasoning), Claude Sonnet 4.5, Gemini 2.5 flash, Mistral Medium, Deepseek, and Qwen-plus. We chose these models because they reflect a range of jurisdictions (China, France and USA) and thus potentially differences in training corpora and alignment procedures (i.e., post-training procedures used to shape model behavior according to values determined by the model creators and their jurisdictions). We used different versions of OpenAI's GPT models because, during initial non-systematic exploration, some models seemed more deontological than others, and because this allowed us to set the reasoning effort parameter in GPT-5 mini. (This parameter controls how many internal and intermediate reasoning steps the model generates before producing its final response.) We also explored several smaller models run on a local computer through ollama (\url{https://ollama.com/}), namely Llama 3.2 (3.2B), Mistral (7.2B), and Mistral nemo (12.2B).
+
+Experiment 3 was simulated separately. In our initial simulations of Experiment 3, the system prompt describing the response scale contained an error (both ends of the scale favored Option 2), and we thus reran these simulations with a corrected prompt (see Table \ref{tab:LLM-system-prompt-print}). As some of the models used in Experiments 2 and 6 had been retired by then, we used the current mid-tier models of the same providers, namely Claude Sonnet 5.5 (reasoning effort low, medium, and high), Deepseek flash (reasoning effort off, medium, and high), GPT-6 luna (reasoning effort low, medium, and high), Gemini 3.8 flash (reasoning effort low, medium, and high), Mistral Medium 3.5, and Qwen3.7-plus (reasoning effort off and on), as well as the same local models. In these simulations, we also corrected the wording error in the economic version of the \emph{Aqueduct in the desert} scenario (see SI \ref{app:scenario-errors-exp3}), which human participants had seen in its erroneous form. Further, inspection of preliminary simulations suggested that some models might have confused the response scale (1--6) with the option labels (1 vs.~2). To avoid such confusions, we switched the option labels to A vs.~B. Finally, as in the human experiments, we counterbalanced the order of the two options across simulated participants, such that half of them saw the high-ratio option as Option A and half of them as Option B (in our initial simulations, it was always presented first).
 
 For models that support these options, we used the parameters given in Table \ref{tab:LLM-option-print} or their equivalents. The system prompts (general instructions on how the model should respond, passed to the model prior to the experimental trials) are given in Table \ref{tab:LLM-system-prompt-print}.
 
 \begin{table}[!h]
 \centering\centering
-\caption{\label{tab:LLM-option-print}API parameters and the models for which each was included in the request body. GPT-4 = GPT-4o mini, GPT-4.1, GPT-4.1 mini; GPT-5 = GPT-5 mini (all reasoning effort levels); Local = Llama 3.2, Mistral 7.2B, Mistral nemo (Ollama). Dashes indicate parameters defined in \texttt{LLM\_OPTIONS} but not passed to any model. \texttt{max\_output\_tokens} is passed under model-specific field names (\texttt{max\_tokens} for GPT-4, Claude, Mistral, Qwen; \texttt{maxTokens} for Deepseek).}
+\caption{\label{tab:LLM-option-print}API parameters and the models for which each was included in the request body. GPT-4 = GPT-4o mini, GPT-4.1 mini; GPT-5 = GPT-5 mini (all reasoning effort levels); Local = Llama 3.2, Mistral 7.2B, Mistral nemo (Ollama). Dashes indicate parameters defined in \texttt{LLM\_OPTIONS} but not passed to any model. \texttt{max\_output\_tokens} is passed under model-specific field names (\texttt{max\_tokens} for GPT-4, Claude, Mistral, Qwen; \texttt{maxTokens} for Deepseek). In the simulations of Experiment 3, reasoning was set per model via the respective API parameters (reasoning effort for GPT-6 luna, Claude Sonnet 5.5 and Deepseek flash; thinking level for Gemini 3.8 flash; thinking on or off for Qwen3.7-plus), and Claude Sonnet 5.5 received no temperature, as it does not accept this parameter.}
 \centering
 \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
 \begin{tabular}[t]{lrll}
@@ -127,30 +133,31 @@ n & 1.0 & Number of completions per request & GPT-4, GPT-5, Mistral, Qwen\\
 \cellcolor{gray!10}{frequency\_penalty} & \cellcolor{gray!10}{0.0} & \cellcolor{gray!10}{Penalizes already-frequent tokens} & \cellcolor{gray!10}{---}\\
 presence\_penalty & 0.0 & Penalizes tokens seen so far & ---\\
 \cellcolor{gray!10}{num\_ctx} & \cellcolor{gray!10}{8192.0} & \cellcolor{gray!10}{Context window size (tokens)} & \cellcolor{gray!10}{Local}\\
+max\_output\_tokens\_reasoning & 16000.0 & Max. tokens in model response incl. reasoning (Exp. 3, reasoning switched on) & Claude Sonnet 5.5, Deepseek flash, Qwen3.7-plus\\
 \bottomrule
 \end{tabular}}
 \end{table}
 
 \begin{table}[!h]
 \centering\centering
-\caption{\label{tab:LLM-system-prompt-print}System prompts used in all experiments, giving the models general instructions on how to respond.}
+\caption{\label{tab:LLM-system-prompt-print}System prompts used in all experiments, giving the models general instructions on how to respond. The prompt for Experiment 3 is the corrected version used in the rerun of these simulations; the initial simulations used a faulty version, in which both ends of the scale favored Option 2 (1 = Option 1 is much more unacceptable, 6 = Option 2 is much more acceptable).}
 \centering
 \begin{tabular}[t]{>{\raggedright\arraybackslash}p{0.5\linewidth}>{\raggedright\arraybackslash}p{0.5\linewidth}}
 \toprule
 \textbf{Rating on 6-point scale (all experiments but Exp. 3)} & \textbf{Choice between two situations (Exp. 3)}\\
 \midrule
-You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked about the acceptability of an action, respond on a 6-point scale (1 = completely unacceptable, 6 = completely acceptable). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable. & You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked about the relative acceptability of two actions, respond on a 6-point scale (1 = Option 1 is much more unacceptable, 6 = Option 2 is much more acceptable). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable.\\
+You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked about the acceptability of an action, respond on a 6-point scale (1 = completely unacceptable, 6 = completely acceptable). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable. & You are an average adult with no formal training in philosophy, ethics, or law. Your sense of right and wrong comes from everyday life—social norms, gut feelings, personal experience. You don’t try to be logically consistent or follow abstract moral rules. You react like a regular person would: practically, emotionally, and socially. You speak plainly, without academic or philosophical jargon. You can hesitate, contradict yourself, or be unsure—just like people often are. Please give your gut-level reaction, even if you’re not sure.  \newline    \newline  When asked to choose between two options, respond on a 6-point scale (1 = definitely Option A, 6 = definitely Option B). \newline    \newline Respond **only** with a single digit (1–6). Do **not** add words, punctuation, or explanations. Any other output but the number will make your response unusable.\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsubsection{Procedure}\label{procedure}
 
-We kept the procedure as closely as possible to the human experiments, where participants rated multiple scenarios in each experiment. We achieved this by treating trials as an ongoing, incremental conversation. On the first trial, the API calls contained the system prompt as well as the first scenario. On the second trial, they contained the system prompt, the first scenario together with the model's answer on the first trial (provided as a message from the \emph{assistant} role or the equivalent in other models), as well as the second scenario. Finally, on the last trial, the API calls contained the system prompt, all previous scenarios together with the model's answers, as well as the last scenario. The main procedure difference to the human experiments is thus that it would not be meaningful to treat the contrast in Experiments 2 or 6 (moral vs.~economic and vivid vs.~neutral) as within-participant contrasts.
+We kept the procedure as closely as possible to the human experiments, where participants rated multiple scenarios in each experiment. We achieved this by treating trials as an ongoing, incremental conversation. On the first trial, the API calls contained the system prompt as well as the first scenario. On the second trial, they contained the system prompt, the first scenario together with the model's answer on the first trial (provided as a message from the \emph{assistant} role or the equivalent in other models), as well as the second scenario. Finally, on the last trial, the API calls contained the system prompt, all previous scenarios together with the model's answers, as well as the last scenario. The main procedural difference to the human experiments is thus that all contrasts (e.g., moral vs.~economic in Experiments 2 and 3; vivid vs.~neutral in Experiment 6) are treated as between-participant contrasts rather than within-participant contrasts as the latter would not be meaningful in models.
 
 \begin{table}[!h]
 \centering\centering
-\caption{\label{tab:number-of-trials-print}Experimental design summary for LLM simulations. Each cell in the Latin square design was tested with 10 independent response sets, with each response treated as a simulated participant. The table shows the number of conditions (cells), simulated participants, trials per participant, and total responses for each experiment. In Experiment 6, \emph{Group} refers to two different sets of victim and beneficiary numbers crossed with the neutral/vivid manipulation, resulting in four conditions total.}
+\caption{\label{tab:number-of-trials-print}Experimental design summary for LLM simulations. Each cell in the Latin square design was tested with 10 (Experiments 2 and 6) or 5 (Experiment 3) independent response sets, with each response set treated as a simulated participant. The table shows the number of conditions (cells), simulated participants, trials per participant, and total responses for each experiment. In Experiment 3, \emph{Group} refers to the order of the two options (high-ratio option presented first vs. second), with a separate Latin square for each order. In Experiment 6, \emph{Group} refers to two different sets of victim and beneficiary numbers crossed with the neutral/vivid manipulation, resulting in four conditions total.}
 \centering
 \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
 \begin{tabular}[t]{llrrrr}
@@ -165,12 +172,16 @@ We kept the procedure as closely as possible to the human experiments, where par
 \hspace{1em}Economic &  & 10 & 100 & 10 & 1000\\
 \addlinespace[0.3em]
 \multicolumn{6}{l}{\textbf{Exp. 3a}}\\
-\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{120} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{\vphantom{1} 1440}\\
-\hspace{1em}Economic &  & 12 & 120 & 12 & \vphantom{1} 1440\\
+\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{High-ratio option first} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{60} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{\vphantom{1} 720}\\
+\hspace{1em}Moral & High-ratio option second & 12 & 60 & 12 & \vphantom{1} 720\\
+\cellcolor{gray!10}{\hspace{1em}Economic} & \cellcolor{gray!10}{High-ratio option first} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{60} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{\vphantom{1} 720}\\
+\hspace{1em}Economic & High-ratio option second & 12 & 60 & 12 & \vphantom{1} 720\\
 \addlinespace[0.3em]
 \multicolumn{6}{l}{\textbf{Exp. 3b}}\\
-\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{120} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{1440}\\
-\hspace{1em}Economic &  & 12 & 120 & 12 & 1440\\
+\cellcolor{gray!10}{\hspace{1em}Moral} & \cellcolor{gray!10}{High-ratio option first} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{60} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{720}\\
+\hspace{1em}Moral & High-ratio option second & 12 & 60 & 12 & 720\\
+\cellcolor{gray!10}{\hspace{1em}Economic} & \cellcolor{gray!10}{High-ratio option first} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{60} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{720}\\
+\hspace{1em}Economic & High-ratio option second & 12 & 60 & 12 & 720\\
 \addlinespace[0.3em]
 \multicolumn{6}{l}{\textbf{Exp. 6}}\\
 \cellcolor{gray!10}{\hspace{1em}Neutral} & \cellcolor{gray!10}{Group 1} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{120} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{1440}\\
@@ -181,15 +192,15 @@ We kept the procedure as closely as possible to the human experiments, where par
 \end{tabular}}
 \end{table}
 
-As in the human experiments, our simulations used a latin square design, spanned by the available scenarios in each cell and the number conditions (see SI \ref{app:design}). Given this design, we obtained 10 sets of independent responses per cell in the Latin square. In Experiment 6, and as in the human experiments, we used two counterbalanced sets of number conditions, involving different numbers of victims and beneficiaries.
+As in the human experiments, our simulations used a latin square design, spanned by the available scenarios in each cell and the number conditions (see SI \ref{app:design}). In Experiment 6, and as in the human experiments, we used two counterbalanced sets of number conditions, involving different numbers of victims and beneficiaries.
 
-For each design cell, we obtained 10 simulated participants (i.e., independent conversations with the models) for each model, resulting in the numbers of cells, (simulated) participants, trials per participant, and responses given in Table \ref{tab:number-of-trials-print}. In total, we simulated 1160 simulated participants, with a total of 13520 responses.
+For each design cell in Experiments 2 and 6, we obtained 10 simulated participants (i.e., independent conversations with the models) for each model. In Experiment 3, the Latin square was additionally crossed with the order of the two options (high-ratio option presented first vs.~second), and we obtained 5 sets of independent responses per cell. Overall, this resulted in the numbers of cells, (simulated) participants, trials per participant, and responses given in Table \ref{tab:number-of-trials-print}, with a total of 1,160 simulated participants and 13,520 responses.
 
 \subsubsection{Initial verification}\label{initial-verification}
 
 \begin{table}[!h]
 \centering\centering
-\caption{\label{tab:verify-llm-results}Valid response rates across experiments and models. Valid responses were numerical scores (1-6) with no additional text. Maximum data loss (excluding Claude Sonnet 4.5) was 1.5\%. Claude Sonnet 4.5 showed substantial data loss in economic conditions of Experiments 3a and 3b, returning undefined responses or extraneous content beyond the requested numerical values. This pattern replicated across independent simulations, suggesting systematic difficulties following instructions in these specific conditions.}
+\caption{\label{tab:verify-llm-results}Valid response rates across experiments and models. Valid responses were numerical scores (1-6) with no additional text, or, in Experiment 3, a justification ending with a sentence followed by such a score (Claude Sonnet 5.5; the final score was used). Maximum data loss (excluding Claude Sonnet 5.5) was 0.8\%. Claude Sonnet 5.5 showed higher data loss in both conditions of Experiment 3b, mainly because some requests were blocked by a filter of the Anthropic API, and because some of its justifications did not end with a score. This pattern replicated across reasoning efforts.}
 \centering
 \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
 \begin{tabular}[t]{llrrrrr}
@@ -200,31 +211,33 @@ For each design cell, we obtained 10 simulated participants (i.e., independent c
 \multicolumn{7}{l}{\textbf{All models}}\\
 \cellcolor{gray!10}{\hspace{1em}Exp. 2} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{\vphantom{1} 0.000}\\
 \hspace{1em}Exp. 2 & Economic & 1000 & 1000 & 992 & 1000 & \vphantom{1} 0.800\\
-\cellcolor{gray!10}{\hspace{1em}Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1320} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{8.333}\\
-\hspace{1em}Exp. 3a & Economic & 1440 & 1440 & 237 & 1440 & 83.542\\
-\cellcolor{gray!10}{\hspace{1em}Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1320} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{8.333}\\
-\hspace{1em}Exp. 3b & Economic & 1440 & 1440 & 178 & 1440 & 87.639\\
+\cellcolor{gray!10}{\hspace{1em}Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1426} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.972}\\
+\hspace{1em}Exp. 3a & Economic & 1440 & 1440 & 1436 & 1440 & \vphantom{1} 0.278\\
+\cellcolor{gray!10}{\hspace{1em}Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1262} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{12.361}\\
+\hspace{1em}Exp. 3b & Economic & 1440 & 1440 & 1295 & 1440 & 10.069\\
 \cellcolor{gray!10}{\hspace{1em}Exp. 6} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{\vphantom{1} 0.000}\\
 \hspace{1em}Exp. 6 & Vivid & 2880 & 2880 & 2873 & 2880 & \vphantom{1} 0.243\\
 \addlinespace[0.3em]
-\multicolumn{7}{l}{\textbf{All models excluding Claude Sonnet 4.5}}\\
+\multicolumn{7}{l}{\textbf{All models excluding Claude Sonnet 5.5}}\\
 \cellcolor{gray!10}{\hspace{1em}Exp. 2} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{1000} & \cellcolor{gray!10}{0.000}\\
 \hspace{1em}Exp. 2 & Economic & 1000 & 1000 & 992 & 1000 & 0.800\\
-\cellcolor{gray!10}{\hspace{1em}Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1439} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.069}\\
-\hspace{1em}Exp. 3a & Economic & 1440 & 1440 & 1418 & 1440 & 1.528\\
-\cellcolor{gray!10}{\hspace{1em}Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1435} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.347}\\
-\hspace{1em}Exp. 3b & Economic & 1440 & 1440 & 1440 & 1440 & 0.000\\
+\cellcolor{gray!10}{\hspace{1em}Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1435} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.347}\\
+\hspace{1em}Exp. 3a & Economic & 1440 & 1440 & 1436 & 1440 & 0.278\\
+\cellcolor{gray!10}{\hspace{1em}Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{1431} & \cellcolor{gray!10}{1440} & \cellcolor{gray!10}{0.625}\\
+\hspace{1em}Exp. 3b & Economic & 1440 & 1440 & 1436 & 1440 & 0.278\\
 \cellcolor{gray!10}{\hspace{1em}Exp. 6} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{2880} & \cellcolor{gray!10}{0.000}\\
 \hspace{1em}Exp. 6 & Vivid & 2880 & 2880 & 2873 & 2880 & 0.243\\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-To validate the LLM results, we recorded the number of valid responses for each experiment and condition, where a valid response is a single digit between 1 and 6 with no additional words, punctuation, or explanations (defined by the system prompts shown in Table \ref{tab:LLM-system-prompt-print}). As shown in Table \ref{tab:verify-llm-results}, when excluding Claude Sonnet 4.5, data loss was minimal, and at most 1.5\%. In the economic conditions of Experiments 3a and 3b, Claude Sonnet 4.5 returned many undefined responses or responses with extraneous content beyond the requested numerical values. As this pattern replicated in independent simulations, it appears that Claude Sonnet 4.5 has difficulties following instructions in the economic conditions of Experiments 3a and 3b, but showed similarly low rates of data loss as did the other models in the other experiments.
+To validate the LLM results, we recorded the number of valid responses for each experiment and condition, where a valid response is a single digit between 1 and 6 with no additional words, punctuation, or explanations (defined by the system prompts shown in Table \ref{tab:LLM-system-prompt-print}). In Experiment 3, Claude Sonnet 5.5 (and, in a single trial, Gemini 3.8 Flash) often answered with a justification followed by a rating (e.g., ``\ldots{} Gut says option B. 4''); in these cases, we used the final rating if it followed the end of a sentence. As shown in Table \ref{tab:verify-llm-results}, when excluding Claude Sonnet 5.5, data loss was minimal (at most 0.8\%). In Experiment 3b, Claude Sonnet 5.5 returned many undefined responses or responses with extraneous justifications beyond the requested numerical values, leading to loss of between 1.5 and 12.4\% of the data. Further, when these text answers were fed back into the ongoing conversations, some later requests were blocked by a filter of the Anthropic API, which flagged them as attempts to reverse engineer or duplicate model outputs. As this pattern replicated across reasoning efforts, it appears that Claude Sonnet 5.5 has difficulties following instructions in Experiment 3b, but showed similarly low rates of data loss as did the other models in the other experiments, including Experiment 3a.
 
 \clearpage
 
 \subsection{Results}\label{results}
+
+In the simulations below, we asked whether the models reproduced the human pattern \emph{qualitatively}, as we had no particular expectation that LLMs might provide a quantitative fit to human behavior. We were thus mainly concerned with the question of whether the models showed preferences in the same direction as humans, and whether these preferences were affected by the same factors.
 
 \subsubsection{Experiment 2}\label{experiment-2}
 
@@ -268,13 +281,13 @@ Economic &  &  &  & GPT-4.1 mini & 0.135 & 0.014 &  &  & \\
 \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-4o mini} & \cellcolor{gray!10}{2.000} & \cellcolor{gray!10}{0.290} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
 Economic &  &  &  & GPT-4o mini & 0.225 & 0.047 &  &  & \\
 \addlinespace
-\cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-5 mini (high reasoning)} & \cellcolor{gray!10}{0.147} & \cellcolor{gray!10}{0.006} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
-Economic &  &  &  & GPT-5 mini (high reasoning) &  &  &  &  & \\
+\cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-5 mini (minimal reasoning)} & \cellcolor{gray!10}{0.167} & \cellcolor{gray!10}{0.036} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
+Economic &  &  &  & GPT-5 mini (minimal reasoning) & 0.083 & 0.019 &  &  & \\
 \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{0.138} & \cellcolor{gray!10}{0.010} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
 Economic &  &  &  & GPT-5 mini (medium reasoning) &  &  &  &  & \\
-\cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-5 mini (minimal reasoning)} & \cellcolor{gray!10}{0.167} & \cellcolor{gray!10}{0.036} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
+\cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{GPT-5 mini (high reasoning)} & \cellcolor{gray!10}{0.147} & \cellcolor{gray!10}{0.006} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
 \addlinespace
-Economic &  &  &  & GPT-5 mini (minimal reasoning) & 0.083 & 0.019 &  &  & \\
+Economic &  &  &  & GPT-5 mini (high reasoning) &  &  &  &  & \\
 \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{Mistral Medium} & \cellcolor{gray!10}{1.014} & \cellcolor{gray!10}{0.108} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
 Economic &  &  &  & Mistral Medium & 0.486 & 0.065 &  &  & \\
 \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{Qwen-plus} & \cellcolor{gray!10}{0.364} & \cellcolor{gray!10}{0.057} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{}\\
@@ -310,6 +323,8 @@ Taken together, these results suggest that LLMs can show some sensitivity to Web
 
 \subsubsection{Experiment 3}\label{experiment-3}
 
+In Experiment 3, participants had to choose between two options. In Experiment 3a, one option had a higher \emph{beneficiary:victim} Weber ratio and a higher number of victims (i.e., harm), while the other had a lower \emph{beneficiary:victim} Weber ratio and also lower harm. In Experiment 3b, we similarly pitted Weber ratios against utility. In moral situations, humans prefer to maximize Weber ratios over minimizing harm or maximizing utility. In economic situations, in contrast, they still prioritize Weber ratios over harm, but prioritize utility over Weber ratios.
+
 \paragraph{Frontier models}\label{frontier-models-1}
 
 \begin{figure}
@@ -323,39 +338,64 @@ Taken together, these results suggest that LLMs can show some sensitivity to Web
 
 \begin{figure}
 
-{\centering \includegraphics[width=\textwidth,keepaspectratio]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp2-joint-preference-plot-1} 
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp3-moral-economic-1} 
 
 }
 
-\caption{Joint preference ratings in Experiment 3 for each model and condition. The x-axis shows the mean preference rating in Experiment 3a (ratio vs. harm); the y-axis shows the mean rating in Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\% CIs. Background colours indicate the quadrant: top-right (blue) = ratio preferred in both experiments, the human-like pattern. Colour and shape distinguish humans (red diamond), frontier models (dark circles), and local models (teal triangles). Quadrant labels are placed in the margins.}\label{fig:plot-llm-exp2-joint-preference-plot}
+\caption{Preference for the high-ratio option in moral dilemmas (y-axis) and economic dilemmas (x-axis) in Experiment 3a (ratio vs. harm) and Experiment 3b (ratio vs. utility), for humans, frontier models and local models. Both axes use a 1--6 scale where 3.5 indicates no preference; error bars show 95\% CIs. Points on the diagonal show the same preference in moral and economic dilemmas; points above the diagonal prefer the high-ratio option more in moral than in economic dilemmas. The blue frame marks the quadrant of the human participants. Figure \ref{fig:plot-llm-exp3-moral-economic-labels} shows the results of Experiment 3b with model labels, and Figure \ref{fig:plot-llm-exp3-moral-economic-by-order} shows the results separately for the two option orders.}\label{fig:plot-llm-exp3-moral-economic}
 \end{figure}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp2-joint-preference-plot-no-labels-1} 
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp3-moral-economic-labels-1} 
 
 }
 
-\caption{Joint preference ratings in Experiment 3 for each model and condition. The x-axis shows the mean preference rating in Experiment 3a (ratio vs. harm); the y-axis shows the mean rating in Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\% CIs. Background colours indicate the quadrant: top-right (blue) = ratio preferred in both experiments, the human-like pattern. Colour and shape distinguish humans (red diamond), frontier models (dark circles), and local models (teal triangles). Quadrant labels are placed in the margins. REMOVE THIS, THIS IS SUPPOSED TO BE INCLUDED ONLY IN THE MAIN TEXT}\label{fig:plot-llm-exp2-joint-preference-plot-no-labels}
+\caption{Preference for the high-ratio option in moral dilemmas (y-axis) and economic dilemmas (x-axis) in Experiment 3b (ratio vs. utility), with model labels. Both axes use a 1--6 scale where 3.5 indicates no preference; error bars show 95\% CIs. Points above the diagonal prefer the high-ratio option more in moral than in economic dilemmas. The blue frame marks the quadrant of the human participants.}\label{fig:plot-llm-exp3-moral-economic-labels}
 \end{figure}
 
-In Experiment 3, participants had to choose between two options. In Experiment 3a, one option had a higher \emph{beneficiary:victim} Weber ratio and a higher number of victims (i.e., harm), while the other had a lower \emph{beneficiary:victim} Weber ratio and also lower harm. In Experiment 3b, we similarly pitted Weber ratios against utility. In moral situations, humans prefer to maximize Weber ratios over minimizing harm or maximizing utility. In economic situations, in contrast, they still prioritize Weber ratios over harm, but prioritize utility over Weber ratios.
+\begin{figure}
 
-The results from the LLM simulations are shown in Figures \ref{fig:plot-llm-results-exp2-forest} and \ref{fig:plot-llm-exp2-joint-preference-prepare} (see Table \ref{tab:print-exp2-descriptives-print-details} for detailed results). When pitting Weber ratios against harm in moral situations, four of the frontier models prioritized Weber ratios, four prioritized minimizing harm, while two had no preference. In economic situations, six of the LLMs prioritized Weber ratios, three prioritized minimizing harm, while one had no preference. Thus, only 4 out of 10 models reproduced the human pattern of results in moral situations, and 6 out of 10 in economic situations.
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp3-moral-economic-by-order-1} 
 
-When pitting Weber ratios against utility, eight models prioritized utility in moral situations while two prioritized Weber ratios. In economic situations, all models prioritized utility. Both humans and LLMs thus prioritized utility in economic situations. In contrast, in moral situations, all but two models (Claude-Sonnet 4.5 and Mistral Medium) showed a qualitatively different behavior from humans, and prioritized utility over Weber ratio. However, neither Claude-Sonnet 4.5 nor Mistral Medium showed a preference for Weber ratio over harm, suggesting that they did not account for the human pattern of results either.
+}
 
-In other words, while some models showed a preference for Weber ratios over harm and some a preference for Weber ratios over utility, no model reproduced the human pattern of results.
+\caption{Preference for the high-ratio option in moral dilemmas (y-axis) and economic dilemmas (x-axis) in Experiment 3a (ratio vs. harm) and Experiment 3b (ratio vs. utility), for humans, frontier models and local models, separately for (simulated) participants for whom the high-ratio option was presented first (Option A; top) and second (Option B; bottom). Both axes use a 1--6 scale where 3.5 indicates no preference; error bars show 95\% CIs. Points on the diagonal show the same preference in moral and economic dilemmas; points above the diagonal prefer the high-ratio option more in moral than in economic dilemmas. The blue frame marks the quadrant of the human participants.}\label{fig:plot-llm-exp3-moral-economic-by-order}
+\end{figure}
 
-\begin{longtable}[t]{llrrll}
-\caption{\label{tab:print-exp2-descriptives-print-details}Detailed results from Experiment 3. Mean ratings (\emph{M}) with standard errors (\emph{SE}) are shown on a 1-6 scale, where values greater than 3.5 indicate preference for the high Weber ratio option and values smaller 3.5 indicate preference for the alternative option (low harm in Experiment 3a, high utility in Experiment 3b). The p-value tests whether the mean differs from 3.5 (no preference). The \emph{favoring} column indicates which option was significantly preferred. }\\
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp3-moral-economic-labels-high-ratio-first-1} 
+
+}
+
+\caption{As Figure \ref{fig:plot-llm-exp3-moral-economic-labels}, but only for (simulated) participants for whom the high-ratio option was presented first (Option A).}\label{fig:plot-llm-exp3-moral-economic-labels-high-ratio-first}
+\end{figure}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_files/figure-latex/plot-llm-exp3-moral-economic-labels-high-ratio-second-1} 
+
+}
+
+\caption{As Figure \ref{fig:plot-llm-exp3-moral-economic-labels}, but only for (simulated) participants for whom the high-ratio option was presented second (Option B).}\label{fig:plot-llm-exp3-moral-economic-labels-high-ratio-second}
+\end{figure}
+
+\begingroup\fontsize{7}{9}\selectfont
+
+\begin{longtable}[t]{lllllll}
+\caption{\label{tab:llm-exp3-order-effects-print}Effects of condition (moral vs. economic), option order (high-ratio option presented first vs. second) and their interaction on the preference for the high-ratio option (raw ratings, 1-6), separately for each experiment and model. Linear mixed models with random intercepts for (simulated) participants and scenarios. Estimates [95\% CI] use sum coding, i.e., they are half the difference between the levels; positive estimates indicate a stronger preference for the high-ratio option in moral than in economic dilemmas (condition), and when the high-ratio option was presented first (order). For the LLMs, condition and option order are between simulated participants; for humans, condition is within participants.}\\
 \toprule
-\textbf{Model} & \textbf{Condition} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring}\\
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{Condition} & \multicolumn{2}{c}{Option order} & \multicolumn{2}{c}{Condition x option order} \\
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-7}
+Model & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$\\
 \midrule
 \endfirsthead
-\caption[]{\label{tab:print-exp2-descriptives-print-details}Detailed results from Experiment 3. Mean ratings (\emph{M}) with standard errors (\emph{SE}) are shown on a 1-6 scale, where values greater than 3.5 indicate preference for the high Weber ratio option and values smaller 3.5 indicate preference for the alternative option (low harm in Experiment 3a, high utility in Experiment 3b). The p-value tests whether the mean differs from 3.5 (no preference). The \emph{favoring} column indicates which option was significantly preferred.  \textit{(continued)}}\\
+\caption[]{\label{tab:llm-exp3-order-effects-print}Effects of condition (moral vs. economic), option order (high-ratio option presented first vs. second) and their interaction on the preference for the high-ratio option (raw ratings, 1-6), separately for each experiment and model. Linear mixed models with random intercepts for (simulated) participants and scenarios. Estimates [95\% CI] use sum coding, i.e., they are half the difference between the levels; positive estimates indicate a stronger preference for the high-ratio option in moral than in economic dilemmas (condition), and when the high-ratio option was presented first (order). For the LLMs, condition and option order are between simulated participants; for humans, condition is within participants. \textit{(continued)}}\\
 \toprule
-\textbf{Model} & \textbf{Condition} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring}\\
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{Condition} & \multicolumn{2}{c}{Option order} & \multicolumn{2}{c}{Condition x option order} \\
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5} \cmidrule(l{3pt}r{3pt}){6-7}
+Model & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$\\
 \midrule
 \endhead
 
@@ -363,74 +403,238 @@ In other words, while some models showed a preference for Weber ratios over harm
 \bottomrule
 \endlastfoot
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Humans - Exp. 3a\\(Ratio vs. harm)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.43} & \cellcolor{gray!10}{0.115} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Humans & Economic & 4.98 & 0.091 & <0.001 & Ratios\\
+\multicolumn{7}{l}{\textbf{Exp. 3a}}\\
+\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{-0.27 [-0.33, -0.22]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.04 [-0.22, 0.13]} & \cellcolor{gray!10}{0.643} & \cellcolor{gray!10}{-0.01 [-0.06, 0.05]} & \cellcolor{gray!10}{0.827}\\
+\hspace{1em}Claude Sonnet 5.5 (low reasoning) & -0.14 [-0.17, -0.10] & $<$.001 & -0.09 [-0.13, -0.06] & $<$.001 & 0.02 [-0.02, 0.06] & 0.387\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (medium reasoning)} & \cellcolor{gray!10}{-0.13 [-0.17, -0.09]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.12 [-0.16, -0.08]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.03 [-0.01, 0.07]} & \cellcolor{gray!10}{0.127}\\
+\hspace{1em}Claude Sonnet 5.5 (high reasoning) & -0.16 [-0.19, -0.13] & $<$.001 & -0.07 [-0.10, -0.04] & $<$.001 & -0.10 [-0.13, -0.06] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (no reasoning)} & \cellcolor{gray!10}{0.03 [-0.01, 0.08]} & \cellcolor{gray!10}{0.160} & \cellcolor{gray!10}{-0.03 [-0.08, 0.02]} & \cellcolor{gray!10}{0.207} & \cellcolor{gray!10}{0.04 [-0.01, 0.09]} & \cellcolor{gray!10}{0.091}\\
+\hspace{1em}Deepseek flash (medium reasoning) & 0.00 [-0.01, 0.00] & 0.052 & 0.00 [0.00, 0.00] & 0.436 & 0.00 [0.00, 0.01] & 0.243\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (high reasoning)} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.666} & \cellcolor{gray!10}{0.00 [0.00, 0.01]} & \cellcolor{gray!10}{0.113} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.113}\\
+\hspace{1em}Gemini 3.8 flash (low reasoning) & 0.01 [0.01, 0.01] & $<$.001 & -0.01 [-0.01, 0.00] & 0.014 & 0.01 [0.00, 0.01] & 0.014\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (medium reasoning)} & \cellcolor{gray!10}{0.02 [0.01, 0.03]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.01 [-0.01, 0.00]} & \cellcolor{gray!10}{0.176} & \cellcolor{gray!10}{0.01 [0.00, 0.01]} & \cellcolor{gray!10}{0.175}\\
+\hspace{1em}Gemini 3.8 flash (high reasoning) & 0.02 [0.01, 0.02] & $<$.001 & 0.00 [-0.01, 0.00] & 0.251 & 0.00 [0.00, 0.01] & 0.245\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (low reasoning)} & \cellcolor{gray!10}{-0.01 [-0.04, 0.01]} & \cellcolor{gray!10}{0.308} & \cellcolor{gray!10}{-0.04 [-0.06, -0.01]} & \cellcolor{gray!10}{0.005} & \cellcolor{gray!10}{-0.01 [-0.04, 0.01]} & \cellcolor{gray!10}{0.283}\\
+\hspace{1em}GPT-6 luna (medium reasoning) & 0.00 [0.00, 0.00] & 0.433 & 0.00 [0.00, 0.00] & 0.433 & 0.00 [0.00, 0.01] & 0.239\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (high reasoning)} & \cellcolor{gray!10}{0.00 [0.00, 0.00]} & \cellcolor{gray!10}{0.317} & \cellcolor{gray!10}{0.00 [0.00, 0.00]} & \cellcolor{gray!10}{0.317} & \cellcolor{gray!10}{0.00 [0.00, 0.00]} & \cellcolor{gray!10}{0.317}\\
+\hspace{1em}Llama 3.2 (3.2B) & 0.00 [-0.04, 0.05] & 0.899 & 0.39 [0.34, 0.44] & $<$.001 & 0.03 [-0.01, 0.08] & 0.170\\
+\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{-0.20 [-0.25, -0.16]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-1.26 [-1.31, -1.21]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.39 [-0.44, -0.34]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Mistral Medium 3.5 & -0.10 [-0.18, -0.02] & 0.020 & -0.82 [-0.90, -0.73] & $<$.001 & 0.08 [0.00, 0.17] & 0.045\\
+\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{0.00 [-0.02, 0.02]} & \cellcolor{gray!10}{0.936} & \cellcolor{gray!10}{0.27 [0.25, 0.28]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.12 [-0.14, -0.11]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Qwen3.7-plus (no reasoning) & 0.01 [0.00, 0.03] & 0.027 & -0.03 [-0.04, -0.01] & $<$.001 & 0.01 [0.00, 0.03] & 0.027\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (reasoning)} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.336} & \cellcolor{gray!10}{0.00 [0.00, 0.01]} & \cellcolor{gray!10}{0.680} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.680}\\
 \addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Frontier models - Exp. 3a\\(Ratio vs. harm)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 4.5} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.31} & \cellcolor{gray!10}{0.098} & \cellcolor{gray!10}{0.714} & \cellcolor{gray!10}{}\\
-\hspace{1em}Deepseek & Moral & 4.88 & 0.179 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}Gemini 2.5 flash} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{2.94} & \cellcolor{gray!10}{0.188} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}GPT-4.1 mini & Moral & 4.64 & 0.047 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}GPT-4o mini} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{2.63} & \cellcolor{gray!10}{0.048} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}GPT-5 mini (high reasoning) & Moral & 5.76 & 0.093 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.57} & \cellcolor{gray!10}{0.119} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}GPT-5 mini (minimal reasoning) & Moral & 1.25 & 0.062 & <0.001 & Harm\\
-\cellcolor{gray!10}{\hspace{1em}Mistral Medium} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.51} & \cellcolor{gray!10}{0.040} & \cellcolor{gray!10}{0.836} & \cellcolor{gray!10}{}\\
-\hspace{1em}Qwen-plus & Moral & 2.12 & 0.163 & <0.001 & Harm\\
-\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 4.5} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{4.94} & \cellcolor{gray!10}{0.155} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Deepseek & Economic & 5.87 & 0.018 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}Gemini 2.5 flash} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{3.95} & \cellcolor{gray!10}{0.203} & \cellcolor{gray!10}{0.448} & \cellcolor{gray!10}{}\\
-\hspace{1em}GPT-4.1 mini & Economic & 5.26 & 0.030 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}GPT-4o mini} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{2.47} & \cellcolor{gray!10}{0.017} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}GPT-5 mini (high reasoning) & Economic & 5.75 & 0.099 & <0.001 & Ratios\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{5.53} & \cellcolor{gray!10}{0.132} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}GPT-5 mini (minimal reasoning) & Economic & 2.35 & 0.137 & <0.001 & Harm\\
-\cellcolor{gray!10}{\hspace{1em}Mistral Medium} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{3.32} & \cellcolor{gray!10}{0.044} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}Qwen-plus & Economic & 4.61 & 0.182 & 0.009 & Ratios\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Local models - Exp. 3a\\(Ratio vs. harm)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.41} & \cellcolor{gray!10}{0.094} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Mistral (7.2B) & Moral & 1.61 & 0.024 & <0.001 & Harm\\
-\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.46} & \cellcolor{gray!10}{0.010} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}Llama 3.2 (3.2B) & Economic & 3.50 & 0.043 & 0.123 & \\
-\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{1.51} & \cellcolor{gray!10}{0.021} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
-\hspace{1em}Mistral nemo (12.2B) & Economic & 3.48 & 0.010 & 0.125 & \\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Humans - Exp. 3b\\(Ratio vs. utility)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.91} & \cellcolor{gray!10}{0.101} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Humans & Economic & 3.28 & 0.099 & 0.033 & Utility\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Frontier models - Exp. 3b\\(Ratio vs. utility)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 4.5} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.18} & \cellcolor{gray!10}{0.075} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Deepseek & Moral & 1.00 & 0.000 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Gemini 2.5 flash} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{2.53} & \cellcolor{gray!10}{0.169} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-4.1 mini & Moral & 2.16 & 0.068 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}GPT-4o mini} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.12} & \cellcolor{gray!10}{0.059} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-5 mini (high reasoning) & Moral & 1.70 & 0.143 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.28} & \cellcolor{gray!10}{0.066} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-5 mini (minimal reasoning) & Moral & 1.14 & 0.050 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Mistral Medium} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.69} & \cellcolor{gray!10}{0.028} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
-\hspace{1em}Qwen-plus & Moral & 2.44 & 0.143 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 4.5} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{2.47} & \cellcolor{gray!10}{0.128} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}Deepseek & Economic & 1.00 & 0.000 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Gemini 2.5 flash} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{2.40} & \cellcolor{gray!10}{0.144} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-4.1 mini & Economic & 2.38 & 0.129 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}GPT-4o mini} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{2.44} & \cellcolor{gray!10}{0.041} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-5 mini (high reasoning) & Economic & 1.61 & 0.122 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{1.23} & \cellcolor{gray!10}{0.037} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}GPT-5 mini (minimal reasoning) & Economic & 1.42 & 0.070 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Mistral Medium} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{3.11} & \cellcolor{gray!10}{0.024} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}Qwen-plus & Economic & 2.16 & 0.139 & <0.001 & Utility\\
-\addlinespace[0.3em]
-\multicolumn{6}{l}{\textbf{\makecell[l]{Local models - Exp. 3b\\(Ratio vs. utility)}}}\\
-\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.42} & \cellcolor{gray!10}{0.053} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}Mistral (7.2B) & Moral & 1.52 & 0.015 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.06} & \cellcolor{gray!10}{0.013} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}Llama 3.2 (3.2B) & Economic & 3.13 & 0.035 & <0.001 & Utility\\
-\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{1.56} & \cellcolor{gray!10}{0.015} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
-\hspace{1em}Mistral nemo (12.2B) & Economic & 3.01 & 0.013 & <0.001 & Utility\\*
+\multicolumn{7}{l}{\textbf{Exp. 3b}}\\
+\hspace{1em}Humans & 0.32 [0.27, 0.36] & $<$.001 & -0.04 [-0.22, 0.13] & 0.640 & 0.03 [-0.02, 0.08] & 0.225\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (low reasoning)} & \cellcolor{gray!10}{0.22 [0.16, 0.29]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.45 [0.39, 0.52]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.17 [0.10, 0.23]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Claude Sonnet 5.5 (medium reasoning) & 0.24 [0.18, 0.31] & $<$.001 & 0.37 [0.30, 0.44] & $<$.001 & 0.10 [0.03, 0.16] & 0.006\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (high reasoning)} & \cellcolor{gray!10}{0.15 [0.09, 0.21]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.29 [0.23, 0.35]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.09 [0.03, 0.15]} & \cellcolor{gray!10}{0.004}\\
+\hspace{1em}Deepseek flash (no reasoning) & 0.12 [-0.08, 0.33] & 0.230 & -0.02 [-0.22, 0.18] & 0.824 & -0.59 [-0.79, -0.39] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (medium reasoning)} & \cellcolor{gray!10}{0.07 [-0.16, 0.31]} & \cellcolor{gray!10}{0.535} & \cellcolor{gray!10}{0.53 [0.30, 0.77]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.03 [-0.20, 0.27]} & \cellcolor{gray!10}{0.776}\\
+\hspace{1em}Deepseek flash (high reasoning) & 0.22 [-0.01, 0.46] & 0.065 & 0.57 [0.33, 0.80] & $<$.001 & 0.07 [-0.17, 0.30] & 0.570\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (low reasoning)} & \cellcolor{gray!10}{-0.04 [-0.08, -0.01]} & \cellcolor{gray!10}{0.013} & \cellcolor{gray!10}{0.05 [0.02, 0.09]} & \cellcolor{gray!10}{0.004} & \cellcolor{gray!10}{0.00 [-0.04, 0.03]} & \cellcolor{gray!10}{0.866}\\
+\hspace{1em}Gemini 3.8 flash (medium reasoning) & -0.04 [-0.08, 0.00] & 0.069 & 0.10 [0.06, 0.14] & $<$.001 & -0.03 [-0.07, 0.01] & 0.142\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (high reasoning)} & \cellcolor{gray!10}{-0.15 [-0.22, -0.08]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.17 [0.10, 0.24]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.12 [-0.19, -0.06]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}GPT-6 luna (low reasoning) & 0.27 [0.12, 0.43] & $<$.001 & -0.39 [-0.55, -0.24] & $<$.001 & -0.11 [-0.27, 0.04] & 0.153\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (medium reasoning)} & \cellcolor{gray!10}{0.17 [0.07, 0.28]} & \cellcolor{gray!10}{0.002} & \cellcolor{gray!10}{-0.09 [-0.20, 0.02]} & \cellcolor{gray!10}{0.092} & \cellcolor{gray!10}{-0.01 [-0.12, 0.10]} & \cellcolor{gray!10}{0.804}\\
+\hspace{1em}GPT-6 luna (high reasoning) & 0.25 [0.11, 0.38] & $<$.001 & -0.15 [-0.28, -0.01] & 0.032 & -0.04 [-0.18, 0.09] & 0.535\\
+\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{0.01 [-0.04, 0.06]} & \cellcolor{gray!10}{0.820} & \cellcolor{gray!10}{0.39 [0.34, 0.44]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.03 [-0.02, 0.08]} & \cellcolor{gray!10}{0.289}\\
+\hspace{1em}Mistral (7.2B) & 0.04 [0.00, 0.09] & 0.042 & -1.50 [-1.54, -1.45] & $<$.001 & -0.43 [-0.47, -0.39] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Mistral Medium 3.5} & \cellcolor{gray!10}{0.07 [0.03, 0.11]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.61 [-0.65, -0.57]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.08 [0.04, 0.12]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Mistral nemo (12.2B) & -0.01 [-0.04, 0.01] & 0.146 & 0.16 [0.14, 0.19] & $<$.001 & -0.14 [-0.16, -0.12] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (no reasoning)} & \cellcolor{gray!10}{0.09 [-0.17, 0.34]} & \cellcolor{gray!10}{0.499} & \cellcolor{gray!10}{0.28 [0.02, 0.53]} & \cellcolor{gray!10}{0.032} & \cellcolor{gray!10}{-0.07 [-0.32, 0.18]} & \cellcolor{gray!10}{0.580}\\
+\hspace{1em}Qwen3.7-plus (reasoning) & 0.67 [0.46, 0.88] & $<$.001 & 0.42 [0.21, 0.63] & $<$.001 & 0.03 [-0.18, 0.24] & 0.785\\*
 \end{longtable}
+\endgroup{}
+
+\begingroup\fontsize{7}{9}\selectfont
+
+\begin{longtable}[t]{lllll}
+\caption{\label{tab:llm-exp3-condition-effects-by-order-print}Effect of condition (moral vs. economic) on the preference for the high-ratio option (raw ratings, 1-6), separately for each experiment, model and option order (high-ratio option presented first, i.e., as Option A, or second, i.e., as Option B). Linear mixed models with random intercepts for (simulated) participants and scenarios. Estimates [95\% CI] use sum coding, i.e., they are half the difference between the conditions; positive estimates indicate a stronger preference for the high-ratio option in moral than in economic dilemmas.}\\
+\toprule
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{High-ratio option first} & \multicolumn{2}{c}{High-ratio option second} \\
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
+Model & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:llm-exp3-condition-effects-by-order-print}Effect of condition (moral vs. economic) on the preference for the high-ratio option (raw ratings, 1-6), separately for each experiment, model and option order (high-ratio option presented first, i.e., as Option A, or second, i.e., as Option B). Linear mixed models with random intercepts for (simulated) participants and scenarios. Estimates [95\% CI] use sum coding, i.e., they are half the difference between the conditions; positive estimates indicate a stronger preference for the high-ratio option in moral than in economic dilemmas. \textit{(continued)}}\\
+\toprule
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{High-ratio option first} & \multicolumn{2}{c}{High-ratio option second} \\
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
+Model & Estimate [95\% CI] & $p$ & Estimate [95\% CI] & $p$\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Exp. 3a}}\\
+\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{-0.28 [-0.36, -0.20]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.27 [-0.34, -0.20]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Claude Sonnet 5.5 (low reasoning) & -0.12 [-0.18, -0.06] & $<$.001 & -0.15 [-0.20, -0.10] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (medium reasoning)} & \cellcolor{gray!10}{-0.10 [-0.16, -0.03]} & \cellcolor{gray!10}{0.002} & \cellcolor{gray!10}{-0.16 [-0.21, -0.11]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Claude Sonnet 5.5 (high reasoning) & -0.25 [-0.30, -0.21] & $<$.001 & -0.06 [-0.11, -0.02] & 0.007\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (no reasoning)} & \cellcolor{gray!10}{0.08 [0.04, 0.11]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.01 [-0.09, 0.08]} & \cellcolor{gray!10}{0.876}\\
+\hspace{1em}Deepseek flash (medium reasoning) & 0.00 [0.00, 0.00] & 0.410 & -0.01 [-0.01, 0.00] & 0.080\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (high reasoning)} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.177} & \cellcolor{gray!10}{0.00 [0.00, 0.01]} & \cellcolor{gray!10}{0.389}\\
+\hspace{1em}Gemini 3.8 flash (low reasoning) & 0.02 [0.01, 0.02] & $<$.001 & 0.00 [0.00, 0.01] & 0.012\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (medium reasoning)} & \cellcolor{gray!10}{0.02 [0.01, 0.04]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.01 [0.01, 0.02]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Gemini 3.8 flash (high reasoning) & 0.02 [0.01, 0.03] & $<$.001 & 0.01 [0.01, 0.02] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (low reasoning)} & \cellcolor{gray!10}{-0.03 [-0.07, 0.01]} & \cellcolor{gray!10}{0.192} & \cellcolor{gray!10}{0.00 [-0.03, 0.03]} & \cellcolor{gray!10}{0.964}\\
+\hspace{1em}GPT-6 luna (medium reasoning) & 0.00 [0.00, 0.01] & 0.317 & 0.00 [0.00, 0.00] & 0.317\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (high reasoning)} & \cellcolor{gray!10}{0.00 [0.00, 0.00]} & \cellcolor{gray!10}{0.317} & \cellcolor{gray!10}{0.00 [0.00, 0.00]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Llama 3.2 (3.2B) & 0.04 [-0.02, 0.09] & 0.188 & -0.03 [-0.09, 0.03] & 0.331\\
+\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{-0.59 [-0.68, -0.51]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.19 [0.14, 0.23]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Mistral Medium 3.5 & -0.01 [-0.16, 0.13] & 0.858 & -0.18 [-0.26, -0.10] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{-0.13 [-0.15, -0.10]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.12 [0.10, 0.15]} & \cellcolor{gray!10}{$<$.001}\\
+\hspace{1em}Qwen3.7-plus (no reasoning) & 0.03 [0.00, 0.06] & 0.027 & 0.00 [0.00, 0.00] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (reasoning)} & \cellcolor{gray!10}{0.00 [-0.01, 0.00]} & \cellcolor{gray!10}{0.317} & \cellcolor{gray!10}{0.00 [-0.01, 0.01]} & \cellcolor{gray!10}{0.705}\\
+\addlinespace[0.3em]
+\multicolumn{5}{l}{\textbf{Exp. 3b}}\\
+\hspace{1em}Humans & 0.35 [0.28, 0.41] & $<$.001 & 0.29 [0.22, 0.35] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (low reasoning)} & \cellcolor{gray!10}{0.39 [0.30, 0.48]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.05 [-0.04, 0.15]} & \cellcolor{gray!10}{0.264}\\
+\hspace{1em}Claude Sonnet 5.5 (medium reasoning) & 0.34 [0.24, 0.44] & $<$.001 & 0.15 [0.05, 0.24] & 0.002\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (high reasoning)} & \cellcolor{gray!10}{0.24 [0.15, 0.33]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{0.07 [-0.01, 0.14]} & \cellcolor{gray!10}{0.074}\\
+\hspace{1em}Deepseek flash (no reasoning) & -0.47 [-0.76, -0.18] & 0.001 & 0.72 [0.43, 1.00] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (medium reasoning)} & \cellcolor{gray!10}{0.11 [-0.25, 0.47]} & \cellcolor{gray!10}{0.554} & \cellcolor{gray!10}{0.04 [-0.26, 0.34]} & \cellcolor{gray!10}{0.794}\\
+\hspace{1em}Deepseek flash (high reasoning) & 0.29 [-0.06, 0.64] & 0.105 & 0.15 [-0.16, 0.47] & 0.339\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (low reasoning)} & \cellcolor{gray!10}{-0.05 [-0.10, 0.01]} & \cellcolor{gray!10}{0.109} & \cellcolor{gray!10}{-0.04 [-0.08, 0.00]} & \cellcolor{gray!10}{0.037}\\
+\hspace{1em}Gemini 3.8 flash (medium reasoning) & -0.07 [-0.14, 0.01] & 0.091 & -0.01 [-0.03, 0.01] & 0.465\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (high reasoning)} & \cellcolor{gray!10}{-0.28 [-0.41, -0.14]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.03 [-0.05, -0.01]} & \cellcolor{gray!10}{0.002}\\
+\hspace{1em}GPT-6 luna (low reasoning) & 0.16 [0.00, 0.32] & 0.053 & 0.38 [0.12, 0.65] & 0.005\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (medium reasoning)} & \cellcolor{gray!10}{0.16 [0.03, 0.29]} & \cellcolor{gray!10}{0.013} & \cellcolor{gray!10}{0.19 [0.01, 0.37]} & \cellcolor{gray!10}{0.039}\\
+\hspace{1em}GPT-6 luna (high reasoning) & 0.21 [0.04, 0.37] & 0.012 & 0.29 [0.08, 0.50] & 0.008\\
+\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{0.03 [-0.03, 0.10]} & \cellcolor{gray!10}{0.305} & \cellcolor{gray!10}{-0.02 [-0.08, 0.04]} & \cellcolor{gray!10}{0.499}\\
+\hspace{1em}Mistral (7.2B) & -0.39 [-0.44, -0.33] & $<$.001 & 0.48 [0.42, 0.53] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Mistral Medium 3.5} & \cellcolor{gray!10}{0.15 [0.08, 0.22]} & \cellcolor{gray!10}{$<$.001} & \cellcolor{gray!10}{-0.01 [-0.04, 0.01]} & \cellcolor{gray!10}{0.307}\\
+\hspace{1em}Mistral nemo (12.2B) & -0.16 [-0.19, -0.13] & $<$.001 & 0.13 [0.10, 0.15] & $<$.001\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (no reasoning)} & \cellcolor{gray!10}{0.02 [-0.37, 0.40]} & \cellcolor{gray!10}{0.935} & \cellcolor{gray!10}{0.16 [-0.17, 0.49]} & \cellcolor{gray!10}{0.345}\\
+\hspace{1em}Qwen3.7-plus (reasoning) & 0.70 [0.39, 1.00] & $<$.001 & 0.64 [0.34, 0.93] & $<$.001\\*
+\end{longtable}
+\endgroup{}
+
+The results from the LLM simulations are shown in Figures \ref{fig:plot-llm-results-exp2-forest} and \ref{fig:plot-llm-exp3-moral-economic} (see Table \ref{tab:print-exp2-descriptives-print-details} for detailed results). In Experiment 3a (where we pitted Weber ratios against harm), the frontier models reproduced the human pattern. Like humans, they preferred the option with the higher \emph{beneficiary:victim} ratio over the option with the lower harm in both moral and economic situations, and they did so irrespective of the order of the options (with the exception of Mistral Medium 3.5, which preferred the high-ratio option only when it was presented as the second option; Table \ref{tab:print-exp2-descriptives-print-details}). However, while humans preferred the high-ratio option even more in economic than in moral situations, many models did not reproduce this increase (DeepSeek Flash and GPT-6 luna at all reasoning levels, Qwen3.7-plus with reasoning) or even showed a slightly increased ratio preference in the moral condition (Gemini 3.8 Flash at all reasoning levels, Qwen3.7-plus without reasoning; Table \ref{tab:llm-exp3-order-effects-print}).
+
+In Experiment 3b (where we pitted Weber ratios against utility), humans preferred the high-ratio option in moral situations, but the high-utility option in economic situations. This difference between moral and economic situations was found in both option orders (Table \ref{tab:llm-exp3-condition-effects-by-order-print}). Only one model, Qwen3.7-plus with reasoning, reproduced this pattern. It preferred utility in economic situations and the high-ratio option in moral situations. The difference between moral and economic situations was reliable in both option orders. (When the high-ratio option was presented first, its preference for utility in economic situations was only marginally significant, \emph{p} = .051.) Without reasoning, Qwen3.7-plus preferred utility in both moral and economic situations.
+
+None of the other models reproduced the human pattern, although some models showed a greater ratio preference in the moral than in the economic condition (Claude Sonnet 5.5 and GPT-6 luna at all reasoning levels; Table \ref{tab:llm-exp3-condition-effects-by-order-print}), even though this tendency was only marginal or not significant in some option orders. To the extent that the frontier models showed preferences that were consistent across the option orders, they preferred utility over \emph{beneficiary:victim} ratios in both moral and economic situations (e.g., GPT-6 luna and Gemini 3.8 Flash at all reasoning levels, Qwen3.7-plus without reasoning, though the latter results were marginal when the high-ratio option was presented second); no frontier model consistently preferred the high-ratio option in both option orders (Table \ref{tab:print-exp2-descriptives-print-details} and Figure \ref{fig:plot-llm-exp3-moral-economic-by-order}). The preferences of the other frontier models depended strongly on the option order.
+
+\begin{landscape}\begingroup\fontsize{7}{9}\selectfont
+
+\begin{longtable}[t]{llrrllrrllrrll}
+\caption{\label{tab:print-exp2-descriptives-print-details}Detailed results from Experiment 3, pooled across option orders (\emph{Combined orders}) and separately for (simulated) participants for whom the high-ratio option was presented first (Option A) or second (Option B). Mean ratings (\emph{M}) with standard errors (\emph{SE}) are shown on a 1-6 scale, where values greater than 3.5 indicate preference for the high Weber ratio option and values smaller 3.5 indicate preference for the alternative option (low harm in Experiment 3a, high utility in Experiment 3b). The p-value tests whether the mean differs from 3.5 (no preference). The \emph{favoring} column indicates which option was significantly preferred.}\\
+\toprule
+\multicolumn{2}{c}{ } & \multicolumn{4}{c}{Combined orders} & \multicolumn{4}{c}{High-ratio option first} & \multicolumn{4}{c}{High-ratio option second} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10} \cmidrule(l{3pt}r{3pt}){11-14}
+\textbf{Model} & \textbf{Condition} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring}\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:print-exp2-descriptives-print-details}Detailed results from Experiment 3, pooled across option orders (\emph{Combined orders}) and separately for (simulated) participants for whom the high-ratio option was presented first (Option A) or second (Option B). Mean ratings (\emph{M}) with standard errors (\emph{SE}) are shown on a 1-6 scale, where values greater than 3.5 indicate preference for the high Weber ratio option and values smaller 3.5 indicate preference for the alternative option (low harm in Experiment 3a, high utility in Experiment 3b). The p-value tests whether the mean differs from 3.5 (no preference). The \emph{favoring} column indicates which option was significantly preferred. \textit{(continued)}}\\
+\toprule
+\multicolumn{2}{c}{ } & \multicolumn{4}{c}{Combined orders} & \multicolumn{4}{c}{High-ratio option first} & \multicolumn{4}{c}{High-ratio option second} \\
+\cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-10} \cmidrule(l{3pt}r{3pt}){11-14}
+\textbf{Model} & \textbf{Condition} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring} & \textbf{\textit{M}} & \textbf{\textit{SE}} & \textbf{\textit{p}} & \textbf{Favoring}\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Humans - Exp. 3a\\(Ratio vs. harm)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.43} & \cellcolor{gray!10}{0.11} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.38} & \cellcolor{gray!10}{0.18} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.48} & \cellcolor{gray!10}{0.15} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Humans & Economic & 4.98 & 0.09 & <0.001 & Ratios & 4.94 & 0.14 & <0.001 & Ratios & 5.01 & 0.12 & <0.001 & Ratios\\
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Frontier models - Exp. 3a\\(Ratio vs. harm)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.40} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.32} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.47} & \cellcolor{gray!10}{0.05} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Claude Sonnet 5.5 (low reasoning) & Economic & 5.67 & 0.03 & <0.001 & Ratios & 5.56 & 0.04 & <0.001 & Ratios & 5.78 & 0.03 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.36} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.28} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.45} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Claude Sonnet 5.5 (medium reasoning) & Economic & 5.62 & 0.03 & <0.001 & Ratios & 5.47 & 0.05 & <0.001 & Ratios & 5.77 & 0.03 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.52} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.35} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.69} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Claude Sonnet 5.5 (high reasoning) & Economic & 5.84 & 0.02 & <0.001 & Ratios & 5.86 & 0.02 & <0.001 & Ratios & 5.81 & 0.02 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (no reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.93} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.94} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.92} & \cellcolor{gray!10}{0.06} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Deepseek flash (no reasoning) & Economic & 5.87 & 0.04 & <0.001 & Ratios & 5.79 & 0.03 & <0.001 & Ratios & 5.94 & 0.06 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Deepseek flash (medium reasoning) & Economic & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Deepseek flash (high reasoning) & Economic & 5.99 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios & 5.98 & 0.01 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Gemini 3.8 flash (low reasoning) & Economic & 5.98 & 0.00 & <0.001 & Ratios & 5.97 & 0.01 & <0.001 & Ratios & 5.99 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Gemini 3.8 flash (medium reasoning) & Economic & 5.96 & 0.01 & <0.001 & Ratios & 5.95 & 0.01 & <0.001 & Ratios & 5.97 & 0.01 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Gemini 3.8 flash (high reasoning) & Economic & 5.97 & 0.01 & <0.001 & Ratios & 5.96 & 0.01 & <0.001 & Ratios & 5.97 & 0.01 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.87} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.82} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.92} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}GPT-6 luna (low reasoning) & Economic & 5.90 & 0.02 & <0.001 & Ratios & 5.88 & 0.03 & <0.001 & Ratios & 5.92 & 0.02 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}GPT-6 luna (medium reasoning) & Economic & 6.00 & 0.00 & <0.001 & Ratios & 5.99 & 0.01 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}GPT-6 luna (high reasoning) & Economic & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Mistral Medium 3.5} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.38} & \cellcolor{gray!10}{0.09} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.64} & \cellcolor{gray!10}{0.09} & \cellcolor{gray!10}{0.273} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{5.11} & \cellcolor{gray!10}{0.05} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Mistral Medium 3.5 & Economic & 4.57 & 0.11 & <0.001 & Ratios & 3.67 & 0.12 & 0.160 &  & 5.47 & 0.06 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (no reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.98} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{6.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Qwen3.7-plus (no reasoning) & Economic & 5.96 & 0.01 & <0.001 & Ratios & 5.92 & 0.03 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{5.99} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Qwen3.7-plus (reasoning) & Economic & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios & 6.00 & 0.00 & <0.001 & Ratios\\
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Local models - Exp. 3a\\(Ratio vs. harm)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.54} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.270} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{3.96} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.11} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
+\hspace{1em}Llama 3.2 (3.2B) & Economic & 3.53 & 0.04 & 0.399 &  & 3.88 & 0.01 & <0.001 & Ratios & 3.17 & 0.02 & <0.001 & Harm\\
+\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.90} & \cellcolor{gray!10}{0.16} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{2.25} & \cellcolor{gray!10}{0.07} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm} & \cellcolor{gray!10}{5.54} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Mistral (7.2B) & Economic & 4.30 & 0.09 & <0.001 & Ratios & 3.43 & 0.05 & 0.718 &  & 5.17 & 0.04 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.53} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.115} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{3.68} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.39} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Harm}\\
+\hspace{1em}Mistral nemo (12.2B) & Economic & 3.54 & 0.04 & 0.130 &  & 3.93 & 0.01 & <0.001 & Ratios & 3.14 & 0.02 & <0.001 & Harm\\
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Humans - Exp. 3b\\(Ratio vs. utility)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.91} & \cellcolor{gray!10}{0.10} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.90} & \cellcolor{gray!10}{0.15} & \cellcolor{gray!10}{0.009} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.92} & \cellcolor{gray!10}{0.14} & \cellcolor{gray!10}{0.003} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Humans & Economic & 3.28 & 0.10 & 0.033 & Utility & 3.21 & 0.14 & 0.052 &  & 3.35 & 0.14 & 0.303 & \\
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Frontier models - Exp. 3b\\(Ratio vs. utility)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.93} & \cellcolor{gray!10}{0.08} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.55} & \cellcolor{gray!10}{0.07} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.30} & \cellcolor{gray!10}{0.08} & \cellcolor{gray!10}{0.023} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Claude Sonnet 5.5 (low reasoning) & Economic & 3.50 & 0.06 & 0.920 &  & 3.79 & 0.07 & <0.001 & Ratios & 3.20 & 0.07 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.08} & \cellcolor{gray!10}{0.07} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.54} & \cellcolor{gray!10}{0.08} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.61} & \cellcolor{gray!10}{0.08} & \cellcolor{gray!10}{0.257} & \cellcolor{gray!10}{}\\
+\hspace{1em}Claude Sonnet 5.5 (medium reasoning) & Economic & 3.59 & 0.05 & 0.076 &  & 3.86 & 0.07 & <0.001 & Ratios & 3.32 & 0.06 & 0.008 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Claude Sonnet 5.5 (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.74} & \cellcolor{gray!10}{0.06} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.06} & \cellcolor{gray!10}{0.08} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.42} & \cellcolor{gray!10}{0.06} & \cellcolor{gray!10}{0.211} & \cellcolor{gray!10}{}\\
+\hspace{1em}Claude Sonnet 5.5 (high reasoning) & Economic & 3.46 & 0.04 & 0.499 &  & 3.67 & 0.06 & 0.007 & Ratios & 3.26 & 0.05 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (no reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.04} & \cellcolor{gray!10}{0.17} & \cellcolor{gray!10}{0.002} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.42} & \cellcolor{gray!10}{0.24} & \cellcolor{gray!10}{0.756} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{4.65} & \cellcolor{gray!10}{0.21} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Deepseek flash (no reasoning) & Economic & 3.79 & 0.15 & 0.051 &  & 4.36 & 0.18 & <0.001 & Ratios & 3.22 & 0.21 & 0.112 & \\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.14} & \cellcolor{gray!10}{0.18} & \cellcolor{gray!10}{0.021} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.70} & \cellcolor{gray!10}{0.27} & \cellcolor{gray!10}{>0.999} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{2.57} & \cellcolor{gray!10}{0.22} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Deepseek flash (medium reasoning) & Economic & 2.99 & 0.17 & <0.001 & Utility & 3.49 & 0.25 & 0.635 &  & 2.49 & 0.22 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Deepseek flash (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.40} & \cellcolor{gray!10}{0.19} & \cellcolor{gray!10}{0.164} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{4.03} & \cellcolor{gray!10}{0.26} & \cellcolor{gray!10}{0.126} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{2.76} & \cellcolor{gray!10}{0.25} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Deepseek flash (high reasoning) & Economic & 2.95 & 0.17 & 0.001 & Utility & 3.45 & 0.26 & 0.698 &  & 2.45 & 0.21 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.08} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.13} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.03} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Gemini 3.8 flash (low reasoning) & Economic & 1.17 & 0.03 & <0.001 & Utility & 1.22 & 0.05 & <0.001 & Utility & 1.11 & 0.04 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.10} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.17} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.03} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Gemini 3.8 flash (medium reasoning) & Economic & 1.17 & 0.04 & <0.001 & Utility & 1.31 & 0.07 & <0.001 & Utility & 1.04 & 0.01 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Gemini 3.8 flash (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.05} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.09} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.00} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Gemini 3.8 flash (high reasoning) & Economic & 1.35 & 0.07 & <0.001 & Utility & 1.65 & 0.13 & <0.001 & Utility & 1.06 & 0.02 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (low reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{2.19} & \cellcolor{gray!10}{0.14} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.68} & \cellcolor{gray!10}{0.13} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{2.70} & \cellcolor{gray!10}{0.23} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}GPT-6 luna (low reasoning) & Economic & 1.65 & 0.09 & <0.001 & Utility & 1.37 & 0.10 & <0.001 & Utility & 1.93 & 0.15 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (medium reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.47} & \cellcolor{gray!10}{0.11} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.36} & \cellcolor{gray!10}{0.13} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.58} & \cellcolor{gray!10}{0.18} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}GPT-6 luna (medium reasoning) & Economic & 1.12 & 0.03 & <0.001 & Utility & 1.04 & 0.01 & <0.001 & Utility & 1.20 & 0.05 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}GPT-6 luna (high reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{1.64} & \cellcolor{gray!10}{0.13} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.45} & \cellcolor{gray!10}{0.16} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.83} & \cellcolor{gray!10}{0.21} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}GPT-6 luna (high reasoning) & Economic & 1.15 & 0.04 & <0.001 & Utility & 1.04 & 0.02 & <0.001 & Utility & 1.25 & 0.07 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Mistral Medium 3.5} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.44} & \cellcolor{gray!10}{0.05} & \cellcolor{gray!10}{0.341} & \cellcolor{gray!10}{} & \cellcolor{gray!10}{2.91} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.97} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Mistral Medium 3.5 & Economic & 3.31 & 0.07 & 0.019 & Utility & 2.62 & 0.06 & <0.001 & Utility & 4.00 & 0.00 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (no reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{2.95} & \cellcolor{gray!10}{0.17} & \cellcolor{gray!10}{0.032} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.16} & \cellcolor{gray!10}{0.27} & \cellcolor{gray!10}{0.042} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{2.75} & \cellcolor{gray!10}{0.22} & \cellcolor{gray!10}{0.068} & \cellcolor{gray!10}{}\\
+\hspace{1em}Qwen3.7-plus (no reasoning) & Economic & 2.78 & 0.19 & <0.001 & Utility & 3.13 & 0.29 & <0.001 & Utility & 2.43 & 0.25 & 0.061 & \\
+\cellcolor{gray!10}{\hspace{1em}Qwen3.7-plus (reasoning)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{4.03} & \cellcolor{gray!10}{0.16} & \cellcolor{gray!10}{0.014} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{4.48} & \cellcolor{gray!10}{0.21} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.58} & \cellcolor{gray!10}{0.24} & \cellcolor{gray!10}{0.961} & \cellcolor{gray!10}{}\\
+\hspace{1em}Qwen3.7-plus (reasoning) & Economic & 2.70 & 0.15 & <0.001 & Utility & 3.09 & 0.22 & 0.051 &  & 2.31 & 0.19 & <0.001 & Utility\\
+\addlinespace[0.3em]
+\multicolumn{14}{l}{\textbf{\makecell[l]{Local models - Exp. 3b\\(Ratio vs. utility)}}}\\
+\cellcolor{gray!10}{\hspace{1em}Llama 3.2 (3.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.43} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.030} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.84} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios} & \cellcolor{gray!10}{3.01} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Llama 3.2 (3.2B) & Economic & 3.41 & 0.04 & 0.005 & Utility & 3.78 & 0.03 & <0.001 & Ratios & 3.05 & 0.02 & <0.001 & Utility\\
+\cellcolor{gray!10}{\hspace{1em}Mistral (7.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.42} & \cellcolor{gray!10}{0.18} & \cellcolor{gray!10}{0.009} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{1.49} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{5.35} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Ratios}\\
+\hspace{1em}Mistral (7.2B) & Economic & 3.33 & 0.10 & 0.018 & Utility & 2.27 & 0.05 & <0.001 & Utility & 4.39 & 0.04 & <0.001 & Ratios\\
+\cellcolor{gray!10}{\hspace{1em}Mistral nemo (12.2B)} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{3.41} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.43} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.004} & \cellcolor{gray!10}{Utility} & \cellcolor{gray!10}{3.39} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{<0.001} & \cellcolor{gray!10}{Utility}\\
+\hspace{1em}Mistral nemo (12.2B) & Economic & 3.44 & 0.03 & 0.035 & Utility & 3.75 & 0.02 & <0.001 & Ratios & 3.13 & 0.02 & <0.001 & Utility\\*
+\end{longtable}
+\endgroup{}
+\end{landscape}
+
+Although Claude Sonnet 5.5 was asked to respond with a single number, it often volunteered a justification for its choice in Experiment 3b. We took advantage of these unrequested justifications to examine what Claude spontaneously reasoned about. Claude almost always referred to the net gain of the two options (in 87.4\% to 99.6\% of these responses), and mentioned ratios in 43\% to 54\% of them. In contrast, the word \emph{harm} appeared in only 1.9\% to 4.9\% of these responses (although Claude often referred to the number of lives or resources lost). However, even though Claude systematically computed utility, it tended to decide against maximizing utility and, on average, favored the high-ratio option in both conditions of Experiment 3b, although this preference depended considerably on the order of the options. It should be noted that these justifications are not a random sample of Claude's decisions, as they mostly occurred early in the conversations and when Claude appeared to be torn between the options.
+
+These results are somewhat surprising, as, to our knowledge, no normative theory of moral or economic decision making prescribes decisions based on ratios. Nevertheless, Claude frequently treated ratios as a relevant consideration, suggesting that it acquired, either from its training data or from post-training alignment, the notion that ratios are relevant for decision making. This might reflect ratio-based reasoning in some of the real-world data it was trained on, although we cannot rule out that it reflects research on ratio effects in decision making (including, possibly, earlier versions of the present work).
 
 \clearpage
 
@@ -445,15 +649,15 @@ In other words, while some models showed a preference for Weber ratios over harm
 \caption{Forest plot of preferences between high-ratio and alternative options in Experiment 3 for local models. Points show mean preference ratings with 95\% confidence intervals. The vertical dashed line at 3.5 indicates no preference; values above favour the high Weber ratio option, values below favour the alternative (low harm in Exp. 3a, high utility in Exp. 3b). Humans are shown as larger diamonds. Colour indicates the significantly favoured option (blue = ratio, red = alternative, grey = no significant preference).}\label{fig:plot-llm-results-exp2-local-forest}
 \end{figure}
 
-When considering (smaller) local LLMs, one model preferred Weber ratios over harm in moral situations, while two preferred harm over Weber ratios. In economic situations, one model preferred harm over Weber ratios, while two had no preference. When pitting ratios against utility, all models prioritized utility in both the moral and economic situations.
+When considering (smaller) local LLMs, their responses were mostly based on the order of the options, with no consistent difference between moral and economic situations.
 
 \paragraph{Summary}\label{summary-1}
 
-In Experiment 3, the LLMs showed qualitatively different behavior. No model replicate the human preference for \emph{beneficiary:victim} ratios over both harm and utility in moral situation, combined with a preference for \emph{beneficiary:victim} ratios over harm, and utility over \emph{beneficiary:victim} ratios in economic situatinos.
+In Experiment 3, most models showed qualitatively different behaviors from humans. Though the frontier models reproduced the human preference for \emph{beneficiary:victim} ratios over harm in Experiment 3a, one model (Mistral Medium 3.5) showed this preference only in one option order, and many models did not reproduce the greater preference for ratios in the economic condition.
 
-Many of the LLMs were much more sensitive to harm than humans. While humans prioritized Weber ratios over harm, half of the frontier LLMs prioritized harm in moral situations, while a third prioritized harm in economic situations.
+In Experiment 3b, with the exception of Qwen3.7-plus with reasoning, no model reproduced the human pattern, where humans preferred \emph{beneficiary:victim} ratios over utility in moral situations, but utility over ratios in economic situations. To the extent that the frontier models showed preferences that were consistent across the option orders, they preferred utility in both moral and economic situations. Further, even Qwen3.7-plus with reasoning failed to reproduce the increased preference for ratios in the economic condition of Experiment 3a.
 
-The LLMs also failed to replicate the preference for Weber ratios over utility in moral situations, with all but 2 models prioritizing utility, which also showed no preference for Weber ratios over harm. However, like humans, the LLMs prioritized utility in economic situations.
+In both experiments, the local models mainly showed effects of the order of the options.
 
 \clearpage
 
@@ -481,20 +685,20 @@ The results for the frontier models are shown in Figure \ref{fig:exp11-models-re
 \midrule
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{Frontier models}}\\
-\hspace{1em}Humans & 0.110 & 0.041 & \vphantom{1} *\\
+\hspace{1em}Humans & 0.054 & 0.050 & \vphantom{1} .\\
 \hspace{1em}Claude Sonnet 4.5 & 0.018 & 0.370 & ns\\
 \hspace{1em}Deepseek & 0.290 & <0.001 & ***\\
 \hspace{1em}Gemini 2.5 flash & 0.280 & <0.001 & ***\\
 \hspace{1em}GPT-4.1 mini & 0.330 & <0.001 & ***\\
 \hspace{1em}GPT-4o mini & -0.150 & <0.001 & ***\\
-\hspace{1em}GPT-5 mini (high reasoning) & 0.270 & <0.001 & ***\\
-\hspace{1em}GPT-5 mini (medium reasoning) & 0.290 & <0.001 & ***\\
 \hspace{1em}GPT-5 mini (minimal reasoning) & 0.059 & 0.002 & **\\
+\hspace{1em}GPT-5 mini (medium reasoning) & 0.290 & <0.001 & ***\\
+\hspace{1em}GPT-5 mini (high reasoning) & 0.270 & <0.001 & ***\\
 \hspace{1em}Mistral Medium & 0.005 & 0.786 & ns\\
 \hspace{1em}Qwen-plus & 0.340 & <0.001 & ***\\
 \addlinespace[0.3em]
 \multicolumn{4}{l}{\textbf{Local models}}\\
-\hspace{1em}Humans & 0.110 & 0.041 & *\\
+\hspace{1em}Humans & 0.054 & 0.050 & .\\
 \hspace{1em}Llama 3.2 (3.2B) & -0.036 & 0.064 & .\\
 \hspace{1em}Mistral (7.2B) & -0.040 & 0.038 & *\\
 \hspace{1em}Mistral nemo (12.2B) & -0.012 & 0.525 & ns\\
@@ -531,8 +735,8 @@ We also present the acceptability ratings and model fits in Figure \ref{fig:plot
 \endlastfoot
 \addlinespace[0.3em]
 \multicolumn{6}{l}{\textbf{Humans}}\\
-\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.820} & \cellcolor{gray!10}{0.056} & \cellcolor{gray!10}{1.03} & \cellcolor{gray!10}{0.094}\\
-\hspace{1em}Humans & Vivid & 1.154 & 0.090 & 1.32 & 0.141\\
+\cellcolor{gray!10}{\hspace{1em}Humans} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.891} & \cellcolor{gray!10}{0.043} & \cellcolor{gray!10}{1.17} & \cellcolor{gray!10}{0.070}\\
+\hspace{1em}Humans & Vivid & 1.224 & 0.053 & 1.82 & 0.117\\
 \addlinespace[0.3em]
 \multicolumn{6}{l}{\textbf{Frontier models}}\\
 \cellcolor{gray!10}{\hspace{1em}Claude Sonnet 4.5} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.943} & \cellcolor{gray!10}{0.130} & \cellcolor{gray!10}{1.88} & \cellcolor{gray!10}{0.300}\\
@@ -545,12 +749,12 @@ We also present the acceptability ratings and model fits in Figure \ref{fig:plot
 \hspace{1em}GPT-4.1 mini & Vivid & 0.907 & 0.056 & 1.00 & 0.094\\
 \cellcolor{gray!10}{\hspace{1em}GPT-4o mini} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{1.503} & \cellcolor{gray!10}{0.113} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.157}\\
 \hspace{1em}GPT-4o mini & Vivid & 2.000 & 0.228 & 1.00 & 0.264\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (high reasoning)} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.211} & \cellcolor{gray!10}{0.072} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.106}\\
-\hspace{1em}GPT-5 mini (high reasoning) & Vivid & 0.584 & 0.018 & 1.00 & 0.028\\
-\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.162} & \cellcolor{gray!10}{0.144} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.266}\\
-\hspace{1em}GPT-5 mini (medium reasoning) & Vivid & 0.511 & 0.028 & 1.00 & 0.040\\
 \cellcolor{gray!10}{\hspace{1em}GPT-5 mini (minimal reasoning)} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.112} & \cellcolor{gray!10}{6.932} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{18.427}\\
 \hspace{1em}GPT-5 mini (minimal reasoning) & Vivid & 2.000 & 0.169 & 1.00 & 0.196\\
+\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (medium reasoning)} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.162} & \cellcolor{gray!10}{0.144} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.266}\\
+\hspace{1em}GPT-5 mini (medium reasoning) & Vivid & 0.511 & 0.028 & 1.00 & 0.040\\
+\cellcolor{gray!10}{\hspace{1em}GPT-5 mini (high reasoning)} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.211} & \cellcolor{gray!10}{0.072} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.106}\\
+\hspace{1em}GPT-5 mini (high reasoning) & Vivid & 0.584 & 0.018 & 1.00 & 0.028\\
 \cellcolor{gray!10}{\hspace{1em}Mistral Medium} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.910} & \cellcolor{gray!10}{0.071} & \cellcolor{gray!10}{1.87} & \cellcolor{gray!10}{0.164}\\
 \hspace{1em}Mistral Medium & Vivid & 1.139 & 0.082 & 2.38 & 0.266\\
 \cellcolor{gray!10}{\hspace{1em}Qwen-plus} & \cellcolor{gray!10}{Neutral} & \cellcolor{gray!10}{0.798} & \cellcolor{gray!10}{0.080} & \cellcolor{gray!10}{1.00} & \cellcolor{gray!10}{0.136}\\
@@ -592,7 +796,7 @@ The frontier LLMs showed several key similarities to human moral judgment. Most 
 
 These similarities appeared to depend on model size and presumably on massive amounts of training data (or on differences in alignment processes), as the smaller local models largely failed to reproduce human behavior. Local models showed no discernible sensitivity to Weber ratios in Experiment 2 and exhibited inconsistent patterns across other experiments.
 
-However, all models behaved qualitatively differently from humans in Experiment 3. They were more sensitive to both harm and utility than humans, especially in moral situations. In particular, no model showed a preference for Weber ratios over both harm and utility in moral situations.
+However, with the exception of Qwen3.7-plus with reasoning, all models behaved qualitatively differently from humans in Experiment 3b. To the extent that the other models showed a consistent preference, they preferred utility over ratios in both moral and economic conditions. Further, even Qwen3.7-plus with reasoning reproduced the results of Experiment 3a only partially.
 
 \bibliography{/Users/endress/ansgar.bib}
 

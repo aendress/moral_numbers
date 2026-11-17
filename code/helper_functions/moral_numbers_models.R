@@ -69,7 +69,8 @@ acceptability.fnc <- function(w, n1, n2, ratio = NULL, a = NULL){
 
 # ----- Fit helper functions -----
 
-generate_bootstrap_samples <- function(dat = ., subj_col = ResponseId, n_samples = 1000, reindex_subj_col = FALSE){
+# verbose: show output of the parallel workers
+generate_bootstrap_samples <- function(dat = ., subj_col = ResponseId, n_samples = 1000, reindex_subj_col = FALSE, verbose = FALSE){
     
     subj_col <- dplyr::enquo(subj_col)
     
@@ -97,7 +98,7 @@ generate_bootstrap_samples <- function(dat = ., subj_col = ResponseId, n_samples
                            
                        },
                        .options = furrr_options(seed = TRUE,
-                                                stdout = !RECALCULATE_EVERYTHING))
+                                                stdout = verbose))
 }
 
 # Boot library is annoying for grouped data
@@ -355,15 +356,17 @@ get.weber.ratio <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.chosen = NUL
 
 get.weber.ratio.linearized <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.chosen = NULL){
     
-    # DONT USE: qnorm(2^(rating.bin - 1) is ionfite fopr rating.bin = =1
+    # DONT USE: qnorm(2^(rating.bin - 1) is infinite for rating.bin = =1
     
     # We use the following approximations around 1 and $\alpha$, respectively (see \ref(app:log-normal-approximations))
     # \frac{R-1}{\sqrt{R^2 + 1}} \approx \frac{\ln(R)}{\sqrt{2}}
     # \frac{R-\alpha}{\sqrt{R^2 + \alpha^2}} \approx \frac{\ln(R)/\alpha}{\sqrt{2}}
     
-    # This gives use the linear equations (where $\alpha$ may be 1)
-    # \ln (R/\alpha) = 2 w Phi^{-1} (2^(rating.bin-1))
-    # and thus \ln (R) = \ln(\alpha) + 2 w Phi^{-1} (2^(rating.bin-1))
+    # As discriminability.fnc computes P = Phi(f(R) / w), with f(R) \approx \ln(R/\alpha) / \sqrt{2},
+    # this gives the linear equations (where $\alpha$ may be 1)
+    # \ln (R/\alpha) = \sqrt{2} w Phi^{-1} (2^(rating.bin-1))
+    # and thus \ln (R) = \ln(\alpha) + \sqrt{2} w Phi^{-1} (2^(rating.bin-1))
+    # (An earlier version used a factor of 2 instead of \sqrt{2}, which returned w / \sqrt{2}.)
     
     if(fit.w & !fit.a){
         
@@ -372,7 +375,7 @@ get.weber.ratio.linearized <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.c
                data = dat %>% 
                    dplyr::mutate(
                        lhs = log(n.saved / n.victims),
-                       rhs = 2 * qnorm(2^(rating.bin - 1))
+                       rhs = sqrt(2) * qnorm(2^(rating.bin - 1))
                    )) ,
             error = function(e) NULL)
         
@@ -383,7 +386,7 @@ get.weber.ratio.linearized <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.c
                data = dat %>% 
                    dplyr::mutate(
                        lhs = log(n.saved / n.victims),
-                       rhs = 2 * qnorm(2^(rating.bin - 1))
+                       rhs = sqrt(2) * qnorm(2^(rating.bin - 1))
                    )) ,
             error = function(e) NULL)
         
@@ -396,7 +399,7 @@ get.weber.ratio.linearized <- function(dat = ., fit.a = FALSE, fit.w = TRUE, w.c
                data = dat %>% 
                    dplyr::mutate(
                        # subtract out slope
-                       lhs = log(n.saved / n.victims) - w.chosen * 2 * qnorm(2^(rating.bin - 1))
+                       lhs = log(n.saved / n.victims) - w.chosen * sqrt(2) * qnorm(2^(rating.bin - 1))
                    )) ,
             error = function(e) NULL)
         

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bcf:controlfile version="3.11" bltxversion="3.21" xmlns:bcf="https://sourceforge.net/projects/biblatex">
+<bcf:controlfile version="3.11" bltxversion="3.22a" xmlns:bcf="https://sourceforge.net/projects/biblatex">
   <!-- BIBER OPTIONS -->
   <bcf:options component="biber" type="global">
     <bcf:option type="singlevalued">
@@ -3247,11 +3247,13 @@
     <bcf:citekey order="117" intorder="1">Thaler1999</bcf:citekey>
     <bcf:citekey order="118" intorder="1">Baayen2008</bcf:citekey>
     <bcf:citekey order="119" intorder="1">Baayen2008</bcf:citekey>
-    <bcf:citekey order="120" intorder="1">Jones2020</bcf:citekey>
-    <bcf:citekey order="121" intorder="1">Halberda2008</bcf:citekey>
-    <bcf:citekey order="121" intorder="2">BarrettoGarcia2023</bcf:citekey>
-    <bcf:citekey order="121" intorder="3">Khaw2020</bcf:citekey>
-    <bcf:citekey order="122" intorder="1">Halberda2008</bcf:citekey>
+    <bcf:citekey order="120" intorder="1">Baayen2008</bcf:citekey>
+    <bcf:citekey order="121" intorder="1">Baayen2008</bcf:citekey>
+    <bcf:citekey order="122" intorder="1">Jones2020</bcf:citekey>
+    <bcf:citekey order="123" intorder="1">Halberda2008</bcf:citekey>
+    <bcf:citekey order="123" intorder="2">BarrettoGarcia2023</bcf:citekey>
+    <bcf:citekey order="123" intorder="3">Khaw2020</bcf:citekey>
+    <bcf:citekey order="124" intorder="1">Halberda2008</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="apa">

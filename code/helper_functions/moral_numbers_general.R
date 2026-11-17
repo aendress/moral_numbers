@@ -158,6 +158,210 @@ convert.dates.and.calculate.duration <- function(dat = .) {
                                            units = "mins"))
 }
 
+# ----- Experiment IDs with suffixes (pseudo-experiments) -----
+
+# Suffixes that mark pseudo-experiments, in the order in which they must appear:
+# <expID_clean>[.scenarioExcluded][.vivacityManipulationWorking]
+# - scenarioExcluded: scenarios with wording errors removed
+# - vivacityManipulationWorking: only participants for whom the vivacity manipulation worked
+L_EXP_ID_SUFFIXES <- c(
+    scenarios_excluded = "scenarioExcluded",
+    vivacity_filtered = "vivacityManipulationWorking"
+)
+
+# Split experiment IDs into the clean ID and logical suffix flags.
+# Used by select_exps() and format_exp_info(); in analysis code, prefer select_exps() for selections.
+# Returns a tibble with one row per element of experimentID.
+# Stops for unknown suffixes or suffixes in the wrong order.
+parse_exp_id <- function(experimentID) {
+    pattern_valid <- stringr::str_c(
+        "^[^.]+",
+        stringr::str_c("(\\.", L_EXP_ID_SUFFIXES, ")?", collapse = ""),
+        "$"
+    )
+    invalid <- unique(experimentID[is.na(experimentID) | !stringr::str_detect(experimentID, pattern_valid)])
+    if (length(invalid) > 0) {
+        stop(
+            "parse_exp_id(): invalid experiment ID(s) (missing, unknown suffix or wrong order): ",
+            paste(invalid, collapse = ", ")
+        )
+    }
+
+    tibble::tibble(
+        expID_clean = stringr::str_remove(experimentID, "\\..*$"),
+        scenarios_excluded = stringr::str_detect(
+            experimentID, stringr::fixed(stringr::str_c(".", L_EXP_ID_SUFFIXES[["scenarios_excluded"]]))
+        ),
+        vivacity_filtered = stringr::str_detect(
+            experimentID, stringr::fixed(stringr::str_c(".", L_EXP_ID_SUFFIXES[["vivacity_filtered"]]))
+        )
+    )
+}
+
+# Build canonical experiment IDs from clean IDs and suffix flags (inverse of parse_exp_id()).
+# Use wherever (pseudo-)experiment IDs are created.
+make_exp_id <- function(expID_clean, scenarios_excluded, vivacity_filtered) {
+    has_suffix <- stringr::str_detect(expID_clean, stringr::fixed("."))
+    if (any(has_suffix)) {
+        stop(
+            "make_exp_id(): expID_clean must not contain suffixes: ",
+            paste(expID_clean[has_suffix], collapse = ", ")
+        )
+    }
+    if (!is.logical(scenarios_excluded) || !is.logical(vivacity_filtered) ||
+        anyNA(scenarios_excluded) || anyNA(vivacity_filtered)) {
+        stop("make_exp_id(): scenarios_excluded and vivacity_filtered must be TRUE or FALSE.")
+    }
+
+    stringr::str_c(
+        expID_clean,
+        dplyr::if_else(scenarios_excluded, stringr::str_c(".", L_EXP_ID_SUFFIXES[["scenarios_excluded"]]), ""),
+        dplyr::if_else(vivacity_filtered, stringr::str_c(".", L_EXP_ID_SUFFIXES[["vivacity_filtered"]]), "")
+    )
+}
+
+# Select experiments (and pseudo-experiments) by clean ID and suffix flags.
+# - dat: a data frame with an experimentID column (returns the selected rows) or a character
+#   vector of experiment IDs (returns the selected IDs). IDs are returned unchanged.
+# - require_single_version (obligatory): if TRUE, stop unless exactly one version of each
+#   selected experiment remains.
+# - expID_clean: clean IDs without suffixes (exact match); NULL selects all experiments.
+# - scenarios_excluded: TRUE (problematic scenarios removed: the scenarioExcluded version for
+#   experiments in l.exp.scenarios.excluded or with a scenarioExcluded version in dat, e.g.
+#   pooled experiments; the original version for all others), FALSE
+#   (original versions), or NA (all versions; default).
+# - vivacity_filtered: TRUE, FALSE, or NA (all versions; default).
+# - l.exp.scenarios.excluded: clean IDs of experiments with scenario exclusions (derived from the
+#   data after the pseudo-experiments are created); only used if scenarios_excluded = TRUE.
+# Stops if a requested experiment or version does not exist.
+select_exps <- function(dat = ., require_single_version, expID_clean = NULL,
+                        scenarios_excluded = NA, vivacity_filtered = NA,
+                        l.exp.scenarios.excluded = l_exp_with_scenario_exclusions) {
+    if (!isTRUE(require_single_version) && !isFALSE(require_single_version)) {
+        stop("select_exps(): 'require_single_version' must be TRUE or FALSE.")
+    }
+
+    # Validate the optional flags only if they were given
+    check_flag <- function(value) {
+        if (length(value) != 1 || !is.logical(value)) {
+            stop("select_exps(): '", deparse(substitute(value)), "' must be TRUE, FALSE or NA.")
+        }
+    }
+    if (!missing(scenarios_excluded)) check_flag(scenarios_excluded)
+    if (!missing(vivacity_filtered)) check_flag(vivacity_filtered)
+
+    ids <- if (is.character(dat)) dat else as.character(dat$experimentID)
+    ids_unique <- unique(ids)
+    dat_ids <- dplyr::bind_cols(
+        tibble::tibble(experimentID = ids_unique), 
+        # Returns tibble with columns 
+        #expID_clean (character), scenarios_excluded (logical), vivacity_filtered (logical)
+        parse_exp_id(ids_unique))
+
+    if (is.null(expID_clean)) {
+        expID_clean <- unique(dat_ids$expID_clean)
+    } else {
+        has_suffix <- stringr::str_detect(expID_clean, stringr::fixed("."))
+        if (any(has_suffix)) {
+            stop(
+                "select_exps(): expID_clean must not contain suffixes: ",
+                paste(expID_clean[has_suffix], collapse = ", ")
+            )
+        }
+        missing_exps <- setdiff(expID_clean, dat_ids$expID_clean)
+        if (length(missing_exps) > 0) {
+            stop(
+                "select_exps(): experiment(s) not found: ",
+                paste(missing_exps, collapse = ", ")
+            )
+        }
+    }
+
+    selected_ids <- purrr::map(expID_clean, \(exp) {
+        dat_versions <- dplyr::filter(
+            dat_ids, 
+            expID_clean == exp)
+
+        # Scenario exclusions only exist for some experiments; for all others,
+        # "problematic scenarios removed" is the original version. Pooled experiments
+        # (see pool_exps()) count as having exclusions if a scenarioExcluded version exists.
+        # request_versions_with_excluded_scenarios: for this experiment, TRUE (scenarioExcluded
+        # version), FALSE (original version) or NA (both versions).
+        request_versions_with_excluded_scenarios <- if (isTRUE(scenarios_excluded)) {
+            exp %in% l.exp.scenarios.excluded || any(dat_versions$scenarios_excluded)
+        } else {
+            scenarios_excluded
+        }
+        if (!is.na(request_versions_with_excluded_scenarios)) {
+            dat_versions <- dplyr::filter(
+                dat_versions,
+                # For experiments that don't have versions with excluded scenarios, 
+                # request_versions_with_excluded_scenarios is set to FALSE above
+                scenarios_excluded == request_versions_with_excluded_scenarios)
+        }
+        if (!is.na(vivacity_filtered)) {
+            dat_versions <- dplyr::filter(
+                dat_versions, 
+                vivacity_filtered == .env$vivacity_filtered)
+        }
+
+        if (nrow(dat_versions) == 0) {
+            stop(
+                "select_exps(): experiment '", exp, "' has no version with scenarios_excluded = ",
+                request_versions_with_excluded_scenarios, " and vivacity_filtered = ", vivacity_filtered,
+                " (available: ",
+                paste(dat_ids$experimentID[dat_ids$expID_clean == exp], collapse = ", "),
+                ")."
+            )
+        }
+        if (require_single_version && nrow(dat_versions) > 1) {
+            stop(
+                "select_exps(): experiment '", exp, "' is selected in more than one version (",
+                paste(dat_versions$experimentID, collapse = ", "),
+                "), but require_single_version = TRUE."
+            )
+        }
+        dat_versions$experimentID
+    }) %>%
+        unlist()
+
+    if (is.character(dat)) {
+        ids[ids %in% selected_ids]
+    } else {
+        dplyr::filter(dat, experimentID %in% selected_ids)
+    }
+}
+
+# Pool several experiments into one combined experiment (e.g., "exp8+10"), separately for each version.
+# Returns only the pooled rows, with experimentID set to the pooled ID plus the appropriate suffixes:
+# - original version: the original versions of all experiments;
+# - scenario-excluded version (only if at least one experiment has scenario exclusions): the
+#   scenarioExcluded version where it exists, the original version otherwise;
+# - vivacity-filtered and unfiltered versions are pooled separately.
+pool_exps <- function(dat = ., expID_clean, expID_pooled,
+                      l.exp.scenarios.excluded = l_exp_with_scenario_exclusions) {
+    v_scenarios_excluded <- if (any(expID_clean %in% l.exp.scenarios.excluded)) c(FALSE, TRUE) else FALSE
+
+    v_scenarios_excluded %>%
+        purrr::map(\(scenarios_excluded)
+            dat %>%
+                select_exps(
+                    require_single_version = FALSE,
+                    expID_clean = expID_clean,
+                    scenarios_excluded = scenarios_excluded,
+                    l.exp.scenarios.excluded = l.exp.scenarios.excluded
+                ) %>%
+                dplyr::mutate(
+                    experimentID = make_exp_id(
+                        expID_pooled,
+                        scenarios_excluded = scenarios_excluded,
+                        vivacity_filtered = parse_exp_id(experimentID)$vivacity_filtered
+                    )
+                )
+        ) %>%
+        purrr::list_rbind()
+}
+
 # Convert free-text numeric responses (e.g., age) to numbers.
 # Collapses whitespace (incl. non-breaking spaces) and extracts the first number,
 # so that " 35 " or "35 years" become 35; responses without digits become NA.
@@ -329,7 +533,7 @@ add_z_relative_to_baseline <- function(dat = ., cond_col){
         dplyr::select(experimentID, blocks, !!cond_col, dplyr::ends_with("Z")) %>% 
         dplyr::mutate(dplyr::across(
             dplyr::ends_with("_Z"),
-            list(p = ~ pnorm(.x, lower.tail=FALSE)*2)
+            list(p = ~ pnorm(abs(.x), lower.tail=FALSE)*2)
         )
         )
     
@@ -459,8 +663,10 @@ get.original.experimentID <- function(experimentID = ., direction = c("paper2dat
 #'
 #' Accepts either a data frame or a character vector of internal experimentIDs.
 #' @param exp_id_col Bare column name holding internal experiment IDs (default: `experimentID`).
-#' - Always extracts any `.vivacityManipulationWorking` filtering suffix into a
-#'   separate `filtering` column.
+#' - Always extracts the ID suffixes (see `L_EXP_ID_SUFFIXES`) into a separate
+#'   `filtering` column: `.vivacityManipulationWorking` -> "(filtered)";
+#'   `.scenarioExcluded` is dropped silently unless `show_scenario_exclusion = TRUE`
+#'   (then "(scenario excluded)"). Captions must state which version is shown.
 #' - Always formats `exp_id_col` via `get.original.experimentID()` + `str_replace("^exp", "Exp. ")`.
 #' - Always normalises `comparisonType` (if present): underscores -> spaces,
 #'   n.victims -> harm, n.net.saved -> utility.
@@ -475,7 +681,8 @@ format_exp_info <- function(dat = .,
                             exp_id_col = experimentID,
                             merge_filtering = TRUE,
                             merge_comparisonType = TRUE,
-                            wrap = FALSE) {
+                            wrap = FALSE,
+                            show_scenario_exclusion = FALSE) {
 
     exp_id_col  <- rlang::enquo(exp_id_col)
     exp_id_name <- rlang::as_name(exp_id_col)
@@ -501,18 +708,26 @@ format_exp_info <- function(dat = .,
             )
     }
 
-    # Extract .vivacityManipulationWorking suffix into a separate filtering column
-    # Works even if the suffix is absent (filtering becomes NA)
+    # Extract the ID suffixes (see L_EXP_ID_SUFFIXES) into a separate filtering column:
+    # .vivacityManipulationWorking -> "(filtered)"; .scenarioExcluded is only shown if
+    # show_scenario_exclusion = TRUE. Without (shown) suffixes, filtering is NA.
+    format_filtering <- function(x) {
+        dat_ids <- parse_exp_id(x)
+        dplyr::case_when(
+            show_scenario_exclusion & dat_ids$scenarios_excluded & dat_ids$vivacity_filtered ~ "(scenario excluded, filtered)",
+            show_scenario_exclusion & dat_ids$scenarios_excluded ~ "(scenario excluded)",
+            dat_ids$vivacity_filtered ~ "(filtered)",
+            .default = NA_character_
+        )
+    }
+
     extract_filtering <- function(dat) {
         dat %>%
-            tidyr::separate_wider_delim(
-                !!exp_id_col,
-                names = c(exp_id_name, "filtering"),
-                delim = ".",
-                too_few = "align_start"
-            ) %>%
             dplyr::mutate(
-                filtering = stringr::str_replace_all(filtering, "vivacityManipulationWorking", "(filtered)")
+                # Compute the label from the original ID before replacing it by the clean ID
+                filtering = format_filtering(!!exp_id_col),
+                !!exp_id_name := parse_exp_id(!!exp_id_col)$expID_clean,
+                .after = !!exp_id_col
             )
     }
 
@@ -578,9 +793,9 @@ filter_vivacity_exps <- function(dat = ., l.exp = l_exp_with_single_severity_que
         dat <- dat %>% 
             dplyr::filter(experimentID %in% l.exp) 
     } else {
-        dat <- dat %>% 
-            dplyr::filter(str_detect(experimentID, 
-                                     str_c("^", l.exp, collapse="|")))
+        # All versions (ID suffixes) of the listed experiments, matched exactly on the clean ID
+        dat <- dat %>%
+            dplyr::filter(parse_exp_id(experimentID)$expID_clean %in% parse_exp_id(l.exp)$expID_clean)
     }
     
     return(dat)

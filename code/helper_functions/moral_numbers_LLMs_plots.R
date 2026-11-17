@@ -313,7 +313,85 @@ create.predictor.comparison.plot.llm <- function(dat = ., dat.fit = NULL, value.
     }
 }
 
-make_llm_exp2_joint_plot <- function(base_size = 14, label_size = 3, add_repel = FALSE, repel_size = label_size) {
+# Plot data for the LLM version of internal exp2 (Experiments 3a and 3b in the paper) for a single version
+# (all scenarios or scenarios excluded; see select_exps()), in long and wide format
+prepare_llm_internal_exp2_plot_data <- function(dat = ., scenarios_excluded) {
+    dat_long <- dat %>%
+        dplyr::filter(measure == "raw") %>%
+        select_exps(
+            require_single_version = TRUE,
+            scenarios_excluded = scenarios_excluded
+        ) %>%
+        format_exp_info() %>%
+        dplyr::mutate(
+            experimentID = dplyr::case_when(
+                stringr::str_detect(experimentID, "Exp. 3b") ~ "Exp. 3b (Ratio vs. utility)",
+                stringr::str_detect(experimentID, "Exp. 3a") ~ "Exp. 3a (Ratio vs. harm)"
+            ),
+            # Replace NA with "Neither"
+            favoring = dplyr::coalesce(favoring, "Neither"),
+            # Replace NA with "Humans"
+            model_type = dplyr::coalesce(model_type, "Humans"),
+            # Combine Harm and utility to use the same color code identifying the preference
+            favoring = dplyr::if_else(
+                favoring %in% c("Harm", "Utility"),
+                "Harm/Utility",
+                favoring),
+            favoring = factor(
+                favoring,
+                levels = c("Ratios", "Neither", "Harm/Utility")
+            ),
+            condition = factor(
+                condition,
+                levels = c("Moral", "Economic")
+            ),
+            ci.lower  = M - 1.96 * SE,
+            ci.upper  = M + 1.96 * SE,
+            # Make human the last "model"
+            model     = factor(model,
+                               levels = c(
+                                   # Order of the factor levels (see relabel_models())
+                                   rev(setdiff(levels(droplevels(as.factor(model))), "Humans")),
+                                   "Humans"))
+        )
+
+    dat_for_wide <- dat_long %>%
+        dplyr::mutate(
+            model_type = factor(
+                dplyr::case_when(
+                    model_type == "Humans" ~ "Humans",
+                    model_type == "cloud"  ~ "Frontier",
+                    model_type == "local"  ~ "Local"
+                ),
+                levels = c("Humans", "Frontier", "Local")
+            )
+        ) %>%
+        dplyr::select(model, model_type, condition, experimentID, M, ci.lower, ci.upper)
+
+    # One row per model and condition, columns per experiment (make_llm_exp2_joint_plot())
+    dat_wide_by_experiment <- dat_for_wide %>%
+        tidyr::pivot_wider(
+            names_from  = experimentID,
+            values_from = c(M, ci.lower, ci.upper)
+        ) %>%
+        dplyr::mutate(condition = factor(condition, levels = c("Moral", "Economic")))
+
+    # One row per model and experiment, columns per condition (make_llm_exp3_moral_economic_plot())
+    dat_wide_by_condition <- dat_for_wide %>%
+        tidyr::pivot_wider(
+            names_from  = condition,
+            values_from = c(M, ci.lower, ci.upper)
+        )
+
+    list(
+        long = dat_long,
+        wide_by_experiment = dat_wide_by_experiment,
+        wide_by_condition = dat_wide_by_condition
+    )
+}
+
+# dat: wide_by_experiment plot data from prepare_llm_internal_exp2_plot_data()
+make_llm_exp2_joint_plot <- function(dat, base_size = 14, label_size = 3, add_repel = FALSE, repel_size = label_size) {
     
     # Inner function: adds condition-specific quadrant frame and labels to a plot
     add_quadrants <- function(p) {
@@ -364,7 +442,7 @@ make_llm_exp2_joint_plot <- function(base_size = 14, label_size = 3, add_repel =
     
     # Build base plot first (without quadrant frame) so we can extract panel extent
     p_joint_plot_base <-
-        dat_llm_results_exp2_descriptives_for_plot_wide %>%
+        dat %>%
         ggplot2::ggplot(ggplot2::aes(
             x     = `M_Exp. 3a (Ratio vs. harm)`,
             y     = `M_Exp. 3b (Ratio vs. utility)`,
@@ -431,4 +509,145 @@ make_llm_exp2_joint_plot <- function(base_size = 14, label_size = 3, add_repel =
         )
     
     p_joint_plot_base
+}
+
+make_llm_exp3_moral_economic_plot <- function(dat_wide = ., experiments = NULL, facet_row = NULL, base_size = 14, label_size = 3, add_repel = FALSE, repel_size = label_size) {
+    # Preference for the high-ratio option in moral (y) vs. economic (x) dilemmas, one point per model and one panel
+    # per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility). Points above the diagonal prefer the
+    # high-ratio option more in moral than in economic dilemmas.
+    # dat: wide_by_condition data of prepare_llm_internal_exp2_plot_data() (one row per model and experiment)
+    # experiments: experimentIDs (formatted, e.g. "Exp. 3b (Ratio vs. utility)") to show; NULL: all
+    # facet_row: name of a column of dat_wide for the rows of the panels (e.g., the option order); NULL: one row
+
+    if (!is.null(experiments)) {
+        dat_wide <- dat_wide %>%
+            dplyr::filter(experimentID %in% experiments)
+    }
+
+    # Quadrant labels: what the preference is for (the alternative to the ratio is harm in Exp. 3a, utility in Exp. 3b)
+    dat_quadrant_labels <- tidyr::expand_grid(
+        experimentID = unique(dat_wide$experimentID),
+        quadrant = c("top_left", "top_right", "bottom_left", "bottom_right")
+    ) %>%
+        dplyr::mutate(
+            alternative = dplyr::if_else(stringr::str_detect(experimentID, "harm"), "harm", "utility"),
+            x = dplyr::if_else(stringr::str_detect(quadrant, "left"), 2.25, 4.75),
+            # Slightly inside the panel, so that the labels do not touch the frame of the human quadrant
+            y = dplyr::if_else(stringr::str_detect(quadrant, "top"), 5.85, 1.15),
+            vjust = dplyr::if_else(stringr::str_detect(quadrant, "top"), 1, 0),
+            label = dplyr::case_when(
+                quadrant == "top_left" ~ stringr::str_c("Preference for\nMoral: ratio\nEconomic: ", alternative),
+                quadrant == "top_right" ~ "Preference for\nratio in both",
+                quadrant == "bottom_left" ~ stringr::str_c("Preference for\n", alternative, " in both"),
+                quadrant == "bottom_right" ~ stringr::str_c("Preference for\nMoral: ", alternative, "\nEconomic: ratio")
+            )
+        )
+
+    # Frame around the quadrant of the human participants (in each experiment, and each row of panels)
+    margin <- 0.02
+    dat_human_quadrant <- dat_wide %>%
+        dplyr::filter(model_type == "Humans") %>%
+        dplyr::mutate(
+            xmin = dplyr::if_else(M_Economic > 3.5, 3.5, 1 + margin),
+            xmax = dplyr::if_else(M_Economic > 3.5, 6 - margin, 3.5),
+            ymin = dplyr::if_else(M_Moral > 3.5, 3.5, 1 + margin),
+            ymax = dplyr::if_else(M_Moral > 3.5, 6 - margin, 3.5)
+        ) %>%
+        dplyr::select(experimentID, dplyr::any_of(facet_row), xmin, xmax, ymin, ymax)
+
+    facet_layer <- if (is.null(facet_row)) {
+        ggplot2::facet_wrap(~ experimentID)
+    } else {
+        ggplot2::facet_grid(
+            rows = ggplot2::vars(.data[[facet_row]]),
+            cols = ggplot2::vars(experimentID)
+        )
+    }
+
+    p_moral_economic <- dat_wide %>%
+        ggplot2::ggplot(ggplot2::aes(
+            x     = M_Economic,
+            y     = M_Moral,
+            xmin  = ci.lower_Economic,
+            xmax  = ci.upper_Economic,
+            ymin  = ci.lower_Moral,
+            ymax  = ci.upper_Moral,
+            label = model,
+            color = model_type,
+            shape = model_type
+        )) +
+        # No difference between moral and economic dilemmas
+        ggplot2::geom_abline(slope = 1, intercept = 0, color = "grey50") +
+        ggplot2::geom_vline(xintercept = 3.5, linetype = "dashed", color = "grey50") +
+        ggplot2::geom_hline(yintercept = 3.5, linetype = "dashed", color = "grey50") +
+        ggplot2::geom_rect(
+            data        = dat_human_quadrant,
+            ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            fill        = NA,
+            color       = "#0072B2",
+            linewidth   = 1,
+            inherit.aes = FALSE
+        ) +
+        ggplot2::geom_text(
+            data        = dat_quadrant_labels,
+            ggplot2::aes(x = x, y = y, vjust = vjust, label = label),
+            hjust       = 0.5,
+            size        = label_size,
+            color       = "gray20",
+            lineheight  = 0.9,
+            inherit.aes = FALSE
+        ) +
+        ggplot2::geom_errorbar(
+            height = 0.15, linewidth = 0.4,
+            orientation = "x") +
+        ggplot2::geom_errorbar(
+            width = 0.15, linewidth = 0.4,
+            orientation = "y") +
+        ggplot2::geom_point(ggplot2::aes(size = model_type)) +
+        ggplot2::scale_color_manual(
+            values = c("Humans" = "#0072B2", "Frontier" = "#E69F00", "Local" = "#999999"),
+            name   = "Model type"
+        ) +
+        ggplot2::scale_shape_manual(
+            values = c("Humans" = 18, "Frontier" = 16, "Local" = 17),
+            name   = "Model type"
+        ) +
+        ggplot2::scale_size_manual(
+            values = c("Humans" = 4,  "Frontier" = 3,  "Local" = 3),
+            guide  = "none"
+        ) +
+        ggplot2::coord_cartesian(xlim = c(1, 6), ylim = c(1, 6)) +
+        ggplot2::scale_x_continuous(breaks = seq(1, 6)) +
+        ggplot2::scale_y_continuous(breaks = seq(1, 6)) +
+        facet_layer +
+        ggplot2::labs(
+            x = "Economic dilemmas: preference for the high-ratio option",
+            y = "Moral dilemmas: preference for\nthe high-ratio option"
+        ) +
+        ggthemes::theme_clean(base_size) +
+        ggplot2::theme(
+            text             = ggplot2::element_text(size = base_size),
+            axis.text        = ggplot2::element_text(size = base_size * 0.8),
+            axis.title       = ggplot2::element_text(size = base_size),
+            strip.text       = ggplot2::element_text(size = base_size * 0.9, face = "bold"),
+            strip.background = ggplot2::element_blank(),
+            legend.text      = ggplot2::element_text(size = base_size * 0.8),
+            legend.title     = ggplot2::element_text(size = base_size),
+            legend.position  = "bottom"
+        )
+
+    if (isTRUE(add_repel))
+        p_moral_economic <- p_moral_economic +
+        ggrepel::geom_text_repel(
+            max.overlaps       = Inf,
+            box.padding        = 0.6,
+            point.padding      = 0.4,
+            min.segment.length = 0,
+            segment.color      = "grey60",
+            seed               = 42,
+            size               = repel_size,
+            show.legend        = FALSE
+        )
+
+    p_moral_economic
 }

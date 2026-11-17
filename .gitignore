@@ -100,3 +100,9 @@ code/output.10092026/
 
 # Timestamped safety copies (moved into safety_copies/ subfolders)
 safety_copies/
+
+# R default graphics device output from non-interactive runs
+Rplots.pdf
+
+# Funding requests and LLM invoices (not code)
+requests/

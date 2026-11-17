@@ -1,7 +1,10 @@
 get_model_url <- function(model = .){
     
     model <- str_to_lower(model)
-    
+
+    # Local models first, as otherwise the local mistral models would be sent to the Mistral API
+    if(exists("LLMS") && model %in% LLMS$local) return(LLM_URLS["ollama"] %>% unname)
+
     if(str_detect(model, "gpt")) return(LLM_URLS["gpt"] %>% unname)
     
     if(str_detect(model, "claude")) return(LLM_URLS["claude"] %>% unname)
@@ -181,32 +184,183 @@ make_llm_body <- function(model, messages, system_prompt = NULL, system_instruct
     }
 }
 
-parse_llm_response <- function(model, response) {
-    model_lower <- str_to_lower(model)
-    # Parse response depending on model
-    if (str_detect(model_lower, "gpt")) {
-        result <- content(response)$choices %>% 
-            purrr::map_chr(purrr::pluck, "message", "content")
-        
-    } else if (str_detect(model_lower, "claude")) {
-        result <- purrr::pluck(content(response, as = "parsed"), "content", 1, "text")
-        
-    } else if (str_detect(model_lower, "gemini")) {
-        result <- purrr::pluck(content(response, as = "parsed"), "candidates", 1, "content", "parts", 1, "text")
-        
-    } else if (str_detect(model_lower, "mistral|deepseek|qwen")) {
-        result <- purrr::pluck(content(response, as = "parsed"), "choices", 1, "message", "content") %>% 
-            str_trim()
-        
+make_llm_body_reasoning <- function(model, messages, system_prompt = NULL, system_instruction = NULL, reasoning_effort = NA_character_) {
+    # Request bodies for the models of the Experiment 3 rerun (moral_numbers_LLMs_exp3_rerun.Rmd). Used via
+    # send_llm_request(..., body_fn = make_llm_body_reasoning), which passes the reasoning effort as fifth argument.
+    # The parameter names for the new models are based on the providers' documentation as of October 2026.
+    # Differs from make_llm_body():
+    # - takes the reasoning effort as an argument (make_llm_body() hard-codes "medium" for GPT-5);
+    # - request bodies for the models of the rerun (GPT-6 luna, Claude Sonnet 5.5, Gemini 3.8 Flash,
+    #   deepseek-flash, Qwen3.7-plus); reasoning summaries are requested where available (Claude, Gemini);
+    # - local models always get the Ollama body (make_llm_body() gives the local mistral models the Mistral API body);
+    # - all other models (Mistral Medium) get the body of make_llm_body().
+
+    api_model <- stringr::str_to_lower(model)
+    effort <- reasoning_effort
+
+    if (exists("LLMS") && api_model %in% LLMS$local) {
+        # Ollama
+        return(list(
+            model = api_model,
+            messages = messages,
+            options = list(
+                temperature = LLM_OPTIONS$temperature,
+                num_ctx = LLM_OPTIONS$num_ctx  # 8k context window
+            ),
+            stream = FALSE
+        ))
+
+    } else if (api_model == "gpt-6-luna") {
+        # Like GPT-5: no temperature or max_tokens
+        return(list(
+            model = api_model,
+            messages = messages,
+            reasoning_effort = effort,
+            n = LLM_OPTIONS$n
+        ))
+
+    } else if (api_model == "claude-sonnet-5-5") {
+        # No temperature: Sonnet 5.5 rejects non-default sampling parameters.
+        # Adaptive thinking with the effort level (low|medium|high) in output_config, returning summarized thinking.
+        # (Thinking cannot be switched off: "disabled" returns a 400 on this model, and "between_tools" still uses
+        # the default effort.)
+        # max_tokens includes the thinking tokens.
+        # Automatic prompt caching (opt-in on the Anthropic API): the conversation so far is read from the cache at
+        # 0.1x the input price instead of being billed in full with every request. Does not change the model input.
+        return(list(
+            model = api_model,
+            system = system_prompt,
+            messages = messages,
+            cache_control = list(type = "ephemeral"),
+            max_tokens = LLM_OPTIONS$max_output_tokens_reasoning,
+            thinking = list(type = "adaptive", display = "summarized"),
+            output_config = list(effort = effort)
+        ))
+
+    } else if (api_model == "gemini-3.8-flash") {
+        # As gemini-2.5-flash, plus the thinking level (low|medium|high) and thought summaries
+        return(list(
+            contents = messages,
+            systemInstruction = system_instruction,
+            generationConfig = list(
+                temperature = LLM_OPTIONS$temperature,
+                topP = LLM_OPTIONS$top_p,
+                thinkingConfig = list(
+                    thinkingLevel = effort,
+                    includeThoughts = TRUE
+                )
+            )
+        ))
+
+    } else if (api_model == "deepseek-flash") {
+        # deepseek-flash (V4.1 Flash) replaces the retired deepseek-chat.
+        # make_llm_body() uses maxTokens; the API parameter is max_tokens.
+        body <- list(
+            model = api_model,
+            messages = messages,
+            stream = FALSE
+        )
+        if (effort == "off") {
+            body$thinking <- list(type = "disabled")
+            body$temperature <- LLM_OPTIONS$temperature
+            body$max_tokens <- LLM_OPTIONS$max_output_tokens
+        } else {
+            # Temperature is ignored in thinking mode
+            body$thinking <- list(type = "enabled")
+            body$reasoning_effort <- effort
+            body$max_tokens <- LLM_OPTIONS$max_output_tokens_reasoning
+        }
+        return(body)
+
+    } else if (api_model == "qwen3.7-plus") {
+        # Thinking is switched on and off with enable_thinking (on|off)
+        body <- list(
+            model = api_model,
+            messages = messages,
+            enable_thinking = effort == "on",
+            n = LLM_OPTIONS$n,
+            stream = FALSE
+        )
+        if (effort == "off") {
+            body$temperature <- LLM_OPTIONS$temperature
+            body$top_k <- LLM_OPTIONS$top_k
+            body$max_tokens <- LLM_OPTIONS$max_output_tokens
+        } else {
+            body$max_tokens <- LLM_OPTIONS$max_output_tokens_reasoning
+        }
+        return(body)
+
     } else {
-        result <- purrr::pluck(content(response, as = "parsed"), "message", "content")
+        # Mistral Medium: unchanged body
+        return(make_llm_body(api_model, messages, system_prompt, system_instruction))
     }
-    
+}
+
+parse_llm_response <- function(model, response, keep_reasoning = FALSE) {
+    # With keep_reasoning = TRUE, returns list(answer, reasoning) instead of the answer only.
+    # reasoning: Claude thinking blocks (summaries), Gemini thought parts, DeepSeek/Qwen reasoning_content;
+    # NA for OpenAI (no reasoning text in chat completions) and models without reasoning.
+    model_lower <- str_to_lower(model)
+    parsed <- content(response, as = "parsed")
+    reasoning <- NA_character_
+
+    # Parse response depending on model
+    if (exists("LLMS") && model_lower %in% LLMS$local) {
+        # Ollama
+        result <- purrr::pluck(parsed, "message", "content")
+
+    } else if (str_detect(model_lower, "gpt")) {
+        result <- parsed$choices %>%
+            purrr::map_chr(purrr::pluck, "message", "content")
+
+    } else if (str_detect(model_lower, "claude")) {
+        # Select blocks by type, as the first block is a thinking block when thinking is on
+        blocks <- purrr::pluck(parsed, "content")
+        result <- blocks %>%
+            purrr::keep(~ identical(.x$type, "text")) %>%
+            purrr::map_chr("text") %>%
+            str_c(collapse = "")
+        thinking <- blocks %>%
+            purrr::keep(~ identical(.x$type, "thinking")) %>%
+            purrr::map_chr(~ .x$thinking %||% "")
+        if (length(thinking) > 0) reasoning <- str_c(thinking, collapse = "\n")
+
+    } else if (str_detect(model_lower, "gemini")) {
+        # Thought parts (only returned with includeThoughts) are not part of the answer
+        parts <- purrr::pluck(parsed, "candidates", 1, "content", "parts")
+        result <- parts %>%
+            purrr::discard(~ isTRUE(.x$thought)) %>%
+            purrr::map("text") %>%
+            unlist() %>%
+            str_c(collapse = "")
+        thoughts <- parts %>%
+            purrr::keep(~ isTRUE(.x$thought)) %>%
+            purrr::map("text") %>%
+            unlist()
+        if (length(thoughts) > 0) reasoning <- str_c(thoughts, collapse = "\n")
+
+    } else if (str_detect(model_lower, "mistral|deepseek|qwen")) {
+        message <- purrr::pluck(parsed, "choices", 1, "message")
+        result <- message$content %>%
+            str_trim()
+        if (length(message$reasoning_content) > 0) reasoning <- message$reasoning_content
+
+    } else {
+        result <- purrr::pluck(parsed, "message", "content")
+    }
+
+    if (isTRUE(keep_reasoning)) {
+        return(list(answer = result, reasoning = reasoning))
+    }
+
     return(result)
 }
 
-send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPTS$estimation, system_instruction = SYSTEM_INSTRUCTIONS$estimation, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE){
-    
+send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPTS$estimation, system_instruction = SYSTEM_INSTRUCTIONS$estimation, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE, reasoning_effort = NA_character_, body_fn = make_llm_body, keep_reasoning = FALSE){
+    # reasoning_effort: passed to body_fn (when not NA), so that body_fn can set model-specific reasoning parameters
+    # body_fn: function building the request body; make_llm_body by default
+    # keep_reasoning: passed to parse_llm_response
+
     model_lower <- str_to_lower(model)
     
     if(isTRUE(JUST_COUNT_CHARACTERS)){
@@ -226,8 +380,12 @@ send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPT
     headers <- make_llm_header(model_lower)
     
     # Build body depending on model
-    body_json <- make_llm_body(model_lower, messages, system_prompt, system_instruction)
-    
+    if (is.na(reasoning_effort)) {
+        body_json <- body_fn(model_lower, messages, system_prompt, system_instruction)
+    } else {
+        body_json <- body_fn(model_lower, messages, system_prompt, system_instruction, reasoning_effort)
+    }
+
     if(isTRUE(DEBUG)){
         cat("\n=== API Request Debug ===\n")
         print(body_json)
@@ -243,7 +401,7 @@ send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPT
             httr::add_headers(.headers = headers),
             content_type_json(),
             encode = "json",
-            body = toJSON(body_json, auto_unbox = TRUE),
+            body = jsonlite::toJSON(body_json, auto_unbox = TRUE),
             times = LLM_OPTIONS$max_attempts,                  # retry up to 5 times
             pause_base = 30,
             pause_min = 10,               # minimum wait between retries (seconds)
@@ -284,7 +442,13 @@ send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPT
         # Break on success or other statuses
         break
     }
-    
+
+    # Other failures (e.g., unfunded account, unknown model, server errors after retries) would otherwise be
+    # parsed as an empty answer
+    if (status != 200) {
+        stop(glue::glue("API returned status {status} for {model}: {substr(content(response, as = 'text'), 1, 500)}"))
+    }
+
     
     if(isTRUE(DEBUG)){
         # 🔍 DEBUGGING PRINT
@@ -305,10 +469,10 @@ send_llm_request <- function(model, url, messages, system_prompt = SYSTEM_PROMPT
     }
     
     
-    result <- parse_llm_response(model_lower, response)
-    
+    result <- parse_llm_response(model_lower, response, keep_reasoning = keep_reasoning)
+
     result
-    
+
 }
 
 
@@ -352,8 +516,12 @@ compose_llm_messages <- function(dat = ., model){
         purrr::pmap(~ compose_llm_message_inner(..1, ..2, model = model))
 }
 
-get_api_response_incremental <- function(dat = ., model, system_prompt, system_instruction, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE){
-    
+get_api_response_incremental <- function(dat = ., model, system_prompt, system_instruction, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE, reasoning_effort = NA_character_, body_fn = make_llm_body, keep_reasoning = FALSE, clean_answer = TRUE){
+    # reasoning_effort, body_fn, keep_reasoning: passed to send_llm_request.
+    # clean_answer = TRUE keeps only the leading digits of an answer starting with a digit;
+    # clean_answer = FALSE returns the answer as given by the model.
+    # The conversation history contains only the previous answers (dat$response), not the reasoning.
+
     
     url <- get_model_url(model)
     
@@ -427,17 +595,30 @@ get_api_response_incremental <- function(dat = ., model, system_prompt, system_i
     }
     
     # Send off the response
-    result <- send_llm_request(model, url, messages, system_prompt = system_prompt, system_instruction = system_instruction, DEBUG = DEBUG, JUST_COUNT_CHARACTERS = JUST_COUNT_CHARACTERS) %>% 
-        str_replace("^(\\d+)(\\D*)", "\\1")
-    
+    result <- send_llm_request(model, url, messages, system_prompt = system_prompt, system_instruction = system_instruction, DEBUG = DEBUG, JUST_COUNT_CHARACTERS = JUST_COUNT_CHARACTERS, reasoning_effort = reasoning_effort, body_fn = body_fn, keep_reasoning = keep_reasoning)
+
+    if (isTRUE(clean_answer)) {
+        if (is.list(result)) {
+            result$answer <- str_replace(result$answer, "^(\\d+)(\\D*)", "\\1")
+        } else {
+            result <- str_replace(result, "^(\\d+)(\\D*)", "\\1")
+        }
+    }
+
     result
     
 }
 
 
 
-get_api_response_wrapper_df <- function(dat = ., dat_grp, verbose = FALSE, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE, ...){
-    
+get_api_response_wrapper_df <- function(dat = ., dat_grp, verbose = FALSE, DEBUG = FALSE, JUST_COUNT_CHARACTERS = FALSE, body_fn = make_llm_body, keep_reasoning = FALSE, stop_on_error = FALSE, keep_raw_response = FALSE, ...){
+    # The reasoning effort is taken from dat_grp$reasoning_effort if present (NA otherwise).
+    # body_fn, keep_reasoning: passed to get_api_response_incremental; keep_reasoning = TRUE adds a reasoning column.
+    # stop_on_error = TRUE stops the conversation at the first failed request (e.g., to be recorded by purrr::safely)
+    # instead of recording NA for the failed trial and continuing.
+    # keep_raw_response = TRUE adds a response_raw column with the answer as given by the model;
+    # response contains the cleaned answer (leading digits), which is also used in the conversation history.
+
     gc()
     
     
@@ -458,30 +639,57 @@ get_api_response_wrapper_df <- function(dat = ., dat_grp, verbose = FALSE, DEBUG
         system_instruction <- SYSTEM_INSTRUCTIONS$estimation
     }
     
-    if(isTRUE(verbose)) 
-        print(glue::glue("Running model {model} for experiment {experimentID} and subject {subj}."))
-    
-    
+    reasoning_effort <- if ("reasoning_effort" %in% names(dat_grp)) unique(dat_grp$reasoning_effort) else NA_character_
+    if(length(reasoning_effort) > 1) stop("More than one reasoning effort detected")
+
+    if(isTRUE(verbose))
+        print(glue::glue("Running model {model} (reasoning effort {reasoning_effort}) for experiment {experimentID} and subject {subj}."))
+
+
     # Prepare return df
-    dat <- dat %>% 
+    dat <- dat %>%
         dplyr::mutate(response = NA_character_)
-    
+    if (isTRUE(keep_reasoning)) {
+        dat <- dat %>%
+            dplyr::mutate(reasoning = NA_character_)
+    }
+    if (isTRUE(keep_raw_response)) {
+        dat <- dat %>%
+            dplyr::mutate(response_raw = NA_character_)
+    }
+
     for(i in seq_len(nrow(dat))){
-        dat[i, "response"] <- tryCatch({
-            res <- get_api_response_incremental(
+        res <- tryCatch(
+            get_api_response_incremental(
                 dat[seq_len(i),],
                 model = model,
                 system_prompt = system_prompt,
                 system_instruction = system_instruction,
                 DEBUG = DEBUG,
-                JUST_COUNT_CHARACTERS = JUST_COUNT_CHARACTERS
-            )
-            if (length(res) == 0) NA_character_ else res
-        },
-        
-        error = function(e) NA_character_
-        )  
-        
+                JUST_COUNT_CHARACTERS = JUST_COUNT_CHARACTERS,
+                reasoning_effort = reasoning_effort,
+                body_fn = body_fn,
+                keep_reasoning = keep_reasoning,
+                # The answer is cleaned below (cleaning twice can change it)
+                clean_answer = FALSE
+            ),
+            error = function(e) {
+                if (isTRUE(stop_on_error)) stop(e)
+                NULL
+            }
+        )
+
+        answer <- if (is.list(res)) res$answer else res
+        if (isTRUE(keep_raw_response)) {
+            dat[i, "response_raw"] <- if (length(answer) == 0) NA_character_ else answer
+        }
+        # Keep only the leading digits of an answer starting with a digit
+        answer <- str_replace(answer, "^(\\d+)(\\D*)", "\\1")
+        dat[i, "response"] <- if (length(answer) == 0) NA_character_ else answer
+        if (isTRUE(keep_reasoning) && is.list(res)) {
+            dat[i, "reasoning"] <- res$reasoning
+        }
+
     }
     
     
@@ -489,12 +697,12 @@ get_api_response_wrapper_df <- function(dat = ., dat_grp, verbose = FALSE, DEBUG
     return(dat)
 }
 
-make_prompt <- function(text, question, n_saved, n_victims, n_saved2, n_victims2, option1, option2){
-    
-    
+make_prompt <- function(text, question, n_saved, n_victims, n_saved2, n_victims2, option1, option2, option_labels = c("1", "2")){
+    # option_labels: labels of the two options in two-option prompts, e.g. c("A", "B"); default "(1) ... (2) ..."
+
     prompt <- dplyr::if_else(is.na(n_saved2),
                              glue::glue("{text} {question}"),
-                             glue::glue("{text} {question} (1) {option1} (2) {option2}")
+                             glue::glue("{text} {question} ({option_labels[1]}) {option1} ({option_labels[2]}) {option2}")
     )
     
     prompt <- dplyr::if_else(is.na(n_saved2),

@@ -46,7 +46,7 @@ output:
     toc_float: yes
     fig_caption: true
     highlight-style: tango    
-abstract: "Moral decisions are often framed as a conflict between utilitarianism (maximizing good) and deontology (following rules). We propose a model where moral decisions operate like other perceptual systems, and track the subjective (information-theoretic) certainty that outcomes achieve the greater good, given the psychophysical noise in a magnitude-estimation system governed by Weber’s law. Accordingly, utilitarian and deontological responses are the low- vs. high-uncertainty limit cases. Participants rated the acceptability of sacrificing fewer 'victims' to save more 'beneficiaries.' Consistent with this model, acceptability tracked the ratio of beneficiaries to victims (*beneficiary:victim* Weber ratios), but not utility (net survivors) or harm (victims). When certainty is increased by deciding between economic goods rather than human lives, responses become more 'utilitarian'; when the attention to victims is increased through emotional manipulations, responses become more 'deontological'. Frontier large language models from three different jurisdictions (though not smaller models) reproduced some aspects of our data, but used qualitatively different heuristics from humans and generally priortized harm or utility over *beneficiary:victim* ratios. We also show that the same model provides the first mechanistic explanation of loss-aversion in decision making. People, but not machines, thus seek the greater good, but do so under perceptual noise."
+abstract: "Moral decisions are often framed as a conflict between utilitarianism (maximizing good) and deontology (following rules). We propose a model where moral decisions operate like other perceptual systems, and track the subjective (information-theoretic) certainty that outcomes achieve the greater good, given the psychophysical noise in a magnitude-estimation system governed by Weber’s law. Accordingly, utilitarian and deontological responses are the low- vs. high-uncertainty limit cases. Participants rated the acceptability of sacrificing fewer 'victims' to save more 'beneficiaries.' Consistent with this model, acceptability tracked the ratio of beneficiaries to victims (*beneficiary:victim* Weber ratios), but not utility (net survivors) or harm (victims). When certainty is increased by deciding between economic goods rather than human lives, responses become more 'utilitarian'; when the attention to victims is increased through emotional manipulations, responses become more 'deontological'. Frontier large language models from three different jurisdictions (though not smaller models) reproduced some aspects of our data, but most used different heuristics from humans, generally prioritizing utility over *beneficiary:victim* ratios. We also show that the same model provides the first mechanistic explanation of loss aversion in decision making. People thus seek the greater good, but do so under perceptual noise."
 editor_options: 
   chunk_output_type: console
 ---
@@ -64,7 +64,7 @@ editor_options:
 knitr::purl(
     here::here(
         "code",
-        "moral_numbers_tmp.Rmd"
+        "moral_numbers.Rmd"
     ), 
     output = here::here(
         "code",
@@ -134,12 +134,19 @@ REMOVE_INCOMPLETE_SUBJ <- TRUE
 REMOVE_CONSTANT_SUBJ <- TRUE
 REMOVE_FAST_SUBJ <- TRUE
 
-# Recalculate even the time consuming stuff
-# If FALSE, time consuming things like bootstrap fits are read from a file
-RECALCULATE_EVERYTHING <- FALSE
-
-# Recalculate things in the appendix. Might be false (e.g., for the power analysis) even if we want to recalculate stuff in the main text
-RECALCULATE_EVERYTHING_APP <- FALSE
+# Recalculate the time-consuming computations; if FALSE, the results are read from files in OUTPUT_DIR.
+# Each computation can be run separately (e.g., in separate sessions to limit memory use).
+# Bootstrap fits of w and alpha, including the vivacity-filtered versions
+# (both parts must run in the same session)
+RECALCULATE_FITS_BOOTSTRAP <- FALSE
+# Bootstrap fits of alpha with w fixed to the neutral condition (needs the results of the fits above)
+RECALCULATE_FORCED_W_BOOTSTRAP <- FALSE
+# Relative-risk bootstrap (samples, contingency tables and regressions must run together)
+RECALCULATE_RR_BOOTSTRAP <- FALSE
+# Bootstrap search for the onset of the asymptote in Experiments 4 and 5 (appendix; very slow)
+RECALCULATE_ASYMPTOTE_BOOTSTRAP <- FALSE
+# Empirical power simulations (appendix; child_rmds/moral_numbers_empirical_power.Rmd)
+RECALCULATE_POWER_SIMULATIONS <- FALSE
 
 # Optionally reload data, since this takes ages
 RELOAD_DATA <- FALSE
@@ -304,7 +311,7 @@ TRIALS_INFO <- dplyr::bind_rows(list(
         n_questions           = 1L,
         block_type            = "vivid / neutral"
     ),
-    # Pilot variant of Exp. 5 with only the vivid block.
+    # Variant of Exp. 5 with a single block (vivid and neutral between participants).
     exp5b = list(
         experimentID          = "exp5b",
         n_scenarios_per_block = 14L,
@@ -344,7 +351,7 @@ TRIALS_INFO <- dplyr::bind_rows(list(
         block_type            = "vivid / neutral"
     ),
     
-    # Exp. 9a (paper: Experiment AS): asymptote-search pilot — vivid condition
+    # Exp. 9a (paper: Experiment AS): asymptote-search pilot — neutral condition
     # only, with more extreme ratios; 10 scenarios rather than 12.
     # 1 × 10 × 2 = 20.
     exp9a = list(
@@ -352,7 +359,7 @@ TRIALS_INFO <- dplyr::bind_rows(list(
         n_scenarios_per_block = 10L,
         n_blocks              = 1L,
         n_questions           = 2L,
-        block_type            = NA_character_   # vivid condition only
+        block_type            = NA_character_   # neutral condition only
     ),
     
     # Exp. 10 (paper: Experiment 5): 2 × 12 × 2 = 48.
@@ -2495,6 +2502,55 @@ dat.moral.numbers.demographics <- dat.moral.numbers %>%
     get.demographics2(ResponseId, gender, age, experimentID)
 ```
 
+```{r add-experiments-with-scenario-exclusions}
+# Pseudo-experiments without scenarios whose wording contained errors that participants saw:
+# - Experiment 4 (exp8) and Experiment F7 (exp7): the acceptability question of the
+#   Hospital Power Outage scenario reversed victims and beneficiaries
+# - Experiments 3a-3c (exp2a-d): option 2 of the economic Aqueduct scenario named the wrong farm
+# All analyses run on both versions; which version is reported is chosen when presenting the
+# results (see select_exps()). Participant exclusions above are identical for both versions.
+dat.scenario.exclusions <- tibble::tribble(
+    ~experimentID, ~scenarioID,
+    "exp7",        "powerHospital",
+    "exp8",        "powerHospital",
+    "exp2a",       "desertAqueduct",
+    "exp2b",       "desertAqueduct",
+    "exp2c",       "desertAqueduct",
+    "exp2d",       "desertAqueduct"
+)
+
+# Make sure that each excluded scenario actually exists in the data
+dat.scenario.exclusions.not.found <- dplyr::anti_join(
+    dat.scenario.exclusions,
+    dat.moral.numbers %>%
+        dplyr::distinct(experimentID, scenarioID) %>%
+        dplyr::mutate(scenarioID = as.character(scenarioID)),
+    by = c("experimentID", "scenarioID")
+)
+if (nrow(dat.scenario.exclusions.not.found) > 0) {
+    stop(
+        "Scenarios to be excluded not found in the data: ",
+        paste(
+            dat.scenario.exclusions.not.found$experimentID,
+            dat.scenario.exclusions.not.found$scenarioID,
+            sep = "/",
+            collapse = ", "
+        )
+    )
+}
+
+dat.moral.numbers <- dplyr::bind_rows(
+    dat.moral.numbers,
+    dat.moral.numbers %>%
+        dplyr::filter(experimentID %in% dat.scenario.exclusions$experimentID) %>%
+        dplyr::anti_join(dat.scenario.exclusions, by = c("experimentID", "scenarioID")) %>%
+        dplyr::mutate(experimentID = make_exp_id(experimentID, scenarios_excluded = TRUE, vivacity_filtered = FALSE))
+)
+
+# Clean IDs of experiments with scenario exclusions (used by select_exps())
+l_exp_with_scenario_exclusions <- unique(dat.scenario.exclusions$experimentID)
+```
+
 ```{r detect-ratios}
 dat.moral.numbers.ratios <- dat.moral.numbers %>%
     dplyr::distinct(experimentID, ratio) %>%
@@ -2862,7 +2918,7 @@ Our model makes four novel predictions. First, moral acceptability should track 
 
 Second, when uncertainty about the underlying values is reduced (e.g., in economic goods), participants should become more "utilitarian" (see also [@Caviola2021]) and show reduced internal noise. 
 
-Third, when choosing between situations contrasting higher Weber ratios and higher utility or lower harm, participants should prefer the former, high ratio situations. 
+Third, when choosing between moral situations contrasting higher Weber ratios and higher utility or lower harm, participants should prefer the former, high ratio situations. 
 
 Fourth, when the victims are made more salient, responses should be more deontological for small ratios, but the salience should not affect choice for larger ratios.
 
@@ -2970,25 +3026,33 @@ dat.number.conds.for.table %>%
 All experiments were conducted online with adult English-speaking participants recruited through Amazon Mechanical Turk, Testable Minds or Prolific (N = `r dat.moral.numbers %>% dplyr::filter(experimentID %in% c("exp1", "exp1b", "exp4", "exp2a", "exp2b", "exp2c", "exp2d", "exp8", "exp10", "exp11")) %>% dplyr::distinct(experimentID, ResponseId) %>% nrow() %>% format(big.mark = ",")` across Experiments 1--6; see SI \@ref(app:participants) for recruitment, demographics and exclusion criteria). In Experiment 1, we tested the first of these predictions, asking whether moral acceptability is primarily driven by the *beneficiary:victim* Weber ratio. We developed a novel set of sacrificial dilemmas that remain plausible for both small and large numbers of beneficiaries and victims. All dilemmas were set in imaginary places to avoid prior associations (see SI \@ref(app:scenarios) for the dilemmas). For example, participants read about a leak in an aqueduct supplying desert settlements with water and had to indicate on a 6-point scale how acceptable it would be to redirect water from another settlement. Redirecting water would save those in the former settlement, but kill those in the latter settlement. In Experiment 1a, the number of victims varied between 1 and 300, while the ratio varied between 4:3 and 40:1 (see Table \ref{tab:print-number-conds2}). As Experiment 1a also targeted the (preregistered but incorrect) predictions outlined in SI \@ref(app:planned-analysis-exp1), we replicated the results with more systematically spaced numbers in Experiment 1b (see Table \ref{tab:print-number-conds2}). We asked whether the acceptability of a sacrificial decision depends on (1) the utility (the net number of survivors), (2) the harm (the number of victims), or (3)  the *beneficiary:victim* Weber ratio between the number of beneficiaries and the number of victims.
 
 ```{r descriptives-print, results='hide'}
+
 dat.moral.numbers.m.across.subj.for.table <- dat.moral.numbers.m.across.subj %>%
     dplyr::filter(
-        experimentID %in% dat.moral.numbers.exp.correspondance$experimentID.data |
-            stringr::str_detect(experimentID, "\\.vivacityManipulationWorking$"),
+        parse_exp_id(experimentID)$expID_clean %in% dat.moral.numbers.exp.correspondance$experimentID.data,
         # Exclude asymptote search experiment (AS); 2AFC experiments are not in this data frame
         experimentID != "exp9a",
         blocks == "all"
     ) %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     dplyr::select(-blocks) %>%
     format_exp_info() %>%
     dplyr::arrange(experimentID)
 
 dat.moral.numbers.m.across.subj.for.table %>%
-    dplyr::mutate(dplyr::across(dplyr::ends_with(".p"), fix_zero_p_values)) %>%
+    dplyr::mutate(
+        dplyr::across(dplyr::ends_with(".p"), fix_zero_p_values)
+    ) %>%
+    dplyr::mutate(
+        Condition = dplyr::coalesce(decisionType, vivacity),
+        .keep = "unused",
+        .after = experimentID
+    ) %>% 
     dplyr::select(-experimentID) %>%
     knitr::kable(
-        caption = "Descriptive statistics for all experiments. Each row summarises one number condition. Raw ratings are on a 1--6 acceptability scale; binary ratings reflect the proportion of \"acceptable\" responses. Cohen's $d$ is the standardised difference from the scale midpoint (3.5). For Experiments 4--6, rows labelled (filtered) include only participants for whom the vivacity manipulation was successful.",
+        caption = "Descriptive statistics for all experiments. Each row summarises one number condition. Raw ratings are on a 1--6 acceptability scale; binary ratings reflect the proportion of \"acceptable\" responses. Cohen's $d$ is the standardised difference from the scale midpoint (3.5). For Experiments 4--6, rows labelled (filtered) include only participants for whom the vivacity manipulation was successful. For Experiment 4, problematic scenarios have been excluded (see \\@ref(app:XXX)).",
         col.names = c(
-            "Decision Type", "Vivacity",
+            "Condition",
             "Ratio", "Victims", "Beneficiaries", "Participants",
             "M", "SE", "p", "Cohen's $d$",
             "M", "SE", "p"
@@ -2998,7 +3062,7 @@ dat.moral.numbers.m.across.subj.for.table %>%
         digits = 3,
         escape = FALSE
     ) %>%
-    kableExtra::add_header_above(c(" " = 3, "Number of" = 3, "Raw ratings" = 4, "Binary ratings" = 3), bold = TRUE) %>%
+    kableExtra::add_header_above(c(" " = 2, "Number of" = 3, "Raw ratings" = 4, "Binary ratings" = 3), bold = TRUE) %>%
     kableExtra::kable_classic_2() %>%
     kableExtra::kable_styling(
         font_size = 7,
@@ -3009,7 +3073,13 @@ dat.moral.numbers.m.across.subj.for.table %>%
     ) %>%
     # For long table, pack_rows must come last
     # See https://github.com/haozhu233/kableExtra/issues/476
-    kableExtra::pack_rows(index = dat.moral.numbers.m.across.subj.for.table %>%
+    kableExtra::pack_rows(index = 
+                              dat.moral.numbers.m.across.subj.for.table %>%
+                              dplyr::mutate(
+                                  Condition = dplyr::coalesce(decisionType, vivacity),
+                                  .keep = "unused",
+                                  .after = experimentID
+                              ) %>% 
                               make.pack.index(experimentID))
 ```
 
@@ -3361,7 +3431,7 @@ dat.moral.numbers.overall.fit.2param.linearized <- dat.moral.numbers.m.across.su
 ```
 
 ```{r fit-bootstrap-calculate}
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_FITS_BOOTSTRAP) {
     # This will take about 10 min for 1000 samples, so presumably 100 min for 10000.
     
     gc() # Clean up memory just in case
@@ -3378,7 +3448,7 @@ if (RECALCULATE_EVERYTHING) {
                                                                      dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = FALSE, fit.w = TRUE)),
                                                                  .options = furrr_options(
                                                                      seed = TRUE,
-                                                                     stdout = !RECALCULATE_EVERYTHING
+                                                                     stdout = !RECALCULATE_FITS_BOOTSTRAP
                                                                  )
     )
     # toc()
@@ -3397,7 +3467,7 @@ if (RECALCULATE_EVERYTHING) {
                                                                      dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = TRUE, fit.w = TRUE)),
                                                                  .options = furrr_options(
                                                                      seed = TRUE,
-                                                                     stdout = !RECALCULATE_EVERYTHING
+                                                                     stdout = !RECALCULATE_FITS_BOOTSTRAP
                                                                  )
     )
     
@@ -3541,17 +3611,18 @@ list(
 ### Fits for Experiment 2 (WAS: `r get.original.experimentID("exp2")`)
 
 ```{r exp4-add-Z-values-to-bootstrap-fit}
-# Z values for the w  parameters for the economic version with respect to the moral version
+# Z values for the w parameter in the moral version with respect to the economic version
+# (same convention as in Table bootstrap-fits-print: economic = baseline)
 
-l.exp4.Z.economic.1param <- dat.moral.numbers.bootstrap.1param.summary %>%
+l.exp4.Z.moral.1param <- dat.moral.numbers.bootstrap.1param.summary %>%
     dplyr::filter(experimentID == "exp4", blocks == "all") %>%
     dplyr::ungroup() %>%
-    make.Z.value.against.control(group = decisionType, controlCond = "moral")
+    make.Z.value.against.control(group = decisionType, controlCond = "economic")
 
 ```
 
 
-We also used bootstrap resampling (with `r N_BOOTSTRAP` samples) to compare the model estimates across conditions. The estimate in the economic condition (`r dat.moral.numbers.bootstrap.1param.summary %>% get.estimates.from.bootstrap.fit(experimentID == "exp4", blocks == "all", decisionType == "economic")`) was substantially lower than in the moral condition (`r dat.moral.numbers.bootstrap.1param.summary %>% get.estimates.from.bootstrap.fit(experimentID == "exp4", blocks == "all", decisionType == "moral")`). Relative to the sampling distribution in the moral condition, the estimates in the economic condition yielded a *Z* value of `r knitr::combine_words(sapply(l.exp4.Z.economic.1param, round, 3))` (see Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}a).
+We also used bootstrap resampling (with `r N_BOOTSTRAP` samples) to compare the model estimates across conditions. The estimate in the economic condition (`r dat.moral.numbers.bootstrap.1param.summary %>% get.estimates.from.bootstrap.fit(experimentID == "exp4", blocks == "all", decisionType == "economic")`) was substantially lower than in the moral condition (`r dat.moral.numbers.bootstrap.1param.summary %>% get.estimates.from.bootstrap.fit(experimentID == "exp4", blocks == "all", decisionType == "moral")`). Relative to the sampling distribution in the economic condition, the estimates in the moral condition yielded a *Z* value of `r knitr::combine_words(sapply(l.exp4.Z.moral.1param, round, 3))` (see Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}a).
 
 
 ```{r exp4-fits-bootstrap-w-plot, fig.cap = "Bootstrap samples of the $w$ parameter in Experiment 2 (moral vs. economic decisions). Each violin shows the distribution of bootstrap estimates.", include=SHOW_INDIVIDUAL_PLOTS}
@@ -3643,7 +3714,7 @@ dat.moral.numbers.number.cond.exp2.for.table %>%
 ```{r exp2-make-by-subj-averages}
 # Overall
 dat.moral.numbers.exp2.m <- dat.moral.numbers %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp2")) %>%
+    dplyr::filter(stringr::str_starts(experimentID, "exp2")) %>% 
     # Combining Experiments 2a and 2c as they are replications of one another
     combine_exps("exp2[ac]") %>%
     tidyr::pivot_longer(dplyr::starts_with("rating"),
@@ -3678,7 +3749,7 @@ dat.moral.numbers.exp2.by.block.m <- dat.moral.numbers %>%
 
 
 
-In Experiment 3[^exp3-exp-order], we tested our third prediction and directly pitted ratios against harm and utility, respectively. We tested these comparisons in separate experiments, as one cannot pit ratios against harm and utility simultaneously (see \@ref(app:proofs) for mathematical proofs). Specifically, participants chose between two dilemmas. For example, they read about *two* simultaneous leaks in aqueducts supplying desert settlements with water (rather than a single leak in Experiments 1 and 2), with only one repair crew available that could redirect water from one settlement to another. One option had a higher *beneficiary:victim* ratio but also higher harm (Experiment 3a) or lower utility (Experiments 3b and c). The other option had a lower *beneficiary:victim* ratio but also reduced harm or higher utility. Participants completed a block of moral dilemmas and one of matched economic dilemmas (in counterbalanced orders). Preferences were again collected on a 6-point scale. We expected participants to favor the high-ratio options for moral dilemmas, but had no clear prediction about whether they would favor utility in economic dilemmas.
+In Experiment 3[^exp3-exp-order], we tested our third prediction and directly pitted ratios against harm and utility, respectively. We tested these comparisons in separate experiments, as one cannot pit ratios against harm and utility simultaneously (see \@ref(app:proofs) for mathematical proofs). Specifically, participants chose between two dilemmas. For example, they read about *two* simultaneous leaks in aqueducts supplying desert settlements with water (rather than a single leak in Experiments 1 and 2), with only one repair crew available that could redirect water from one settlement to another. One option had a higher *beneficiary:victim* ratio but also higher harm (Experiment 3a) or lower utility (Experiments 3b and 3c). The other option had a lower *beneficiary:victim* ratio but also reduced harm or higher utility. Participants completed a block of moral dilemmas and one of matched economic dilemmas (in counterbalanced orders). Preferences were again collected on a 6-point scale. We expected participants to favor the high-ratio options for moral dilemmas, but had no clear prediction about whether they would favor utility in economic dilemmas. Excluding one scenario with a wording error did not change the results (SI \@ref(app:scenario-errors-exp3)).
 
 [^exp3-exp-order]: Note to self:
     -   Exp 2a and 2c are replications of one another.
@@ -3695,6 +3766,7 @@ Experiment 3 relies on participants myopically evaluating each option separately
 
 p.moral.numbers.exp2.m <- dat.moral.numbers.exp2.m %>%
     dplyr::filter(measure == "bin") %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = FALSE) %>%
     format_exp_info(wrap = TRUE) %>%
     dplyr::mutate(experimentID = stringr::str_to_sentence(experimentID)) %>%
     dplyr::mutate(decisionType = stringr::str_to_title(decisionType)) %>%
@@ -3710,6 +3782,7 @@ p.moral.numbers.exp2.m
 ```{r exp2-plot-raw, fig.width = 8.5, fig.cap = "Results of Experiment 3 for raw ratings on a 6-point scale. The dot, error bars and violin represent the sample average, 95\\% bootstrap confidence intervals and the distribution of the individual responses, respectively. Orange circles represent individual participants. The horizontal line indicates the chance level (3.5).", eval = FALSE}
 dat.moral.numbers.exp2.m %>%
     dplyr::filter(measure == "raw") %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = FALSE) %>%
     format_exp_info(wrap = TRUE) %>%
     dplyr::mutate(decisionType = stringr::str_to_title(decisionType)) %>%
     ggplot2::ggplot(ggplot2::aes(x = decisionType, y = rating)) %>%
@@ -3774,7 +3847,8 @@ dat.moral.numbers.exp2.descriptives <- dplyr::bind_rows(
 
 ```{r exp2-descriptives-prepare-count-stat-thresholds}
 
-moral.numbers.exp2.binom.sig.thresholds <-  dat.moral.numbers.exp2.descriptives %>% 
+moral.numbers.exp2.binom.sig.thresholds <-  dat.moral.numbers.exp2.descriptives %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = FALSE) %>%
     dplyr::filter(measure == "bin") %>%
     dplyr::mutate(sig.threshold = 
                       round(N_binom_threshold / N, 3)
@@ -3793,6 +3867,7 @@ moral.numbers.exp2.binom.sig.thresholds <-  dat.moral.numbers.exp2.descriptives 
 
 
 dat.moral.numbers.exp2.descriptives %>%
+    select_exps(require_single_version = TRUE, scenarios_excluded = FALSE) %>%
     dplyr::select(-N_above_chance_level, -P_above_chance_level, -N_binom_threshold) %>%
     format_exp_info() %>%
     dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp", "Exp. ")) %>%
@@ -3809,11 +3884,11 @@ dat.moral.numbers.exp2.descriptives %>%
             fix_zero_p_values
         )
     ) %>% 
-    dplyr::arrange(measure, experimentID, desc(decisionType)) %>%
+    dplyr::arrange(measure, experimentID, dplyr::desc(decisionType)) %>%
     dplyr::rename_with(replace_default_column_labels) %>%
     tidyr::unite(experimentID.measure, Experiment, measure, sep = " - ") %>%
     kable.packed("experimentID.measure",
-                 caption = "Descriptives for Experiment 3. Binarized ratings are derived from the 6-point scale by converting values below 3.5 to 0 and values above 3.5 to 1. $M$ is the mean across participants (chance level = 0.5 for binarized ratings, 3.5 for raw ratings). $SE$ = standard error. $p$ (Wilcoxon) is a two-tailed Wilcoxon signed-rank test against chance. $p$ (binomial) tests whether the number of participants whose mean rating exceeded chance is significantly greater or smaller than expected by chance (one-tailed binomial test, significant in either direction); participants at exactly the chance level were counted against the pattern rather than excluded, making the test conservative.",
+                 caption = "Descriptives for Experiment 3. Binarized ratings are derived from the 6-point scale by converting values below 3.5 to 0 and values above 3.5 to 1. $M$ is the mean across participants (chance level = 0.5 for binarized ratings, 3.5 for raw ratings). $SE$ = standard error. $p$ (Wilcoxon) is a two-tailed Wilcoxon signed-rank test against chance. $p$ (binomial) tests whether the number of participants whose mean rating exceeded chance is significantly greater or smaller than expected by chance (one-tailed binomial test, significant in either direction); participants at exactly the chance level were counted as not exceeding chance.",
                  booktabs = TRUE,
                  longtable = FALSE
     ) %>%
@@ -3835,10 +3910,12 @@ moral.numbers.exp2ac.bin.lmer1 <- lme4::glmer(
     # control=glmerControl(optimizer="bobyqa"),
     family = "binomial",
     data = dat.moral.numbers %>%
-        dplyr::filter(
-            stringr::str_detect(experimentID, "exp2[ac]"),
-            comparisonType == "ratio_vs_utility"
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp2a", "exp2c"),
+            scenarios_excluded = FALSE
         ) %>%
+        dplyr::filter(comparisonType == "ratio_vs_utility") %>%
         dplyr::mutate(
             decisionType = factor(
                 decisionType,
@@ -3876,10 +3953,12 @@ moral.numbers.exp2d.bin.lmer1 <- lme4::glmer(
     # control=glmerControl(optimizer="bobyqa"),
     family = "binomial",
     data = dat.moral.numbers %>%
-        dplyr::filter(
-            stringr::str_detect(experimentID, "exp2d"),
-            comparisonType == "ratio_vs_utility"
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp2d",
+            scenarios_excluded = FALSE
         ) %>%
+        dplyr::filter(comparisonType == "ratio_vs_utility") %>%
         dplyr::mutate(
             decisionType = factor(
                 decisionType,
@@ -3914,10 +3993,12 @@ moral.numbers.exp2b.bin.lmer1 <- lme4::glmer(
     # control=glmerControl(optimizer="bobyqa"),
     family = "binomial",
     data = dat.moral.numbers %>%
-        dplyr::filter(
-            stringr::str_starts(experimentID, "exp2"),
-            !stringr::str_detect(comparisonType, "ratio_vs_utility")
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp2a", "exp2b", "exp2c", "exp2d"),
+            scenarios_excluded = FALSE
         ) %>%
+        dplyr::filter(!stringr::str_detect(comparisonType, "ratio_vs_utility")) %>%
         dplyr::mutate(decisionType = factor(
             decisionType, 
             levels = rev(unique(sort(decisionType)))
@@ -3973,7 +4054,7 @@ list(
     fix_zero_p_values(p_or) %>%
     #highlight_rows_by_p_value(p_col = p_or, cols = -lmer.label, format = "latex") %>%
     kable.packed("lmer.label",
-                 caption = "Results in Experiment 3 from generalized linear mixed models with a binomial link function and the fixed factor predictors Domain (moral vs. economic) and Block (first vs. second), their interaction as well as random intercepts for participants. The dependent variable was the endorsement of high-ratio options. Following \\cite{Baayen2008}, we removed all fixed and random predictors that did not contribute to the model likelihood. As a result, we kept only participants as random factors. While it did not contribute to the model likelihood either, we kept the interaction between Domain and Block.",
+                 caption = "Results in Experiment 3 from generalized linear mixed models with a logit link function (binomial family) and the fixed factor predictors Domain (moral vs. economic) and Block (first vs. second), their interaction as well as random intercepts for participants. The dependent variable was the endorsement of high-ratio options. Following \\cite{Baayen2008}, we removed all fixed and random predictors that did not contribute to the model likelihood. As a result, we kept only participants as random factors. While it did not contribute to the model likelihood either, we kept the interaction between Domain and Block.",
                  col.names = c("Effect", "Estimate", "SE", "CI", "Estimate", "SE", "CI", "t", "p"),
                  escape = FALSE,
                  booktabs = TRUE
@@ -3992,7 +4073,7 @@ list(
 
 In Experiment 3a, we pitted options with higher *beneficiary:victim* ratios but higher harm against options with lower *beneficiary:victim* ratios but lower harm (Table \ref{tab:print-number-conds-exp2-2}).
 
-As shown in Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b and Table \ref{tab:exp2-descriptives-print2}, participants preferred the high-ratio options over the low-harm options for both moral and economic choices. A generalized linear mixed model (GLMM) with a binomial link function revealed that endorsement of the high-ratio option was slightly higher in the economic condition (see Table \ref{tab:exp2-lmer-print2} and Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b). Participants are thus more sensitive to Weber ratios than to the numbers of victims, and do not follow harm-avoidance, deontological strategies, at least when utility also favors the high-ratio option.
+As shown in Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b and Table \ref{tab:exp2-descriptives-print2}, participants preferred the high-ratio options over the low-harm options for both moral and economic choices. A generalized linear mixed model (GLMM) with a logit link function (binomial family) revealed that endorsement of the high-ratio option was slightly higher in the economic condition (see Table \ref{tab:exp2-lmer-print2} and Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b). Participants are thus more sensitive to Weber ratios than to the numbers of victims, and do not follow harm-avoidance, deontological strategies, at least when utility also favors the high-ratio option.
 
 ### Experiment 3b (WAS: `r get.original.experimentID("exp3b")`) [REMOVE HEADING FROM PAPER]
 
@@ -4005,7 +4086,7 @@ As shown in Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b and Table \ref{tab
 
 Experiment 3c also pitted *beneficiary:victim* ratios against utility, but with a less extreme difference in harm.
 
-As shown in Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b and Table \ref{tab:exp2-descriptives-print2}, participants continued to prefer the high-ratio options in moral choices, and the low-ratio, high-utility options for economic choices. A GLMM confirmed that the preference for high-ratio options was significantly stronger for moral than for economic choices (see Table \ref{tab:exp2-lmer-print2}).
+As shown in Figure \ref{fig:exp4-fits-bootstrap-w-exp2-plot}b and Table \ref{tab:exp2-descriptives-print2}, participants continued to prefer the high-ratio options in moral choices. In economic choices, they tended to prefer the low-ratio, high-utility options, although this preference was weak and not significant in all tests against chance level. Critically, a GLMM confirmed that the preference for high-ratio options was significantly stronger for moral than for economic choices (see Table \ref{tab:exp2-lmer-print2}).
 
 `r clearpage()`
 
@@ -4016,7 +4097,7 @@ In Experiments 4 to 5, we tested our fourth prediction: Increased victims salien
 
 
 
-In addition to these changes, participants completed 12 rather than 10 trials per vividness condition, performed one block of vivid and one block of neutral scenarios (in counterbalanced order), and answered an attention check question (SI \@ref(app:methods)).
+In addition to these changes, participants completed 12 rather than 10 trials per vividness condition, performed one block of vivid and one block of neutral scenarios (in counterbalanced order), and answered an attention check question (SI \@ref(app:methods)). One scenario with a wording error was excluded (SI \@ref(app:scenario-errors-exp4)); it was not used in Experiments 5 and 6.
 
 
 ### Severity ratings [Details are in SI] 
@@ -4090,7 +4171,7 @@ dat.moral.numbers.bad.subj.severity <- dplyr::bind_rows(
     dplyr::distinct()
 ```
 
-To identify participants for whom the vivacity manipulation was successful, we excluded participants who, in the vivid condition, judged the deaths of the victims as less severe than those of the beneficiaries in more than 50% of the trials. We also excluded participants who, in the neutral condition, did not perceive the deaths of the victims as similarly horrific to those of the beneficiaries, as determined by a one-tailed binomial test.
+To identify participants for whom the vivacity manipulation was successful, we included only participants who, in the vivid condition, judged the deaths of the victims as more severe than those of the beneficiaries in more than 50% of the trials. We also excluded participants who, in the neutral condition, did not perceive the deaths of the victims as similarly horrific to those of the beneficiaries, as determined by a one-tailed binomial test.
 
 
 ### Comparison of acceptabilities across vivacities
@@ -4140,8 +4221,10 @@ dat.moral.numbers.vivacityManipulationWorking <- dplyr::anti_join(
         dplyr::distinct(experimentID, ResponseId),
     by = c("experimentID", "ResponseId")
 ) %>%
-    # experimentID is updated
-    dplyr::mutate(experimentID = stringr::str_c(experimentID, ".vivacityManipulationWorking"))
+    # experimentID is updated (keeping a possible .scenarioExcluded suffix)
+    dplyr::mutate(experimentID = parse_exp_id(experimentID) %>%
+        purrr::pmap_chr(\(expID_clean, scenarios_excluded, ...)
+            make_exp_id(expID_clean, scenarios_excluded, vivacity_filtered = TRUE)))
 
 
 # Add these new "experiments"
@@ -4164,7 +4247,7 @@ dat.moral.numbers.m.across.subj <- dplyr::bind_rows(
     
     dat.moral.numbers %>%
         dplyr::filter(
-            stringr::str_detect(experimentID, "vivacityManipulationWorking"),
+            parse_exp_id(experimentID)$vivacity_filtered,
             question == "acceptability"
         ) %>%
         dplyr::select(-question) %>%
@@ -4206,7 +4289,7 @@ dat.moral.numbers.m.across.subj.for.fit <- dplyr::bind_rows(
     dat.moral.numbers.m.across.subj %>%
         # Just in case
         dplyr::ungroup() %>%
-        dplyr::filter(stringr::str_detect(experimentID, "vivacityManipulationWorking"))
+        dplyr::filter(parse_exp_id(experimentID)$vivacity_filtered)
 )
 
 
@@ -4220,7 +4303,7 @@ dat.moral.numbers.for.bootstrap.fit <-
         dat.moral.numbers %>%
             dplyr::ungroup() %>% # Just in case
             dplyr::filter(
-                stringr::str_detect(experimentID, "vivacityManipulationWorking"),
+                parse_exp_id(experimentID)$vivacity_filtered,
                 question == "acceptability"
             ) %>%
             dplyr::select(-question) %>% 
@@ -4248,7 +4331,7 @@ dat.moral.numbers.for.bootstrap.fit <-
 dat.moral.numbers.overall.fit.1param <- dplyr::bind_rows(
     dat.moral.numbers.overall.fit.1param,
     dat.moral.numbers.m.across.subj.for.fit %>%
-        dplyr::filter(stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
+        dplyr::filter(parse_exp_id(experimentID)$vivacity_filtered) %>%
         dplyr::group_by(experimentID, blocks, decisionType, vivacity) %>%
         dplyr::group_modify(~ tryCatch(
             minpack.lm::nlsLM(
@@ -4274,7 +4357,7 @@ dat.moral.numbers.overall.fit.1param <- dplyr::bind_rows(
 dat.moral.numbers.overall.fit.1param.linearized <- dplyr::bind_rows(
     dat.moral.numbers.overall.fit.1param.linearized,
     dat.moral.numbers.m.across.subj.for.fit %>%
-        dplyr::filter(stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
+        dplyr::filter(parse_exp_id(experimentID)$vivacity_filtered) %>%
         dplyr::rename(rating.bin = rating.bin.M) %>%
         dplyr::group_by(experimentID, blocks, decisionType, vivacity) %>%
         dplyr::group_modify(~ tryCatch(
@@ -4288,7 +4371,7 @@ dat.moral.numbers.overall.fit.1param.linearized <- dplyr::bind_rows(
 dat.moral.numbers.overall.fit.2param <- dplyr::bind_rows(
     dat.moral.numbers.overall.fit.2param,
     dat.moral.numbers.m.across.subj.for.fit %>%
-        dplyr::filter(stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
+        dplyr::filter(parse_exp_id(experimentID)$vivacity_filtered) %>%
         dplyr::group_by(experimentID, blocks, decisionType, vivacity) %>%
         dplyr::group_modify(~ tryCatch(
             minpack.lm::nlsLM(
@@ -4313,7 +4396,7 @@ dat.moral.numbers.overall.fit.2param <- dplyr::bind_rows(
 ```
 
 ```{r fit-bootstrap-calculate-with-working-severity-manipulation, include = FALSE}
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_FITS_BOOTSTRAP) {
     # tic()
     gc() # Clean up memory just in
     warning("I'm about to generate ", N_BOOTSTRAP, " bootstrap samples. This will take about 8 min.")
@@ -4326,7 +4409,7 @@ if (RECALCULATE_EVERYTHING) {
                                    dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = FALSE, fit.w = TRUE)),
                                .options = furrr_options(
                                    seed = TRUE,
-                                   stdout = !RECALCULATE_EVERYTHING
+                                   stdout = !RECALCULATE_FITS_BOOTSTRAP
                                )
         )
     )
@@ -4348,7 +4431,7 @@ if (RECALCULATE_EVERYTHING) {
                                    dplyr::group_modify(~ bootstrap.weber.ratio(.x, fit.a = TRUE, fit.w = TRUE)),
                                .options = furrr_options(
                                    seed = TRUE,
-                                   stdout = !RECALCULATE_EVERYTHING
+                                   stdout = !RECALCULATE_FITS_BOOTSTRAP
                                )
         )
     )
@@ -4451,26 +4534,27 @@ l.exp.vivacity.model.comp.plots.raw <-
 ```
 
 
-```{r exp-vivacity-plot-define-plot-fnc, include = FALSE}
-# Function moved to helper_functions/moral_numbers_plots.R
-```
+```{r exp8-11-plot-filtered-bin, fig.cap = "Binary acceptability ratings for Experiments 4, 5, and 6 as a function of the \\emph{beneficiary:victim} ratio, for both blocks combined. Filtered panels show only participants for whom the vivacity manipulation was successful (see main text for exclusion criteria); unfiltered panels show all participants. Error bars represent 95\\% bootstrap confidence intervals. In Experiment 4, a problematic scenario has been excluded. Model fits are based on the average response of all participants, with $w$ and $\\alpha$ estimated separately for each condition (two-parameter fits).", fig.height = 12, fig.width = 10, out.height = "0.7\\textheight", out.extra = "keepaspectratio", include=FALSE}
 
-```{r exp8-11-plot-filtered-bin, fig.cap = "Binary acceptability ratings for Experiments 4, 5, and 6 as a function of the \\emph{beneficiary:victim} ratio, for both blocks combined. Filtered panels show only participants for whom the vivacity manipulation was successful (see main text for exclusion criteria); unfiltered panels show all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants.", fig.height = 12, fig.width = 10, out.height = "0.7\\textheight", out.extra = "keepaspectratio", include=FALSE}
-
-l.exp.vivacity.model.comp.plots.bin %>% 
+l.exp.vivacity.model.comp.plots.bin %>%
+    # Scenario-excluded versions where they exist (unfiltered and filtered participants)
+    purrr::keep_at(
+        \(ids) ids %in% select_exps(ids, require_single_version = FALSE, scenarios_excluded = TRUE)
+    ) %>%
     purrr::imap(~ {
-        
-        expID <- .y %>% 
-            stringr::str_remove("\\.vivacityManipulationWorking") 
-        
+
+        dat_id <- parse_exp_id(.y)
+
+        expID <- dat_id$expID_clean
+
         expID_paper <- format_exp_info(expID)
-        
+
         isFiltered <- ifelse(
-            stringr::str_detect(.y, "vivacityManipulationWorking"),
+            dat_id$vivacity_filtered,
             " (filtered)",
             " (unfiltered)"
         )
-        
+
         purrr::pluck(.x, "all", "plot.by.ratio") +
             ggplot2::theme(
                 axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1),
@@ -4502,17 +4586,32 @@ l.exp.vivacity.model.comp.plots.bin %>%
 ```
 
 
-```{r exp8-plot-filtered, fig.cap = "Results of Experiment 4, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
+```{r exp8-plot-filtered, fig.cap = "Results of Experiment 4, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. A problematic scenario has been excluded. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp8.vivacityManipulationWorking")
+
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp8", 
+        scenarios_excluded = TRUE, 
+        vivacity_filtered = TRUE
+        )
+)
+
 
 ```
 
 
 
-```{r exp8-plot-unfiltered, fig.cap = "Results of Experiment 4 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
+```{r exp8-plot-unfiltered, fig.cap = "Results of Experiment 4 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. A problematic scenario has been excluded. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp8")
+combine_vivacity_detailed_plots(
+        make_exp_id(
+        "exp8", 
+        scenarios_excluded = TRUE, 
+        vivacity_filtered = FALSE
+        )
+)
+    
 
 ```
 
@@ -4536,7 +4635,7 @@ v.asymptote.start <- c(
 ```
 
 ```{r relative-risk-calculate-boostrap-prepare-samples}
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_RR_BOOTSTRAP) {
     message("Preparing RR bootstrap samples - start")
     
     gc() # Clean up memory just in case
@@ -4556,10 +4655,7 @@ if (RECALCULATE_EVERYTHING) {
                     ) %>%
                     dplyr::mutate(
                         rating.bin = factor(rating.bin),
-                        asymptote.start = unname(v.asymptote.start[stringr::str_remove(
-                            experimentID,
-                            ".vivacityManipulationWorking"
-                        )]),
+                        asymptote.start = unname(v.asymptote.start[parse_exp_id(experimentID)$expID_clean]),
                         ratio.range = factor(
                             ifelse(ratio > asymptote.start,
                                    "asymptote", "pre-asymptote"
@@ -4593,7 +4689,7 @@ if (RECALCULATE_EVERYTHING) {
 # where 0 and 1 in rating.bin represent binary outcomes
 
 
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_RR_BOOTSTRAP) {
     gc()
     
     message("Preparing RR contingency tables - start")
@@ -4658,7 +4754,7 @@ if (RECALCULATE_EVERYTHING) {
 ```
 
 ```{r relative-risk-calculate-boostrap-regressions}
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_RR_BOOTSTRAP) {
     gc()
     
     
@@ -4724,7 +4820,7 @@ if (RECALCULATE_EVERYTHING) {
 
 
 ```{r relative-risk-calculate-boostrap-save-data}
-# if (RECALCULATE_EVERYTHING) {
+# if (RECALCULATE_RR_BOOTSTRAP) {
 #     # Objects have been saved above; a single RData file would almost 3GB and crash R
 #     
 #     # save(
@@ -4741,7 +4837,7 @@ if (RECALCULATE_EVERYTHING) {
 #     
 #     message("RR bootstrap - end")
 # } else {
-if (isFALSE(RECALCULATE_EVERYTHING)) {
+if (isFALSE(RECALCULATE_RR_BOOTSTRAP)) {
     # Just load the data
     
     # R cannot load this 2.8G file :)
@@ -4782,7 +4878,7 @@ dat.moral.numbers.rr.by.ratios.bootstrap.summary <- dat.moral.numbers.rr.by.rati
     summarize_bootstrap_samples()
 ```
 
-```{r create-rr-correlations-no-bootstrap, include = FALSE}
+```{r rr-correlations-no-bootstrap-create}
 
 # Moved to helper_functions/moral_numbers_relative_risk.R
 # create_acceptability_contingency_table <- function(dat, rating_col = rating.bin, cond_col = vivacity){
@@ -4818,8 +4914,7 @@ dat.moral.numbers.rr.by.ratios.bootstrap.summary <- dat.moral.numbers.rr.by.rati
 #         )
 # }
 
-
-dat.moral.numbers %>%
+dat.moral.numbers.rr.correlations.no.bootstrap <- dat.moral.numbers %>%
     dplyr::filter(
         experimentID %in% l_exp_with_single_severity_question_augmented,
         question == "acceptability"
@@ -4839,12 +4934,17 @@ dat.moral.numbers %>%
         method = "spearman",
         use = "pairwise.complete.obs"
     ) %>% 
-    dplyr::select(-dplyr::starts_with("var"), -method, -statistic) %>%
+    dplyr::select(-dplyr::starts_with("var"), -method, -statistic)
+```
+
+```{r rr-correlations-no-bootstrap-print, include = FALSE}
+dat.moral.numbers.rr.correlations.no.bootstrap %>% 
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     format_exp_info() %>%
     dplyr::arrange(experimentID) %>%
     fix_zero_p_values(p) %>%
     knitr::kable(
-        caption = "Spearman correlations between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6, computed from observed (non-bootstrapped) acceptance rates. A positive $\\rho$ indicates that the difference in acceptability between the vivid and neutral conditions diminishes as the ratio increases.",
+        caption = "Spearman correlations between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6, computed from observed (non-bootstrapped) acceptance rates. In Experiment 4, a problematic scenario was excluded. A positive $\\rho$ indicates that the difference in acceptability between the vivid and neutral conditions diminishes as the ratio increases.",
         col.names = c("Experiment", "$\\rho$", "$p$"),
         booktabs = TRUE,
         escape = FALSE) %>%
@@ -4858,78 +4958,36 @@ dat.moral.numbers %>%
 
 ```{r relative-risk-plot-prepare-separate-plots}
 
-l_moral_numbers_rr_plot_filtered_unfiltered <-
-    setdiff(l_exp_with_single_severity_question, "exp9a") %>%
-    purrr::set_names() %>%
-    purrr::map(~ create_rr_plot(.x, TRUE)) %>%
-    # Just keep the correlation plot since we didn't manage to identify the aysmptotic range.
-    purrr::map(
-        ~ purrr::pluck(.x, "by_ratios")
-    )
-
-
-l_moral_numbers_rr_plot_filtered <-
-    dat.moral.numbers %>%
+# All versions of the vivacity experiments (original/scenarioExcluded x unfiltered/filtered)
+l_moral_numbers_rr_plot_filtered_unfiltered <- dat.moral.numbers %>%
     dplyr::distinct(experimentID) %>%
     filter_vivacity_exps() %>%
-    dplyr::filter(stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
     tibble::deframe() %>%
     purrr::set_names() %>%
-    purrr::map(~ create_rr_plot(.x, FALSE)) %>%
-    # Just keep the correlation plot since we didn't manage to identify the aysmptotic range.
+    # Just keep the correlation plot since we didn't manage to identify the asymptotic range.
     purrr::map(
-        ~ purrr::pluck(.x, "by_ratios")
+        \(id) create_rr_plot(id, FALSE)$by_ratios
     )
 
-l_moral_numbers_rr_plot_unfiltered <-
-    dat.moral.numbers %>%
-    dplyr::distinct(experimentID) %>%
-    filter_vivacity_exps() %>%
-    dplyr::filter(!stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
-    tibble::deframe() %>%
-    purrr::set_names() %>%
-    purrr::map(~ create_rr_plot(.x, FALSE)) %>%
-    # Just keep the correlation plot since we didn't manage to identify the aysmptotic range.
-    purrr::map(
-        ~ purrr::pluck(.x, "by_ratios")
-    )
-```
+l_moral_numbers_rr_plot_filtered <- l_moral_numbers_rr_plot_filtered_unfiltered %>%
+    purrr::keep_at(\(ids) parse_exp_id(ids)$vivacity_filtered)
 
-```{r relative-risk-plot-prepare-facets, eval = FALSE}
-
-l_moral_numbers_rr_plot_filtered_facets <- create_rr_plot(
-    stringr::str_c(
-        setdiff(l_exp_with_single_severity_question, "exp9a"),
-        ".vivacityManipulationWorking"
-    ),
-    TRUE
-)
-
-
-.x, FALSE)) %>%
-    # Just keep the correlation plot since we didn't manage to identify the aysmptotic range.
-    purrr::map(
-        ~ purrr::pluck(.x, "by_ratios")
-    )
-
-l_moral_numbers_rr_plot_unfiltered_facets <-
-    dat.moral.numbers %>%
-    dplyr::distinct(experimentID) %>%
-    filter_vivacity_exps() %>%
-    dplyr::filter(!stringr::str_detect(experimentID, "vivacityManipulationWorking")) %>%
-    tibble::deframe() %>%
-    purrr::set_names() %>%
-    purrr::map(~ create_rr_plot(.x, FALSE)) %>%
-    # Just keep the correlation plot since we didn't manage to identify the aysmptotic range.
-    purrr::map(
-        ~ purrr::pluck(.x, "by_ratios")
-    )
+l_moral_numbers_rr_plot_unfiltered <- l_moral_numbers_rr_plot_filtered_unfiltered %>%
+    purrr::discard_at(\(ids) parse_exp_id(ids)$vivacity_filtered)
 ```
 
 
 
-```{r exp8-relative-risk-plot, fig.cap = "Relative risk of acceptability as a function of ratio in Experiment 4.", fig.height=9, eval = SHOW_INDIVIDUAL_PLOTS}
-l_moral_numbers_rr_plot_filtered_unfiltered$exp8
+
+```{r exp8-relative-risk-plot, fig.cap = "Relative risk of acceptability as a function of ratio in Experiment 4. A problematic scenario has been excluded.", fig.height=9, eval = SHOW_INDIVIDUAL_PLOTS}
+l_moral_numbers_rr_plot_filtered_unfiltered %>%
+    purrr::pluck(
+        make_exp_id(
+            "exp8",
+            scenarios_excluded = TRUE,
+            vivacity_filtered = FALSE
+        )
+    )
 ```
 
 As shown in Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot} and Table \ref{tab:relative-risk-slope-print-app}, the relative risk was generally below 1, indicating that participants were less likely to judge a sacrifice as acceptable in the vivid condition than in the neutral one (see Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-unfiltered-plot} for unfiltered data). Critically, the relative risk was positively correlated with the *beneficiary:victim* ratio, suggesting that acceptability judgments became more similar across conditions for higher ratios (see Table \ref{tab:create-rr-correlations-no-bootstrap-app}). This analysis thus confirms our prediction: the vividness manipulation had a greater effect at lower ratios, with its influence diminishing (though not entirely disappearing) in the asymptotic range.
@@ -4939,7 +4997,7 @@ We also performed bootstrap estimates of the slope in a linear regression betwee
 
 ### Bootstrap fits of $w$ and $\alpha$
 
-We estimated $w$ and $\alpha$ using bootstrap resampling in two steps. First, we used data from the neutral condition to obtain a bootstrap estimate of $w$, setting $\alpha$ to 1 (hereafter $w_\text{neutral}$). Next, in the vivid condition, we fixed $w$ at $w_\text{neutral}$ and estimated $\alpha$ using bootstrap sampling (hereafter $\alpha_\text{vivid}$). We then computed the $Z$ value of $\alpha_\text{vivid}$ relative to the neutral value of 1 and derived the corresponding $p$ value.
+We estimated $w$ and $\alpha$ using bootstrap resampling in two steps. First, we used data from the neutral condition to obtain a bootstrap estimate of $w$, setting $\alpha$ to 1; we used the mean of this bootstrap distribution as $w_\text{neutral}$. Next, we fixed $w$ at $w_\text{neutral}$ and estimated $\alpha$ in each bootstrap sample, separately for the neutral and the vivid condition (hereafter $\alpha_\text{neutral}$ and $\alpha_\text{vivid}$). We then computed the $Z$ value of $\alpha_\text{vivid}$ relative to the bootstrap distribution of $\alpha_\text{neutral}$ and derived the corresponding $p$ value. As $\alpha$ was constrained to values of at least 1, the bootstrap distribution of $\alpha_\text{neutral}$ is bounded below by 1, and its mean necessarily lies at or slightly above 1.
 
 
 ```{r fits-bootstrap-with-forced-w-calculate}
@@ -4953,7 +5011,7 @@ dat.w.chosen.neutral <- dat.moral.numbers.bootstrap.1param.summary %>%
     dplyr::select(experimentID, blocks, w_M)
 
 
-if (RECALCULATE_EVERYTHING) {
+if (RECALCULATE_FORCED_W_BOOTSTRAP) {
     gc() # Clean up memory just in case
     
     dat.moral.numbers.bootstrap.forced.w <- furrr::future_imap_dfr(
@@ -4979,7 +5037,7 @@ if (RECALCULATE_EVERYTHING) {
             ),
         .options = furrr_options(
             seed = TRUE,
-            stdout = !RECALCULATE_EVERYTHING
+            stdout = !RECALCULATE_FORCED_W_BOOTSTRAP
         )
     ) %>%
         dplyr::ungroup()
@@ -5004,25 +5062,29 @@ if (RECALCULATE_EVERYTHING) {
 ```
 
 
-```{r exp8-fits-bootstrap-with-forced-w-plot, fig.cap = "Bootstrap samples of the $\\alpha$ parameter in Experiment 4 (was 8), with the $w$ parameter set to the bootstrap fit obtained in the neutral condition.", eval = SHOW_INDIVIDUAL_PLOTS}
+```{r exp8-fits-bootstrap-with-forced-w-plot, fig.cap = "Bootstrap samples of the $\\alpha$ parameter in Experiment 4 (was 8), with the $w$ parameter set to the bootstrap fit obtained in the neutral condition. A problematic scenario has been removed.", eval = SHOW_INDIVIDUAL_PLOTS}
 dat.moral.numbers.bootstrap.forced.w %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp8",
+        scenarios_excluded = TRUE
+    ) %>%
     format_exp_info() %>%
     na.omit() %>%
     ggplot2::ggplot(ggplot2::aes(x = vivacity, y = a)) %>%
     violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
     ggplot2::labs(y = latex2exp::TeX("$\\alpha$")) +
     # ggplot2::scale_y_log10()
-    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = labeller(blocks = label_both))
+    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = ggplot2::labeller(blocks = ggplot2::label_both))
 ```
 
 
-As shown in Table \ref{tab:fits-bootstrap-with-forced-w-print-app} as well as in Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot}, estimates of $\alpha$ exceeded 1 only in the vivid condition, except in Experiment 6, where it exceeded 1 also in the neutral condition. To compare $\alpha$ estimates between the vivid and the neutral condition, we calculate the Z score in the vivid condition relative to the neutral condition (i.e., $\frac{\text{M}_{\alpha_,\text{vivid}} - \text{M}_{\alpha_,\text{neutral}}}{\text{SD}_{\alpha_,\text{neutral}}}$, where all quantities are bootstrap estimates). $\alpha$ estimates were consistently higher in the vivid condition than in the neutral condition (Table \ref{tab:fits-bootstrap-with-forced-w-print-app}). Bootstrap estimates for the unconstrained two parameter model are shown in Table \ref{tab:bootstrap-fits-print-app}.
+As shown in Table \ref{tab:fits-bootstrap-with-forced-w-print-app} as well as in Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot}, estimates of $\alpha$ exceeded 1 only in the vivid condition, except in Experiment 6, where it exceeded 1 also in the neutral condition (as $\alpha$ was constrained to be at least 1, neutral estimates cannot fall below 1). To compare $\alpha$ estimates between the vivid and the neutral condition, we calculate the Z score in the vivid condition relative to the neutral condition (i.e., $\frac{\text{M}_{\alpha,\text{vivid}} - \text{M}_{\alpha,\text{neutral}}}{\text{SD}_{\alpha,\text{neutral}}}$, where all quantities are bootstrap estimates). $\alpha$ estimates were consistently higher in the vivid condition than in the neutral condition (Table \ref{tab:fits-bootstrap-with-forced-w-print-app}). Bootstrap estimates for the unconstrained two parameter model are shown in Table \ref{tab:bootstrap-fits-print-app}.
 
 
 ## Experiment 5 (was `r get.original.experimentID("exp5")`): Replication of Experiment 4 with higher ratios
 
-In Experiment 5, we again pitted vivid against neutral versions of the experiment. As we were unsure whether the asymptotic range had been reached in Experiment 4, we used higher ratios in Experiment 5, with a maximum ratio of 1:`r dat.number.conds %>% dplyr::filter(experimentID == "exp10") %>% dplyr::pull(ratio) %>% max()`. As a result, we also changed some scenarios that we implausible for very high numbers of participants (see SI \@ref(app:scenarios)).
+In Experiment 5, we again pitted vivid against neutral versions of the experiment. As we were unsure whether the asymptotic range had been reached in Experiment 4, we used higher ratios in Experiment 5, with a maximum ratio of `r dat.number.conds %>% dplyr::filter(experimentID == "exp10") %>% dplyr::pull(ratio) %>% max()`:1. As a result, we also changed some scenarios that we implausible for very high numbers of participants (see SI \@ref(app:scenarios)).
 
 
 ### Severity ratings [details in SI]
@@ -5032,14 +5094,26 @@ As shown in SI \@ref(app:vivacity-verifications), the vivacity manipulation was 
 
 ```{r exp10-plot-filtered, fig.cap = "Results of Experiment 5, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp10.vivacityManipulationWorking")
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp10",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = TRUE
+    )
+)
 
 ```
 
 
 ```{r exp10-plot-bin-unfiltered-block12, fig.cap = "Results of Experiment 5 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp10")
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp10",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = FALSE
+    )
+)
 ```
 
 
@@ -5050,7 +5124,14 @@ As in Experiment 4, we analyzed the results using the relative risk of a sacrifi
 
 
 ```{r exp10-relative-risk-plot, fig.cap = "Relative risk of acceptability as a function of ratio in Experiment 5.", fig.height=9, eval = SHOW_INDIVIDUAL_PLOTS}
-l_moral_numbers_rr_plot_filtered_unfiltered$exp10
+l_moral_numbers_rr_plot_filtered_unfiltered %>%
+    purrr::pluck(
+        make_exp_id(
+            "exp10",
+            scenarios_excluded = FALSE,
+            vivacity_filtered = FALSE
+        )
+    )
 ```
 
 ```{r save-stuff-for-llms, eval = isTRUE(SAVE_STUFF_FOR_LLM)}
@@ -5060,9 +5141,10 @@ save(
     dat.moral.numbers.m.across.subj.for.fit,
     dat.moral.numbers.overall.fit.1param,
     dat.moral.numbers.overall.fit.2param,
+    l_exp_with_scenario_exclusions,
     file = here::here(
         OUTPUT_DIR,
-        "tmp_stuff_for_llm.RData"
+        "human_data_for_llm_analyses.RData"
     )
 )
 ```
@@ -5071,15 +5153,18 @@ save(
 
 ```{r exp10-fits-bootstrap-with-forced-w-plot, fig.cap = "Bootstrap samples of the $\\alpha$ parameter in Experiment 5 (was 10), with the $w$ parameter set to the bootstrap fit obtained in the neutral condition.", eval = SHOW_INDIVIDUAL_PLOTS}
 dat.moral.numbers.bootstrap.forced.w %>%
-    dplyr::filter(
-        stringr::str_detect(experimentID, "exp10")) %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp10",
+        scenarios_excluded = TRUE
+    ) %>%
     na.omit() %>%
     format_exp_info() %>%
     ggplot2::ggplot(ggplot2::aes(x = vivacity, y = a)) %>%
     violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
     ggplot2::labs(y = latex2exp::TeX("$\\alpha$")) +
     # ggplot2::scale_y_log10()
-    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = labeller(blocks = label_both))
+    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = ggplot2::labeller(blocks = ggplot2::label_both))
 ```
 
 As shown in Table \ref{tab:fits-bootstrap-with-forced-w-print-app}, as well as Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot}, bootstrap estimates of $\alpha$ were again consistently higher in the vivid than in the neutral condition. Further, $\alpha$ exceeded 1 only in the vivid condition but not in the neutral condition. Bootstrap estimates for the unconstrained two parameter model are shown in Table \ref{tab:bootstrap-fits-print-app}.
@@ -5097,13 +5182,25 @@ As shown in SI \@ref(app:vivacity-verifications), the vivacity manipulation was 
 
 ```{r exp11-plot-filtered, fig.cap = "Results of Experiment 6, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp11.vivacityManipulationWorking")
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp11",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = TRUE
+    )
+)
 
 ```
 
 ```{r exp11-plot-unfiltered, fig.cap = "Results of Experiment 6, where all participants were included. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.7\\textheight", out.extra="keepaspectratio", include=FALSE}
 
-combine_vivacity_detailed_plots("exp11")
+combine_vivacity_detailed_plots(
+    make_exp_id(
+        "exp11",
+        scenarios_excluded = FALSE,
+        vivacity_filtered = FALSE
+    )
+)
 ```
 
 
@@ -5115,34 +5212,14 @@ As in Experiments 4 and 5, we analyzed the results using the relative risk of a 
 
 
 ```{r exp11-relative-risk-plot, fig.cap = "Relative risk of acceptability as a function of ratio in Experiment 6.", fig.height=9, eval=SHOW_INDIVIDUAL_PLOTS}
-l_moral_numbers_rr_plot_filtered_unfiltered$exp11
-```
-
-
-```{r relative-risk-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) as a function of the \\textit{beneficiary:victim} ratio in Experiments 4 to 6, restricted to participants for whom the vividness manipulation was effective. Points and error bars represent bootstrap means and 95\\% percentile intervals. The line shows a linear fit on the log2-transformed ratio scale.", fig.height=9, eval = FALSE}
-l_moral_numbers_rr_plot_filtered %>%
-    purrr::imap(~ .x + ggplot2::ggtitle(format_exp_info(.y))) %>%
-    ggpubr::ggarrange(
-        plotlist = .,
-        ncol = 1,
-        labels = "auto",
-        common.legend = FALSE,
-        legend = "bottom"
+l_moral_numbers_rr_plot_filtered_unfiltered %>%
+    purrr::pluck(
+        make_exp_id(
+            "exp11",
+            scenarios_excluded = FALSE,
+            vivacity_filtered = FALSE
+        )
     )
-
-```
-
-```{r relative-risk-plot-unfiltered, fig.cap = "Relative risk of acceptability as a function of the \\textit{beneficiary:victim} ratio in Experiments 4 to 6, including all participants regardless of their responses on the severity question. Points and error bars represent bootstrap means and 95\\% percentile intervals. The line shows a linear fit on the log2-transformed ratio scale. Compare with Figure~\\ref{fig:relative-risk-plot} for results restricted to participants for whom the vividness manipulation was effective.", fig.height=9, eval = FALSE}
-l_moral_numbers_rr_plot_unfiltered %>%
-    purrr::imap(~ .x + ggplot2::ggtitle(format_exp_info(.y))) %>% 
-    ggpubr::ggarrange(
-        plotlist = .,
-        ncol = 1,
-        labels = "auto",
-        common.legend = FALSE,
-        legend = "bottom"
-    )
-
 ```
 
 
@@ -5150,6 +5227,7 @@ l_moral_numbers_rr_plot_unfiltered %>%
 
 ```{r relative-risk-slope-print, include=FALSE}
 dat.moral.numbers.rr.by.ratios.bootstrap.fit.summary %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     dplyr::select(experimentID, dplyr::starts_with("slope"), dplyr::starts_with("cor")) %>%
     format_exp_info() %>%
     dplyr::arrange(experimentID) %>%
@@ -5157,7 +5235,7 @@ dat.moral.numbers.rr.by.ratios.bootstrap.fit.summary %>%
     dplyr::mutate(dplyr::across(dplyr::where(is.numeric), scales::label_scientific(digits = 3))) %>%
     dplyr::select(-dplyr::ends_with("_N")) %>%
     knitr::kable(
-        caption = "Bootstrap estimates of the linear regression slope and Spearman correlation between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6 (10,000 bootstrap samples). Each bootstrap sample yields average acceptance rates per ratio and condition; we then derive $\\RR$ and regress it against the \\textit{beneficiary:victim} ratio. The table reports the mean estimate, its Monte Carlo (MC) error, the $z$-score, the two-tailed $p$-value, and the 95\\% percentile interval (PI) for both the regression slope and the Spearman correlation.",
+        caption = "Bootstrap estimates of the linear regression slope and Spearman correlation between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6 (10,000 bootstrap samples). In Experiment 4, a problematic scenario has been excluded. Each bootstrap sample yields average acceptance rates per ratio and condition; we then derive $\\RR$ and regress it against the \\textit{beneficiary:victim} ratio. The table reports the mean estimate, its Monte Carlo (MC) error, the $z$-score, the two-tailed $p$-value, and the 95\\% percentile interval (PI) for both the regression slope and the Spearman correlation.",
         col.names = c(
             "Experiment",
             names(.)[-1] %>%
@@ -5183,7 +5261,7 @@ dat.moral.numbers.rr.by.ratios.bootstrap.fit.summary %>%
 ### Bootstrap fits of the $\alpha$ and $w$ parameters
 
 
-```{r bootstrap-fits-print, include=FALSE}
+```{r bootstrap-fits-print-prepare, include=FALSE}
 
 dat_bootstrap_fit_1_2_param_for_table <- 
     list(
@@ -5210,16 +5288,23 @@ dat_bootstrap_fit_1_2_param_for_table <-
         }
     ) %>%
     purrr::list_rbind(names_to = "type") %>%
-    format_exp_info() %>%
-    dplyr::arrange(type, experimentID, blocks, cond) %>%
     dplyr::filter(blocks == "all") %>%
     dplyr::select(-blocks, -a_N)
+```
+
+```{r bootstrap-fits-print-show, include=FALSE}
 
 dat_bootstrap_fit_1_2_param_for_table %>%
+    select_exps(
+        require_single_version = FALSE,
+        scenarios_excluded = TRUE
+    ) %>%
+    format_exp_info() %>%
+    dplyr::arrange(type, experimentID, cond) %>%
     dplyr::select(-type) %>%
     dplyr::mutate(dplyr::across(dplyr::ends_with("_Z_p"), fix_zero_p_values)) %>%
     knitr::kable(
-        caption = "One- and two-parameter bootstrap fits. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean. \\textit{MC Error}: Monte Carlo standard error of the bootstrap mean ($\\mathrm{SD}/\\sqrt{N-1}$). 95\\% PI: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z}: $Z$-score of the comparison condition relative to the baseline bootstrap distribution ($(M_{\\mathrm{comparison}} - M_{\\mathrm{baseline}}) / SD_{\\mathrm{baseline}}$; one-parameter fits: moral vs.\\ economic; two-parameter fits: vivid vs.\\ neutral). \\textit{p}: two-tailed $p$-value for $Z$. For one-parameter fits, $\\alpha$ is fixed at 1 and not estimated. In contrast to Table \\ref{tab:fits-bootstrap-with-forced-w-print-app}, $w$ was not constrained for any fit shown here.",
+        caption = "One- and two-parameter bootstrap fits. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean. \\textit{MC Error}: Monte Carlo standard error of the bootstrap mean ($\\mathrm{SD}/\\sqrt{N-1}$). 95\\% PI: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z}: $Z$-score of the comparison condition relative to the baseline bootstrap distribution ($(M_{\\mathrm{comparison}} - M_{\\mathrm{baseline}}) / SD_{\\mathrm{baseline}}$; one-parameter fits: moral vs.\\ economic; two-parameter fits: vivid vs.\\ neutral). \\textit{p}: two-tailed $p$-value for $Z$. For one-parameter fits, $\\alpha$ is fixed at 1 and not estimated. In contrast to Table \\ref{tab:fits-bootstrap-with-forced-w-print-app}, $w$ was not constrained for any fit shown here. In Experiment 4, a problematic scenario has been excluded.",
         col.names = c(
             "Experiment",
             # "Blocks",
@@ -5243,11 +5328,15 @@ dat_bootstrap_fit_1_2_param_for_table %>%
     # For long table, pack_rows must come last
     # See https://github.com/haozhu233/kableExtra/issues/476
     kableExtra::pack_rows(index = dat_bootstrap_fit_1_2_param_for_table %>%
+                              select_exps(
+                                  require_single_version = FALSE,
+                                  scenarios_excluded = TRUE
+                              ) %>%
                               make.pack.index(type))
 ```
 
 
-```{r fits-bootstrap-with-forced-w-print, include=FALSE}
+```{r fits-bootstrap-with-forced-w-print-prepare, include=FALSE}
 dat.moral.numbers.bootstrap.forced.w.for.table <- dplyr::left_join(
     dat.moral.numbers.bootstrap.forced.w %>%
         dplyr::group_by(experimentID, blocks, vivacity) %>%
@@ -5275,8 +5364,14 @@ dat.moral.numbers.bootstrap.forced.w.for.table <- dplyr::left_join(
     dplyr::rename("w (neutral)" = w_M) %>%
     dplyr::filter(blocks == "all") %>%
     dplyr::select(-blocks)
+```
 
-dat.moral.numbers.bootstrap.forced.w.for.table %>% 
+```{r fits-bootstrap-with-forced-w-print-show, include=FALSE}
+dat.moral.numbers.bootstrap.forced.w.for.table %>%
+    select_exps(
+        require_single_version = FALSE,
+        scenarios_excluded = TRUE
+    ) %>%
     format_exp_info() %>%
     dplyr::mutate(
         dplyr::across(
@@ -5287,7 +5382,7 @@ dat.moral.numbers.bootstrap.forced.w.for.table %>%
     dplyr::arrange(experimentID) %>%
     kable.packed(
         "experimentID",
-        caption = "Bootstrap estimates of $\\alpha$, with $w$ fixed to the one-parameter bootstrap fit from the neutral condition (Experiments 4--6). \\textit{w (neutral)}: the $w$ value used to constrain the fit. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean of $\\alpha$. \\textit{SD}: standard deviation of the bootstrap distribution. 95\\% percentile interval: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z} (within Neutral and Vivid groups): $Z$-score of $\\alpha$ against the null value of 1 ($(M - 1) / SD$). \\textit{Z} (Vivid vs.\\ Neutral): $Z$-score of the vivid $\\alpha$ relative to the neutral bootstrap distribution ($(M_{\\mathrm{vivid}} - M_{\\mathrm{neutral}}) / SD_{\\mathrm{neutral}}$). \\textit{p}: two-tailed $p$-value for $Z$.",
+        caption = "Bootstrap estimates of $\\alpha$, with $w$ fixed to the one-parameter bootstrap fit from the neutral condition (Experiments 4--6). \\textit{w (neutral)}: the $w$ value used to constrain the fit. \\textit{N}: number of valid bootstrap samples. \\textit{M}: bootstrap mean of $\\alpha$. \\textit{SD}: standard deviation of the bootstrap distribution. 95\\% percentile interval: 2.5th and 97.5th percentiles of the bootstrap distribution. \\textit{Z} (within Neutral and Vivid groups): $Z$-score of $\\alpha$ against the null value of 1 ($(M - 1) / SD$). \\textit{Z} (Vivid vs.\\ Neutral): $Z$-score of the vivid $\\alpha$ relative to the neutral bootstrap distribution ($(M_{\\mathrm{vivid}} - M_{\\mathrm{neutral}}) / SD_{\\mathrm{neutral}}$). \\textit{p}: two-tailed $p$-value for $Z$. In Experiment 4, a problematic scenario has been excluded.",
         col.names = names(dat.moral.numbers.bootstrap.forced.w.for.table[, -1]) %>%
             stringr::str_remove("^a_") %>%
             stringr::str_remove("_(neutral|vivid)$") %>%
@@ -5330,14 +5425,18 @@ dat.moral.numbers.bootstrap.forced.w.for.table %>%
 
 ```{r exp11-fits-bootstrap-with-forced-w-plot, fig.cap = "Bootstrap samples of the $\\alpha$ parameter in Experiment 6 (was 11), with the $w$ parameter set to the bootstrap fit obtained in the neutral condition.", eval = SHOW_INDIVIDUAL_PLOTS}
 dat.moral.numbers.bootstrap.forced.w %>%
-    dplyr::filter(stringr::str_detect(experimentID, "exp11")) %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = "exp11",
+        scenarios_excluded = TRUE
+    ) %>%
     na.omit() %>%
     format_exp_info() %>%
     ggplot2::ggplot(ggplot2::aes(x = vivacity, y = a)) %>%
     violin_plot_template(yintercept = 1, add.dot.plot = FALSE) +
     ggplot2::labs(y = latex2exp::TeX("$\\alpha$")) +
     # ggplot2::scale_y_log10()
-    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = labeller(blocks = label_both))
+    ggplot2::facet_wrap(blocks ~ experimentID, scales = "free", labeller = ggplot2::labeller(blocks = ggplot2::label_both))
 ```
 
 ```{r fits-bootstrap-with-forced-w-plot-prepare}
@@ -5377,14 +5476,22 @@ l_plots_fits_bootstrap_a_with_forced_w <- l_exp_with_single_severity_question_au
 
 
 
-```{r rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$, left panels) and bootstrap distribution of the attentional weight of victims parameter ($\\alpha$, right panels) in Experiments 4 to 6, restricted to participants for whom the vividness manipulation was effective. In the left panels, circles show bootstrap means and error bars show 95\\% percentile intervals (10,000 bootstrap samples); the line shows a linear regression fit and the shaded area its 95\\% confidence interval. The $w$ parameter is fixed to the bootstrap estimate from the neutral condition. The horizontal line marks $\\alpha = 1$ (no shift in attentional weight).", fig.width = 8, fig.height = 13, out.height = "0.7\\textheight", out.extra = "keepaspectratio"}
+```{r rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$, left panels) and bootstrap distribution of the attentional weight of victims parameter ($\\alpha$, right panels) in Experiments 4 to 6, restricted to participants for whom the vividness manipulation was effective. Further, in Experiment 4,a problematic scenario has been excluded. In the left panels, circles show bootstrap means and error bars show 95\\% percentile intervals (10,000 bootstrap samples); the line shows a linear regression fit and the shaded area its 95\\% confidence interval. The $w$ parameter is fixed to the bootstrap estimate from the neutral condition. The horizontal line marks $\\alpha = 1$ (no shift in attentional weight).", fig.width = 8, fig.height = 13, out.height = "0.7\\textheight", out.extra = "keepaspectratio"}
 
 # Pair RR and alpha plots per experiment, stripping individual titles and borders
-purrr::map2(
+list(
     l_moral_numbers_rr_plot_filtered,
-    l_plots_fits_bootstrap_a_with_forced_w %>%
-        purrr::keep_at(\(p) stringr::str_detect(p, "vivacityManipulationWorking")),
-    \(rr, a) {
+    l_plots_fits_bootstrap_a_with_forced_w
+) %>%
+    # Scenario-excluded versions where they exist, filtered participants. Indexing by name (rather than keep_at())
+    # puts both lists in the same order, so that pmap() pairs the plots of the same experiment
+    purrr::map(\(l) l[select_exps(
+        names(l_moral_numbers_rr_plot_filtered),
+        require_single_version = TRUE,
+        scenarios_excluded = TRUE,
+        vivacity_filtered = TRUE
+    )]) %>%
+    purrr::pmap(\(rr, a) {
         list(
             rr,
             a
@@ -5396,7 +5503,7 @@ purrr::map2(
     }
 ) %>%
     # Arrange each pair side by side, add experiment name as row title, and border the group
-    # (map2 inherits names from first argument, used by imap as `name`)
+    # (pmap inherits names from the first list, used by imap as `name`)
     purrr::imap(\(pair, name) {
         p <- ggpubr::ggarrange(
             plotlist = pair,
@@ -5423,7 +5530,7 @@ purrr::map2(
 ```
 
 
-As shown in Table \ref{tab:fits-bootstrap-with-forced-w-print-app}, as well as Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot}, bootstrap estimates of $\alpha$ were consistently higher in the vivid than in the neutral condition. The $\alpha$ estimates exceeded 1 in the vivid condition, though they were also slightly greater than 1 in the neutral condition. Bootstrap estimates for the unconstrained two parameter model are shown in Table \ref{tab:bootstrap-fits-print-app}.
+As shown in Table \ref{tab:fits-bootstrap-with-forced-w-print-app}, as well as Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot}, bootstrap estimates of $\alpha$ were consistently higher in the vivid than in the neutral condition. The $\alpha$ estimates exceeded 1 in the vivid condition, though they were also slightly greater than 1 in the neutral condition (as $\alpha$ was constrained to be at least 1, neutral estimates cannot fall below 1). Bootstrap estimates for the unconstrained two parameter model are shown in Table \ref{tab:bootstrap-fits-print-app}.
 
 
 `r clearpage()`
@@ -5484,31 +5591,31 @@ LLM_LABELS_TIBBLE <- tibble::tribble(
 
 ```
 
-In SI \@ref(app:llm), we replicated our experiments in large language models (LLMs), to start addressing the question of whether human morality can be learned from data alone (i.e., from positive evidence), and, if so, whether models that reproduce human data do so using similar mechanisms as humans. Specifically, we asked whether LLMs could reproduce the human behavior in Experiments 2, 3 and 6. We tested 10 frontier (state-of-the-art) models from three jurisdictions (China, France and USA) with potential differences in training corpora and alignment procedures (i.e., post-training procedures used to shape model behavior according to values determined by the model creators and their jurisdictions). We also used different versions of OpenAI's GPT models to manipulate the "reasoning effort" in more recent versions (GPT-5 mini; this parameter controls how many internal and intermediate reasoning steps the model generates before producing its final response). We also three smaller models run on a local computer to assess scale of data required to reproduce human results. Throughout these simulations, we kept the procedure as close as possible to the experimental procedures (see SI \@ref(app:llm) for details).
+In SI \@ref(app:llm), we replicated our experiments in large language models (LLMs), to start addressing the question of whether human morality can be learned from data alone (i.e., from positive evidence), and, if so, whether models that reproduce human data do so using similar mechanisms as humans. Specifically, we asked whether LLMs could reproduce the human behavior in Experiments 2, 3 and 6. We tested 14 frontier (state-of-the-art) models from three jurisdictions (China, France and USA) with potential differences in training corpora and alignment procedures (i.e., post-training procedures used to shape model behavior according to values determined by the model creators and their jurisdictions). For models that support it, we also manipulated the "reasoning effort" (this parameter controls how many internal and intermediate reasoning steps the model generates before producing its final response). We also tested three smaller models run on a local computer to assess scale of data required to reproduce human results. Throughout these simulations, we kept the procedure as close as possible to the experimental procedures (see SI \@ref(app:llm) for details).
 
-As shown in Figure \ref{fig:plot-llm-exp2-joint-preference-plot-no-labels-main}, all models behaved qualitatively different from humans in the moral conditions of Experiment 3. They were more sensitive to both harm and utility, especially in moral situations, and no model showed a preference for Weber ratios over both harm and utility in moral situations. 
+As shown in Figure \ref{fig:plot-llm-exp3-moral-economic-main}, with the exception of Qwen3.7-plus with reasoning, all models behaved qualitatively differently from humans in Experiment 3b. To the extent that the other models showed a consistent preference, they preferred utility over ratios in both moral and economic conditions.
 
-```{r plot-llm-exp2-joint-preference-plot-no-labels-main, fig.height=7, fig.width=7, fig.cap="Joint preference ratings in Experiment 3 for each model and condition. The x-axis shows the mean preference rating in Experiment 3a (ratio vs. harm); the y-axis shows the mean rating in Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\\% CIs. Background colours indicate the quadrant: top-right (blue) = ratio preferred in both experiments, the human-like pattern. Colour and shape distinguish humans (red diamond), frontier models (dark circles), and local models (teal triangles). Quadrant labels are placed in the margins."}
+```{r plot-llm-exp3-moral-economic-main, fig.height=6.5, fig.width=12, fig.cap="Preference for the high-ratio option in moral dilemmas (y-axis) and economic dilemmas (x-axis) in Experiment 3a (ratio vs. harm) and Experiment 3b (ratio vs. utility). Both axes use a 1--6 scale where 3.5 indicates no preference. Error bars show 95\\% CIs. Points on the diagonal show the same preference in moral and economic dilemmas; points above the diagonal prefer the high-ratio option more in moral than in economic dilemmas. The blue-framed quadrant shows the human response pattern. Colour and shape distinguish humans (blue diamond), frontier models (orange circles), and local models (grey triangles). In Experiment 3b, only one model (Qwen3.7-plus with reasoning) reproduced the human pattern."}
 
 # This plot is rendered in moral_numbers_LLMs.Rmd. If the appendix is not included, we print a placeholder
 
-plot_llm_exp2_join_prefererence_base_file <- here::here(
+plot_llm_exp3_moral_economic_file <- here::here(
     "code",
     "moral_numbers_files",
     "figure-latex",
-    "plot-llm-exp2-joint-preference-plot-no-labels-1.pdf"
+    "plot-llm-exp3-moral-economic-1.pdf"
 )
 
-if(file.exists(plot_llm_exp2_join_prefererence_base_file))
-    knitr::include_graphics(plot_llm_exp2_join_prefererence_base_file)
+if(file.exists(plot_llm_exp3_moral_economic_file))
+    knitr::include_graphics(plot_llm_exp3_moral_economic_file)
 
 ```
 
-Despite these qualitative differences, the frontier models showed several key similarities to human moral judgment. Most frontier models demonstrated sensitivity to *beneficiary:victim* Weber ratios (Experiments 2 and 6), greater acceptance of sacrifices in economic versus moral decisions (Experiment 2), and a decreasing effect of victim salience at higher Weber ratios (Experiment 6), though the quantitative fit to the psychophysical model varied considerably across models, and some models failed to show expected patterns.
+Despite these qualitative differences, the frontier models showed several key similarities to human moral judgment. Most frontier models demonstrated sensitivity to *beneficiary:victim* Weber ratios (Experiments 2 and 6), greater acceptance of sacrifices in economic versus moral decisions (Experiment 2), and a decreasing effect of victim salience at higher Weber ratios (Experiment 6), though the quantitative fit to the psychophysical model varied considerably across models, and some models failed to show expected patterns. They also generally preferred Weber ratios over harm in Experiment 3a, although this preference is equally consistent with maximizing utility, as the high-ratio options always had the higher utility.
 
 In contrast, the smaller local models largely failed to reproduce human behavior and showed no discernible sensitivity to Weber ratios, nor did they reproduce the decreasing effect of victim salience at higher Weber ratios. Hence, while a sensitivity to Weber ratios appears to be learnable from massive amounts of data, the fact that even a 12.2B parameter model failed to reproduce the basic pattern of results suggests that the scale of the learning data required is fully implausible for human learners, or that alignment procedures are required that are not available to human learners either. 
 
-Critically, even when the models reproduce some aspects of human behavior, the results of Experiment 3 suggest that they use qualitatively different heuristics from humans. This pattern — apparent success on some benchmarks followed by failure under more stringent conditions — was already observed in pretrained connectionist models during the first wave of neural network modeling [@Altmann2002; @Endress-Triplets], suggesting that scale alone may not suffice to produce human-like behavior. When human-like behavior is required, it remains an empirical question whether grounding representations in basic perceptual and cognitive mechanisms would close the gap that scale alone seems to leave open.
+Critically, even when the models reproduce some aspects of human behavior, the results of Experiment 3b suggest that they use qualitatively different heuristics from humans. This pattern — apparent success on some benchmarks followed by failure under more stringent conditions — was already observed in pretrained connectionist models during the first wave of neural network modeling [@Altmann2002; @Endress-Triplets], suggesting that scale alone may not suffice to produce human-like behavior. When human-like behavior is required, it remains an empirical question whether grounding representations in basic perceptual and cognitive mechanisms would close the gap that scale alone seems to leave open.
 
 `r clearpage()`
 
@@ -5542,37 +5649,37 @@ Moral decisions, then, may be well captured by Goethe’s characterization of Fa
 
 # APP: Model equations {#app:model-equations}
 
-We propose a psychophysical model of moral decision making. Following [@Pica2004] and [@Halberda2008], the numerical uncertainty of a number discrimination follows a log-normal model. The error rate in a binary numeric decision is thus given by
+We propose a psychophysical model of moral decision making. Following [@Pica2004] and [@Halberda2008], the numerical uncertainty of a number discrimination follows a Gaussian model with scalar variability (i.e., a standard deviation proportional to the number). The error rate in a binary numeric decision is thus given by
 
 $$  
 \mathcal{E} = \frac{1}{2} \text{erfc}\left(\frac{n_1 - n_2}{\sqrt{2}w\sqrt{n_1^2 + n_2^2}}\right)
 $$
 
-where $w$ is the Weber ratio and erfc is the complementary error function for a standard normal distribution, that is, the probability mass of the upper tail of the distribution.
+where $w$ is the Weber ratio and erfc is the complementary error function; for a standard normal distribution, $\operatorname{erfc}(x/\sqrt{2})$ is the probability mass in both tails beyond $\pm x$.
 
 The intuition underlying this model is that each number $n$ is internally represented as a normal variate centered around $n$, with a standard deviation proportional to $n$, that is, $w n$.
 
-As a result, when comparing two numerosities $n_1$ and $n_2$, observers recognize $n_1$ as greater than $n_2$ if the internal representation of the difference is greater than zero. As a difference between two normal random variable, distribution of the difference is normal as well, centered around the true difference $n_1 - n_2$, with a combined standard deviation of $\sqrt{2} w \sqrt{n_1^2 + n_2^2}$.
+As a result, when comparing two numerosities $n_1$ and $n_2$, observers recognize $n_1$ as greater than $n_2$ if the internal representation of the difference is greater than zero. As a difference between two normal random variable, distribution of the difference is normal as well, centered around the true difference $n_1 - n_2$, with a combined standard deviation of $w \sqrt{n_1^2 + n_2^2}$.
 
 The probability $\mathcal{P}$ that observers correctly judge $n_1 > n_2$ thus is the probability that the internal difference exceeds zero:
 
 $$
-\mathcal{P} = P_{\mu = n_1 - n_2}\left(\frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}} > 0\right)
+\mathcal{P} = P_{\mu = n_1 - n_2}\left(\frac{n_1 - n_2}{w \sqrt{n_1^2 + n_2^2}} > 0\right)
 $$
 
 where $P_{\mu = n_1 - n_2}$ is the probability derived from a Gaussian with a standard deviation of 1 and a mean of $n_1 - n_2$. Centering the distribution yields: 
 
 $$
-\mathcal{P} = P_{\mu = 0}\left(Z > -\frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}}\right)
-= P_{\mu = 0}\left(Z < \frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}}\right)
-= \Phi\left( \frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}} \right)
+\mathcal{P} = P_{\mu = 0}\left(Z > -\frac{n_1 - n_2}{w \sqrt{n_1^2 + n_2^2}}\right)
+= P_{\mu = 0}\left(Z < \frac{n_1 - n_2}{w \sqrt{n_1^2 + n_2^2}}\right)
+= \Phi\left( \frac{n_1 - n_2}{w \sqrt{n_1^2 + n_2^2}} \right)
 $$
 
 where $\Phi$ is the cumulative distribution function of the standard normal distribution. The error rate $\mathcal{E}$, that is, the probability of judging $n_2 > n_1$ when $n_1 > n_2$, corresponds to the upper tail of the distribution:
 
 $$
 \mathcal{E}
-= 1 - \Phi\left( \frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}} \right)
+= 1 - \Phi\left( \frac{n_1 - n_2}{w \sqrt{n_1^2 + n_2^2}} \right)
 = \frac{1}{2} \operatorname{erfc}\left( \frac{n_1 - n_2}{\sqrt{2} w \sqrt{n_1^2 + n_2^2}} \right)
 $$
 
@@ -5588,7 +5695,7 @@ $$
 
 However, this model needs to be transformed to a decision criterion. For example, for a ratio of 1 (i.e., when the number of saved and victims is equal), the uncertainty as to whether a person belongs to the victims or the saved is maximal, with a 50% chance for either option. Critically, this does not mean that 50% of the participants should find sacrificial behavior acceptable. Rather, they should *not* be willing to kill under these circumstances. The estimation uncertainty thus needs to be converted to a decision uncertainty.
 
-Information theory suggests a simply way to convert these probabilities into a decision rule: The acceptability of a moral decision might be the amount of uncertainty in the internal representation. Specifically, *surprisal* is the number of bits needed to encode a random variable, $-\log_2(\mathcal{P})$. For a binary random variable, the maximal number of required bits is 1 (for $\mathcal{P} = 0.5$); the minimal number of required bits is 0 (for $\mathcal{P} = 1$). Our measure of uncertainty is thus $1 - \text{surprisal} = 1 - (-\log_2(\mathcal{P})) = 1 + \log_2(\mathcal{P})$, where $\mathcal{P}$ is the probability that the greater number is saved according to the psychophysical number processing model above. For example, if decision makers are certain that they are saving the greater number ($\mathcal{P} = 1$), the acceptability is 1; if they are maximally uncertain ($\mathcal{P} = 0.5$), the acceptability is 0.
+Information theory suggests a simple way to convert these probabilities into a decision rule: The acceptability of a moral decision might be the amount of certainty in the internal representation. Specifically, *surprisal* is the number of bits needed to encode a random variable, $-\log_2(\mathcal{P})$. For a binary random variable, the maximal number of required bits is 1 (for $\mathcal{P} = 0.5$); the minimal number of required bits is 0 (for $\mathcal{P} = 1$). Our measure of certainty is thus $1 - \text{surprisal} = 1 - (-\log_2(\mathcal{P})) = 1 + \log_2(\mathcal{P})$, where $\mathcal{P}$ is the probability that the greater number is saved according to the psychophysical number processing model above. For example, if decision makers are certain that they are saving the greater number ($\mathcal{P} = 1$), the acceptability is 1; if they are maximally uncertain ($\mathcal{P} = 0.5$), the acceptability is 0.
 
 ## Modeling utilitarian vs. deontological behavior
 
@@ -5606,6 +5713,8 @@ $$
 
 Indeed, $\lim_{R\to\infty} \mathcal{E} = \frac{1}{2} \text{erfc}\left(\frac{1}{\sqrt{2}w}\right)$.
 
+In our fits, we set the acceptability to 0 whenever $\alpha n_2 > n_1$ (i.e., $R < \alpha$), as negative acceptabilities cannot be observed; the fitted acceptability is thus $\max\left(0, 1 + \log_2(1 - \mathcal{E})\right)$.
+
 In contrast, the threshold at which sacrificial behavior becomes acceptable is determined by the relative weight of victims and beneficiaries (as well as by the internal Weber ratio $w$). For example, for sacrificial behavior to become at least 50% acceptable, we need $0.5 < 1 + \log_2(1-\mathcal{E})$ or equivalently $\mathcal{E} < 1 - 1/\sqrt{2}$. Since the complementary error function is monotonically decreasing, and since the argument of the error function (i.e., $\frac{R - \alpha }{\sqrt{2}w\sqrt{R^2 + \alpha^2}}$) is also monotonically decreasing in both $w$ and $\alpha$, increases in both $w$ and $\alpha$ will increase the internal uncertainty and thus lead participants to require greater $R$s' to reach the acceptability threshold. In other words, if a psychological manipulation makes victims more salient, respondents will be more reluctant to kill.
 
 ## Relation to log-normal models {#app:log-normal-approximations}
@@ -5620,9 +5729,9 @@ The second-order Taylor expansion of our two-parameter model $f_\alpha(R) = \fra
 
 [^derivates2]: $f^\prime_\alpha(R) = \frac{\alpha (R + \alpha)}{(R^2 + \alpha^2)^{3/2}}$ and $f^{\prime\prime}_\alpha(R) = \frac{\alpha \left(-2R^2 - 3\alpha R + \alpha^2\right)}{(R^2 + \alpha^2)^{5/2}}$.
 
-These approximations also allow for a linearized fit, given by $\ln (R/\alpha) = 2 w \Phi^{-1} (2^{(\mathcal{P}-1)})$, and thus $\ln (R) = \ln(\alpha) + 2 w \Phi^{-1} (2^{(\mathcal{P}-1)})$, where $\ln(\alpha)$ is the intercept and $w$ is the slope.  
+These approximations also allow for a linearized fit, given by $\ln (R/\alpha) = \sqrt{2} w \Phi^{-1} (2^{(\mathcal{P}-1)})$, and thus $\ln (R) = \ln(\alpha) + \sqrt{2} w \Phi^{-1} (2^{(\mathcal{P}-1)})$, where $\ln(\alpha)$ is the intercept and $w$ is the slope.  
 
-However, we prefer our original model for three reasons. First, in our model, the psychological interpretation of the parameters is more transparent. Second, for individual fits, the linearized model diverges for $\mathcal{P} = 1$. Third, and relatedly, when fitting the linearization to the overall averages, the fit was noticeably worse than for our original model.
+However, we prefer our original model for three reasons. First, in our model, the psychological interpretation of the parameters is more transparent. Second, for individual fits, the linearized model diverges for $\mathcal{P} = 1$. Third, the linearization relies on approximations that only hold for ratios close to 1; over the range of ratios used here (up to 10,000:1), fitting it to the overall averages yielded a substantially worse fit than our original model.
 
 `r clearpage()`
 
@@ -5728,7 +5837,7 @@ list(
     dplyr::ungroup() %>% 
     dplyr::arrange(experimentID) %>%
     knitr::kable(
-        caption = "Number of participants excluded per experiment per exclusion criterion. Exclusions were applied sequentially, so each participant is counted at most once (under the first criterion they failed). \\textit{Incomplete}: did not complete all trials. \\textit{No variability}: gave identical ratings to all scenarios. \\textit{Fast completion}: completion time below one quarter of the experiment median. \\textit{Attention check}: failed an embedded attention-check question (not included in all experiments). \\textit{Vivacity: severity}: in the vivid condition, victims' deaths rated as not more horrific than beneficiaries' on more than 50\\% of trials, or in the neutral condition, a significant difference in perceived severity (vivacity experiments only). \\textit{Vivacity: acceptability}: vivid scenarios rated as more acceptable than neutral scenarios on average (vivacity experiments only, applied after the severity criterion). \\textit{Total}: number of unique excluded participants.",
+        caption = "Number of participants excluded per experiment per exclusion criterion. Exclusions were applied sequentially, so each participant is counted at most once (under the first criterion they failed). \\textit{Incomplete}: did not complete all trials. \\textit{No variability}: gave identical ratings to all scenarios. \\textit{Fast completion}: completion time below one quarter of the experiment median. \\textit{Attention check}: failed an embedded attention-check question (not included in all experiments). \\textit{Vivacity: severity}: participants were retained only if, in the vivid condition, they rated the victims' deaths as more horrific than the beneficiaries' on more than 50\\% of trials and, in the neutral condition, their horrificness ratings did not differ significantly between victims and beneficiaries; otherwise, they were excluded (vivacity experiments only). \\textit{Vivacity: acceptability}: vivid scenarios rated as more acceptable than neutral scenarios on average (vivacity experiments only, applied after the severity criterion). \\textit{Total}: number of unique excluded participants.",
         booktabs = TRUE,
         col.names = c("Experiment", "Incomplete", "No variability", "Fast completion", "Attention check", "Vivacity: severity", "Vivacity: acceptability", "Total")
     ) %>%
@@ -5782,7 +5891,12 @@ dplyr::bind_rows(
     dat.moral.numbers.demographics,
     dat.moral.numbers.demographics.vivacity_working %>%
         dplyr::filter(
-            stringr::str_detect(experimentID, "vivacityManipulationWorking")
+            parse_exp_id(experimentID)$vivacity_filtered
+        ) %>%
+        # Same participants in the scenario-excluded versions; show the original versions
+        select_exps(
+            require_single_version = TRUE,
+            scenarios_excluded = FALSE
         )
 ) %>%
     {dplyr::bind_rows(
@@ -5807,7 +5921,7 @@ dplyr::bind_rows(
     format_exp_info() %>%
     dplyr::arrange(experimentID) %>%
     knitr::kable(
-        caption = "Participant demographics of the analysed samples, i.e., after the general exclusions (see Table \\ref{tab:print-exclusions}). Experiment AS (Asymptote Search) was an unsuccessful attempt to identify the asymptotic range using vivid scenarios with more extreme beneficiary:victim ratios (up to 1:20,000); see SI \\ref{app:exp-AS} for details. For Experiments 4--6, rows marked (filtered) show the subset of participants remaining after vivacity-related exclusions (see SI \\ref{app:participants} for general exclusion criteria and SI \\ref{app:vivacity-verifications} for vivacity-specific exclusion criteria). \\textit{Other} includes participants who preferred not to disclose their gender. \\textit{English (\\%)}: percentage of participants listing English among their native language(s).",
+        caption = "Participant demographics of the analysed samples, i.e., after the general exclusions (see Table \\ref{tab:print-exclusions}). Experiment AS (Asymptote Search) was an unsuccessful attempt to identify the asymptotic range using neutral scenarios with more extreme beneficiary:victim ratios (up to 20,000:1); see SI \\ref{app:exp-AS} for details. For Experiments 4--6, rows marked (filtered) show the subset of participants remaining after vivacity-related exclusions (see SI \\ref{app:participants} for general exclusion criteria and SI \\ref{app:vivacity-verifications} for vivacity-specific exclusion criteria). \\textit{Other} includes participants who preferred not to disclose their gender. \\textit{English (\\%)}: percentage of participants listing English among their native language(s).",
         booktabs = TRUE,
         col.names = c("Experiment", "N", "Females", "Males", "Other", "Age", "Age range", "English (%)")
     ) %>%
@@ -5828,7 +5942,7 @@ Large language model (LLM) assistants were used during the preparation of this m
 
 ## Materials and procedure
 
-All experiments involved Trolley-type scenarios in imaginary cities (generated via <https://www.fantasynamegenerators.com/>). Number contrasts are given in Appendix \@ref(app:number-conds); scenarios are given in Appendix \@ref(app:scenarios). The experiment was administered on Qualtrics.
+All experiments involved Trolley-type scenarios in imaginary cities (generated via <https://www.fantasynamegenerators.com/>). Number contrasts are given in Appendix \@ref(app:number-conds); scenarios are given in Appendix \@ref(app:scenarios). The experiment was administered on Qualtrics. Two scenarios contained wording errors (SI \@ref(app:scenario-errors)). We excluded the Hospital Power Outage scenario of Experiment 4, whose acceptability question reversed victims and beneficiaries; this scenario was not used in Experiments 5 and 6. We retained the Aqueduct in the desert scenario of Experiment 3, as its economic version merely named the wrong farm as the beneficiary in a sentence that already stated where the water was diverted, so participants were unlikely to notice the error. Neither decision affects the conclusions.
 
 Experiments 1 and 4--6 were conducted as standalone studies. Experiments 2 and 3 were each run in the same Qualtrics session as an additional experiment: after completing the main task, all participants in those studies also completed a second block of scenarios, which always appeared at the end of the session.
 
@@ -5843,7 +5957,7 @@ In experiments with a vivacity manipulation (Experiments 4 to 6; see below), the
  
 In Experiment 3, we pitted ratios against harm and against utility separately. We tested these comparisons in separate experiments, as one cannot pit ratios against harm and utility simultaneously (see \@ref(app:proofs) for mathematical proofs). 
 
-Specifically, participants chose between two dilemmas. For example, they read about *two* simultaneous leaks in aqueducts supplying desert settlements with water (rather than a single leak in Experiments 1 and 2), with only one repair crew available that could redirect water from one settlement to another. One option had a higher *beneficiary:victim* ratio but also higher harm (Experiment 3a) or lower utility (Experiments 3b and c). The other option had a lower *beneficiary:victim* ratio but also reduced harm or higher utility. Participants completed a block of moral dilemmas and one of matched economic dilemmas (in counterbalanced orders). Preferences were again collected on a 6-point scale. We expected participants to favor the high-ratio options for moral dilemmas, but had no clear prediction about whether they would favor utility in economic dilemmas.
+Specifically, participants chose between two dilemmas. For example, they read about *two* simultaneous leaks in aqueducts supplying desert settlements with water (rather than a single leak in Experiments 1 and 2), with only one repair crew available that could redirect water from one settlement to another. One option had a higher *beneficiary:victim* ratio but also higher harm (Experiment 3a) or lower utility (Experiments 3b and 3c). The other option had a lower *beneficiary:victim* ratio but also reduced harm or higher utility. Participants completed a block of moral dilemmas and one of matched economic dilemmas (in counterbalanced orders). Preferences were again collected on a 6-point scale. We expected participants to favor the high-ratio options for moral dilemmas, but had no clear prediction about whether they would favor utility in economic dilemmas.
 
 
 In Experiment 3a, where we pitted the *beneficiary:victim* ratio against harm, the high-ratio options had ratios between 1.5 and 40. The low-ratio options had a smaller ratio ($R_2 = \frac{4 + R_1}{5} < R_1$), half the number of victims, and ten times lower utility. In Experiment 3b, where we pitted options with higher *beneficiary:victim* ratios but lower utility against options with lower *beneficiary:victim* ratios but higher utility, the low-ratio options had twice the utility and ten times the number of victims compared to the high-ratio options from Experiment 3a (see Table \ref{tab:print-number-conds-exp2-2}). As the results were weaker than in Experiment 3a, we doubled the sample size. In Experiment 3c, we also pitted *beneficiary:victim* ratios against utility, but with a less extreme difference in harm. Compared to the same high-ratio options used in Experiments 3a and 3b, the low-ratio options had 50% higher utility, while harm was three times as high.
@@ -5983,7 +6097,7 @@ To obtain bootstrap samples, we followed the recommendations of [@Hesterberg2015
 
 To quantify the estimate variability, we used the percentile intervals from the bootstrap distribution. This differs from the recommendations for simple estimands like means, where better measures of variability such as bootstrap $t$ intervals would be available [@Hesterberg2015]. However, such procedures require measures of variability in each bootstrap sample, which are not available in our case as we fit the model to averaged data. Further, the residual bootstrap suggested by [@Hesterberg2015] (p. 67) is not applicable here, as we are not primarily interested in goodness of fit.
 
-To estimate the $w$ parameter, we fit our one-parameter model to the averages in each of the bootstrap samples. We estimated $\alpha$ in two steps (Experiments 4--6). First, we used data from the neutral condition to obtain a bootstrap estimate of $w$, setting $\alpha$ to 1 (hereafter $w_\text{neutral}$). Next, in the vivid condition, we fixed $w$ at $w_\text{neutral}$ and estimated $\alpha$ using bootstrap sampling (hereafter $\alpha_\text{vivid}$). We then computed the $Z$ value of $\alpha_\text{vivid}$ relative to the neutral value of 1 and derived the corresponding $p$ value.
+To estimate the $w$ parameter, we fit our one-parameter model to the averages in each of the bootstrap samples. We estimated $\alpha$ in two steps (Experiments 4--6). First, we used data from the neutral condition to obtain a bootstrap estimate of $w$, setting $\alpha$ to 1; we used the mean of this bootstrap distribution as $w_\text{neutral}$. Next, we fixed $w$ at $w_\text{neutral}$ and estimated $\alpha$ in each bootstrap sample, separately for the neutral and the vivid condition (hereafter $\alpha_\text{neutral}$ and $\alpha_\text{vivid}$). We then computed the $Z$ value of $\alpha_\text{vivid}$ relative to the bootstrap distribution of $\alpha_\text{neutral}$ and derived the corresponding $p$ value. As $\alpha$ was constrained to values of at least 1, the bootstrap distribution of $\alpha_\text{neutral}$ is bounded below by 1, and its mean necessarily lies at or slightly above 1.
 
 To estimate the regression slope and the correlation coefficient between $\RR$ and the *beneficiary:victim* Weber ratio, we calculated $\RR$ (separately for each *beneficiary:victim* ratio) in each bootstrap sample, regressed $\RR$ against the *beneficiary:victim* ratio, computed the correlation coefficient, and recorded the bootstrap estimates of the slope and correlation coefficient, respectively.
 
@@ -6026,18 +6140,18 @@ We compared the models using three metrics: (1) the Akaike Information Criterion
 
 ### Bootstrap fits {#app:bootstrap-fits}
 
-```{r fits-bootstrap-with-forced-w-print-app, ref.label='fits-bootstrap-with-forced-w-print', echo=FALSE}
+```{r fits-bootstrap-with-forced-w-print-app, ref.label='fits-bootstrap-with-forced-w-print-show', echo=FALSE}
 ```
 
 `r clearpage()`
 
-```{r bootstrap-fits-print-app, ref.label='bootstrap-fits-print', echo=FALSE}
+```{r bootstrap-fits-print-app, ref.label='bootstrap-fits-print-show', echo=FALSE}
 ```
 
 `r clearpage()`
 
 
-### Experiment 2
+### Experiment 3
 
 #### Test of myopicity {#app:myopicity}
 
@@ -6047,7 +6161,11 @@ In this control condition, participants chose between (1) an option with 300 vic
 
 ```{r exp2-myopic-proportions, fig.cap = "Test of the myopicity of the participant responses in Experiment 3. Participants read a scenario with (1) an option where 300 people are sacrificed to save 400 people, and (2) an option where 3000 people would be sacrificed to save 4000, and were asked how many people would be saved and how many would be sacrificed if the first option is chosen. A myopic evaluation predicts that participants report 400 saved and 300 sacrificed, while integrating numbers across options would predict 3400 saved and 4300 sacrificed. The overwhelming majority of participants gave the myopic answer, indicating that they evaluated options separately rather than integrating numbers across options.", fig.height = 9}
 dat.moral.numbers %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp2")) %>%
+    select_exps(
+        require_single_version = TRUE,
+        expID_clean = c("exp2a", "exp2b", "exp2c", "exp2d"),
+        scenarios_excluded = FALSE
+    ) %>%
     # Combining Experiments 2a and 2c as they are replications of one another
     combine_exps("exp2[ac]") %>%
     dplyr::select(experimentID, ResponseId, myopic.n.saved, myopic.n.victims) %>%
@@ -6108,7 +6226,7 @@ dat.moral.numbers %>%
 
 `r clearpage()`
 
-### Experiment 2
+### Experiment 3
 
 ```{r exp2-lmer-print2, ref.label = 'exp2-lmer-print', echo = FALSE, results = 'markup'}
 ```
@@ -6139,11 +6257,15 @@ ratios <- c(4 / 3, 2, 3, 4, 10, 15, 20, 50, 100, 500, 2000, 10000)
 # neutral condition
 ws <- dat.moral.numbers.bootstrap.1param.summary %>%
     dplyr::ungroup() %>%
+    # Experiments 4 and 5 (this was run before Experiment 6), filtered participants;
+    # one component per experiment: original versions only
+    select_exps(
+        require_single_version = TRUE,
+        expID_clean = c("exp8", "exp10"),
+        scenarios_excluded = FALSE,
+        vivacity_filtered = TRUE
+    ) %>%
     dplyr::filter(
-        stringr::str_detect(experimentID, "vivacityManipulationWorking"),
-        # This was run before exp 11
-        !stringr::str_detect(experimentID, "exp11"),
-        !stringr::str_detect(experimentID, "exp9"),
         blocks == "all",
         vivacity == "neutral"
     ) %>%
@@ -6154,11 +6276,15 @@ ws <- dat.moral.numbers.bootstrap.1param.summary %>%
 # scheme as ws but drawn from the vivid condition of the two-parameter bootstrap fit
 as <- dat.moral.numbers.bootstrap.2param.summary %>%
     dplyr::ungroup() %>%
+    # Experiments 4 and 5 (this was run before Experiment 6), filtered participants;
+    # one component per experiment: original versions only
+    select_exps(
+        require_single_version = TRUE,
+        expID_clean = c("exp8", "exp10"),
+        scenarios_excluded = FALSE,
+        vivacity_filtered = TRUE
+    ) %>%
     dplyr::filter(
-        stringr::str_detect(experimentID, "vivacityManipulationWorking"),
-        # This was run before exp 11
-        !stringr::str_detect(experimentID, "exp11"),
-        !stringr::str_detect(experimentID, "exp9"),
         blocks == "all",
         vivacity == "vivid"
     ) %>%
@@ -6253,11 +6379,15 @@ dat_parameter_recovery <- purrr::map_dfr(
 dplyr::bind_rows(
     dat.moral.numbers.bootstrap.1param.summary %>%
         dplyr::ungroup() %>%
+        # Experiments 4 and 5 (this was run before Experiment 6), filtered participants;
+        # original versions only
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp8", "exp10"),
+            scenarios_excluded = FALSE,
+            vivacity_filtered = TRUE
+        ) %>%
         dplyr::filter(
-            stringr::str_detect(experimentID, "vivacityManipulationWorking"),
-            # This was run before exp 11
-            !stringr::str_detect(experimentID, "exp11"),
-            !stringr::str_detect(experimentID, "exp9"),
             blocks == "all",
             vivacity == "neutral"
         ) %>%
@@ -6268,13 +6398,17 @@ dplyr::bind_rows(
     
     dat.moral.numbers.bootstrap.2param.summary %>%
         dplyr::ungroup() %>%
+        # Experiments 4 and 5 (this was run before Experiment 6), filtered participants;
+        # original versions only
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = c("exp8", "exp10"),
+            scenarios_excluded = FALSE,
+            vivacity_filtered = TRUE
+        ) %>%
         dplyr::filter(
-            stringr::str_detect(experimentID, "vivacityManipulationWorking"),
-            # This was run before exp 11
-            !stringr::str_detect(experimentID, "exp11"),
-            !stringr::str_detect(experimentID, "exp9"),
             blocks == "all",
-            vivacity == "neutral"
+            vivacity == "vivid"
         ) %>%
         dplyr::select(experimentID, a_M, a_SD) %>%
         dplyr::rename(fit_type = experimentID) %>%
@@ -6295,7 +6429,7 @@ dplyr::bind_rows(
                                         "w", "w_a", "a_only"
                                     )
     )) %>%
-    dplyr::arrange(fit_type, desc(term)) %>%
+    dplyr::arrange(fit_type, dplyr::desc(term)) %>%
     kable.packed(
         "fit_type",
         caption = paste0(
@@ -6331,7 +6465,7 @@ We successfully recovered the parameters. (Data not shown to save rendering time
 
 As several of our attempts to increase the victim salience failed (see SI \@ref(app:failed-vivacity-manipulations)), we also verified that our vivacity manipulation was effective by asking participants (on a 6-point scale) whether the deaths of the beneficiaries or the victims were more horrific.
 
-To identify participants for whom the vivacity manipulation was successful, we excluded participants who, in the vivid condition, judged the deaths of the victims as less severe than those of the beneficiaries in more than 50% of the trials.[^severityInclusion]  
+To identify participants for whom the vivacity manipulation was successful, we included only participants who, in the vivid condition, judged the deaths of the victims as more severe than those of the beneficiaries in more than 50% of the trials.[^severityInclusion]  
 
 [^severityInclusion]: In principle, we could include only those participants for whom the number of trials on which the deaths of the victims were judged more severe than those of the beneficiaries reaches statistical significance, based on a one-tailed binomial test. With 12 trials per participant, this test becomes significant when the victim deaths are rated as more severe on at least `r get.min.number.of.correct.trials.by.binom.test(12, alternative = "g")` trials. However, this criterion may be overly stringent if participants consider the relative number of victims and beneficiaries, an effect we may have observed in pilot experiments (see SI\@ref(app:failed-vivacity-manipulations)). Applying this cutoff would have excluded nearly 50% of participants.
 
@@ -6343,10 +6477,14 @@ Finally, we excluded participants whose acceptability rating was numerically sma
 
 ### Experiment 4
 
-```{r exp8-severity-plot-by-subjects-scenarios-raw, fig.cap = "Relative horrificness ratings in Experiment 4 (was 8) for the deaths of the victims and the beneficiaries, respectively. (a) Averages by participants. (b) Differences between the vivid and the neutral condition by participants. (c) Averages by scenarios. (d) Differences between the vivid and the neutral condition by scenarios.", fig.height=12, out.height="0.7\\textheight", out.extra="keepaspectratio"}
+```{r exp8-severity-plot-by-subjects-scenarios-raw, fig.cap = "Relative horrificness ratings in Experiment 4 (was 8) for the deaths of the victims and the beneficiaries, respectively. In the by-participant averages but not the by-scenario averages, a problematic scenario has been excluded. (a) Averages by participants. (b) Differences between the vivid and the neutral condition by participants. (c) Averages by scenarios. (d) Differences between the vivid and the neutral condition by scenarios.", fig.height=12, out.height="0.7\\textheight", out.extra="keepaspectratio"}
 ggpubr::ggarrange(
-    dat.moral.numbers.severity.m.by.subj %>%
-        dplyr::filter(experimentID == "exp8") %>%
+    dat.moral.numbers.severity.m.by.subj %>% 
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp8",
+            scenarios_excluded = TRUE
+        ) %>%
         format_exp_info(wrap = TRUE) %>%
         ggplot2::ggplot(ggplot2::aes(x = vivacity, y = rating)) %>%
         violin_plot_template(yintercept = 3.5) +
@@ -6356,7 +6494,11 @@ ggpubr::ggarrange(
             title = "By participants"
         ),
     dat.moral.numbers.severity.m.by.subj %>%
-        dplyr::filter(experimentID == "exp8") %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp8",
+            scenarios_excluded = TRUE
+        ) %>%
         tidyr::pivot_wider(
             id_cols = c(experimentID, first.scenario.type, ResponseId),
             names_from = vivacity,
@@ -6375,7 +6517,11 @@ ggpubr::ggarrange(
             axis.ticks.x = ggplot2::element_blank()
         ),
     dat.moral.numbers.severity.m.by.scenarios %>%
-        dplyr::filter(experimentID == "exp8") %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp8",
+            scenarios_excluded = FALSE
+        ) %>%
         format_exp_info(wrap = TRUE) %>%
         ggplot2::ggplot(ggplot2::aes(x = vivacity, y = rating)) %>%
         violin_plot_template(yintercept = 3.5) +
@@ -6385,8 +6531,13 @@ ggpubr::ggarrange(
             title = "By scenarios"
         ) +
         ggplot2::geom_label(ggplot2::aes(label = scenarioID)),
+    
     dat.moral.numbers.severity.m.by.scenarios %>%
-        dplyr::filter(experimentID == "exp8") %>%
+        select_exps(
+            require_single_version = TRUE,
+            expID_clean = "exp8",
+            scenarios_excluded = FALSE
+        ) %>%
         tidyr::pivot_wider(
             id_cols = c(experimentID, scenarioID),
             names_from = vivacity,
@@ -6395,7 +6546,7 @@ ggpubr::ggarrange(
         dplyr::mutate(d = vivid - neutral) %>%
         ggplot2::ggplot(ggplot2::aes(x = 1, y = d)) %>%
         violin_plot_template(yintercept = 0) +
-        ggplot2::scale_y_continuous("SI Difference in Relative Horrificness (Vivid > Neutral)") + # , limits = 0:1) +
+        ggplot2::scale_y_continuous("Difference in Relative Horrificness (Vivid > Neutral)") + # , limits = 0:1) +
         ggplot2::labs(
             x = NULL,
             title = "By scenarios"
@@ -6413,9 +6564,13 @@ ggpubr::ggarrange(
 
 As shown in Figures \ref{fig:exp8-severity-plot-by-subjects-scenarios-raw}a and b, most participants rated the victims’ deaths as more horrific than those of the beneficiaries in the vivid condition, but not in the neutral condition. Similarly, for most participants, the relative horrificness rating was higher in the vivid condition than in the neutral condition. Comparable results were obtained when averaging ratings across scenarios rather than across participants (Figures \ref{fig:exp8-severity-plot-by-subjects-scenarios-raw}c and d).
 
-```{r exp8-plot-severity-proportion-of-positive-ratings-per-subject, fig.cap='Proportions of relative horrificness rating above, at or below 3.5 (i.e., the midline of the scale) in Experiment 4 (was 8).'}
+```{r exp8-plot-severity-proportion-of-positive-ratings-per-subject, fig.cap='Proportions of relative horrificness rating above, at or below 3.5 (i.e., the midline of the scale) in Experiment 4 (was 8). A problematic scenario has been excluded.'}
 dat.moral.numbers.severity.m.by.subj %>%
-    dplyr::filter(experimentID == "exp8") %>%
+    select_exps(
+        require_single_version = TRUE,
+        expID_clean = "exp8",
+        scenarios_excluded = TRUE
+    ) %>%
     # dplyr::filter(vivacity == "vivid") %>%
     format_exp_info(wrap = TRUE) %>%
     dplyr::group_by(vivacity) %>%
@@ -6437,7 +6592,7 @@ dat.moral.numbers.severity.m.by.subj %>%
         x = "Participant",
         fill = "First scenario type"
     ) +
-    ggplot2::facet_wrap(. ~ vivacity, labeller = labeller(first.scenario.type = label_both), scales = "free_x")
+    ggplot2::facet_wrap(. ~ vivacity, labeller = ggplot2::labeller(first.scenario.type = ggplot2::label_both), scales = "free_x")
 ```
 
 For each participant, we calculated the proportion of trials in the vivid condition where the relative severity rating was above the midpoint of 3.5 -- indicating that the deaths of the victims were rated as more severe than those of the beneficiaries. As shown in Figure \ref{fig:exp8-plot-severity-proportion-of-positive-ratings-per-subject}, only a few participants had a high proportion of trials in which the victims’ deaths were not rated as more severe than the beneficiaries’.
@@ -6541,7 +6696,7 @@ dat.moral.numbers.severity.m.by.subj %>%
         x = "Participant",
         fill = "First scenario type"
     ) +
-    ggplot2::facet_wrap(. ~ vivacity, labeller = labeller(first.scenario.type = label_both), scales = "free_x")
+    ggplot2::facet_wrap(. ~ vivacity, labeller = ggplot2::labeller(first.scenario.type = ggplot2::label_both), scales = "free_x")
 ```
 
 Further, as shown in Figure \ref{fig:exp10-plot-severity-proportion-of-positive-ratings-per-subject}, only a few participants in the vivid condition showed a high proportion of trials in which the deaths of the victims were not rated as more severe than those of the beneficiaries.
@@ -6644,7 +6799,7 @@ dat.moral.numbers.severity.m.by.subj %>%
         x = "Participant",
         fill = "First scenario type"
     ) +
-    ggplot2::facet_wrap(. ~ vivacity, labeller = labeller(first.scenario.type = label_both), scales = "free_x")
+    ggplot2::facet_wrap(. ~ vivacity, labeller = ggplot2::labeller(first.scenario.type = ggplot2::label_both), scales = "free_x")
 ```
 
 Further, as shown in Figure \ref{fig:exp11-plot-severity-proportion-of-positive-ratings-per-subject}, only a few participants in the vivid condition showed a high proportion of trials in which the deaths of the victims were not rated as more severe than those of the beneficiaries.
@@ -6661,21 +6816,29 @@ The section is organized as follows. Table \ref{tab:create-rr-correlations-no-bo
 
 Figure \ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-unfiltered-plot} shows $\RR$ and the bootstrap distribution of the attentional weight parameter $\alpha$ for the unfiltered sample; the corresponding filtered figure appears as Figure~\ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot} in the main text. Figure \ref{fig:exp8-11-plot-filtered-bin-app} then shows the binarized acceptability ratings across all three experiments, with filtered and unfiltered results side by side. 
 
-```{r create-rr-correlations-no-bootstrap-app, ref.label='create-rr-correlations-no-bootstrap', echo=FALSE}
+```{r create-rr-correlations-no-bootstrap-app, ref.label='rr-correlations-no-bootstrap-print', echo=FALSE}
 ```
 
 
-```{r relative-risk-slope-print-app, ref.label='relative-risk-slope-print', echo=FALSE, tab.cap="Bootstrap estimates of the linear regression slope and Spearman correlation between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6 (10,000 bootstrap samples). Each bootstrap sample yields average acceptance rates per ratio and condition; we then derive $\\RR$ and regress it against the \\textit{beneficiary:victim} ratio. The table reports the mean estimate, its Monte Carlo (MC) error, the $z$-score, the two-tailed $p$-value, and the 95\\% percentile interval (PI) for both the regression slope and the Spearman correlation."}
+```{r relative-risk-slope-print-app, ref.label='relative-risk-slope-print', echo=FALSE, tab.cap="Bootstrap estimates of the linear regression slope and Spearman correlation between the relative risk ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$) and the \\textit{beneficiary:victim} ratio in Experiments 4 to 6 (10,000 bootstrap samples). In Experiment 4, a problematic scenario has been excluded. Each bootstrap sample yields average acceptance rates per ratio and condition; we then derive $\\RR$ and regress it against the \\textit{beneficiary:victim} ratio. The table reports the mean estimate, its Monte Carlo (MC) error, the $z$-score, the two-tailed $p$-value, and the 95\\% percentile interval (PI) for both the regression slope and the Spearman correlation."}
 ```
 
-```{r rr-vs-weber-ratio-and-alpha-bootstrap-unfiltered-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$, left panels) and bootstrap distribution of the attentional weight of victims parameter ($\\alpha$, right panels) in Experiments 4 to 6, including all participants regardless of their responses on the severity question. In the left panels, circles show bootstrap means and error bars show 95\\% percentile intervals (10,000 bootstrap samples); the line shows a linear regression fit and the shaded area its 95\\% confidence interval. The $w$ parameter is fixed to the bootstrap estimate from the neutral condition. The horizontal line marks $\\alpha = 1$ (no shift in attentional weight). Compare with Figure~\\ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot} for results restricted to participants for whom the vividness manipulation was effective.", fig.width = 8, fig.height = 13, out.height = "0.7\\textheight", out.extra = "keepaspectratio"}
+```{r rr-vs-weber-ratio-and-alpha-bootstrap-unfiltered-plot, fig.cap = "Relative risk of acceptability ($\\RR = P_{\\text{acceptable, vivid}} / P_{\\text{acceptable, neutral}}$, left panels) and bootstrap distribution of the attentional weight of victims parameter ($\\alpha$, right panels) in Experiments 4 to 6, including all participants regardless of their responses on the severity question. In Experiment 4, a problematic scenario has been excluded. In the left panels, circles show bootstrap means and error bars show 95\\% percentile intervals (10,000 bootstrap samples); the line shows a linear regression fit and the shaded area its 95\\% confidence interval. The $w$ parameter is fixed to the bootstrap estimate from the neutral condition. The horizontal line marks $\\alpha = 1$ (no shift in attentional weight). Compare with Figure~\\ref{fig:rr-vs-weber-ratio-and-alpha-bootstrap-filtered-plot} for results restricted to participants for whom the vividness manipulation was effective.", fig.width = 8, fig.height = 13, out.height = "0.7\\textheight", out.extra = "keepaspectratio"}
 
 # Pair RR and alpha plots per experiment, stripping individual titles and borders
-purrr::map2(
+list(
     l_moral_numbers_rr_plot_unfiltered,
-    l_plots_fits_bootstrap_a_with_forced_w %>%
-        purrr::keep_at(\(p) !stringr::str_detect(p, "vivacityManipulationWorking")),
-    \(rr, a) {
+    l_plots_fits_bootstrap_a_with_forced_w
+) %>%
+    # Scenario-excluded versions where they exist, all participants. Indexing by name (rather than keep_at())
+    # puts both lists in the same order, so that pmap() pairs the plots of the same experiment
+    purrr::map(\(l) l[select_exps(
+        names(l_moral_numbers_rr_plot_unfiltered),
+        require_single_version = TRUE,
+        scenarios_excluded = TRUE,
+        vivacity_filtered = FALSE
+    )]) %>%
+    purrr::pmap(\(rr, a) {
         list(
             rr,
             a
@@ -6687,7 +6850,7 @@ purrr::map2(
     }
 ) %>%
     # Arrange each pair side by side, add experiment name as row title, and border the group
-    # (map2 inherits names from first argument, used by imap as `name`)
+    # (pmap inherits names from the first list, used by imap as `name`)
     purrr::imap(\(pair, name) {
         p <- ggpubr::ggarrange(
             plotlist = pair,
@@ -6715,15 +6878,15 @@ purrr::map2(
 
 
 
-```{r exp8-11-plot-filtered-bin-app, ref.label='exp8-11-plot-filtered-bin', echo=FALSE, fig.cap = "Binarized acceptability ratings for Experiments 4, 5, and 6 as a function of the \\emph{beneficiary:victim} ratio. Filtered panels show only participants for whom the vivacity manipulation was successful (see main text for exclusion criteria); unfiltered panels show all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants.", fig.height = 12, fig.width = 10, out.height = "0.6\\textheight", out.extra = "keepaspectratio"}
+```{r exp8-11-plot-filtered-bin-app, ref.label='exp8-11-plot-filtered-bin', echo=FALSE, fig.cap = "Binarized acceptability ratings for Experiments 4, 5, and 6 as a function of the \\emph{beneficiary:victim} ratio. Filtered panels show only participants for whom the vivacity manipulation was successful (see main text for exclusion criteria); unfiltered panels show all participants. Error bars represent 95\\% bootstrap confidence intervals. In Experiment 4, a problematic scenario has been excluded. Model fits are based on the average response of all participants, with $w$ and $\\alpha$ estimated separately for each condition (two-parameter fits).", fig.height = 12, fig.width = 10, out.height = "0.6\\textheight", out.extra = "keepaspectratio"}
 ```
 
 
 
-```{r exp8-plot-filtered-app, ref.label='exp8-plot-filtered', echo=FALSE, fig.cap = "Results of Experiment 4, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.6\\textheight", out.extra="keepaspectratio", eval = FALSE}
+```{r exp8-plot-filtered-app, ref.label='exp8-plot-filtered', echo=FALSE, fig.cap = "Results of Experiment 4, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. A problematic scenario has been excluded. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.6\\textheight", out.extra="keepaspectratio", eval = FALSE}
 ```
 
-```{r exp8-plot-unfiltered-app, ref.label='exp8-plot-unfiltered', echo=FALSE, fig.cap = "Results of Experiment 4 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.6\\textheight", out.extra="keepaspectratio", eval = FALSE}
+```{r exp8-plot-unfiltered-app, ref.label='exp8-plot-unfiltered', echo=FALSE, fig.cap = "Results of Experiment 4 from all participants. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. A problematic scenario has been excluded. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.6\\textheight", out.extra="keepaspectratio", eval = FALSE}
 ```
 
 ```{r exp10-plot-filtered-app, ref.label='exp10-plot-filtered', echo=FALSE, fig.cap = "Results of Experiment 5, where participants were filtered based on their responses on the severity question. Error bars represent 95\\% bootstrap confidence intervals. Model fits are based on the average response of all participants. (a) Binarized - both blocks, (b) Binarized - first block, (c) Raw - both blocks, (d) Raw - first block", fig.height=12, fig.width=10, out.height="0.6\\textheight", out.extra="keepaspectratio", eval = FALSE}
@@ -6810,8 +6973,8 @@ Let $s_1$, $s_2$ $v_1$, $v_2$, and $R_1$, $R_2$ be the number of saved, the numb
 
 # APP: Scenarios {#app:scenarios}
 
-```{r print-scenarios}
-dat.scenario.content %>%
+```{r print-scenarios-prep, include = FALSE}
+dat.scenarios.print <- dat.scenario.content %>%
     dplyr::mutate(dplyr::across(dplyr::where(is.character), ~ stringr::str_replace_all(
         .x, "n\\_(\\S+\\s)",
         stringr::str_c("N", "\\1")
@@ -6824,11 +6987,86 @@ dat.scenario.content %>%
     tidyr::unite(experimentID, experimentID, condition, sep = " - ", na.rm = TRUE) %>%
     dplyr::mutate(experimentID = experimentID %>%
                       stringr::str_replace("exp", "Exp. ") %>%
-                      stringr::str_remove_all("\\s*-\\s*NA\\s*")) %>%
-    dplyr::arrange(experimentID) %>%
-    dplyr::select(-dplyr::starts_with("option")) %>%
+                      stringr::str_remove_all("\\s*-\\s*NA\\s*") %>%
+                      # The same 2AFC scenarios were used in Experiments 3a-3c
+                      stringr::str_replace("^Exp\\. 3a\\b", "Exp. 3a--3c")) %>%
+    dplyr::arrange(experimentID)
+
+# The 2AFC choice question is identical for all scenarios in Experiment 3, so it is given in the caption
+exp3.choice.question <- dat.scenarios.print %>%
+    dplyr::filter(stringr::str_detect(experimentID, "^Exp\\. 3")) %>%
+    dplyr::distinct(question.acceptability) %>%
+    dplyr::pull(question.acceptability)
+stopifnot(length(exp3.choice.question) == 1)
+```
+
+```{r print-scenarios-exp1-2}
+dat.scenarios.print %>%
+    dplyr::filter(stringr::str_detect(experimentID, "^Exp\\. [12][ab]?(\\s|$)")) %>%
+    dplyr::select(experimentID, title, text, question.acceptability) %>%
     kable.packed("experimentID",
-                 caption = "Scenarios used in the different experiments",
+                 caption = "Scenarios used in Experiments 1 and 2.",
+                 col.names = c("Title", "Scenario", "Acceptability question"),
+                 booktabs = TRUE,
+                 longtable = TRUE,
+                 escape = FALSE
+    ) %>%
+    kableExtra::column_spec(1, width = "2cm") %>%
+    kableExtra::column_spec(2, width = "13cm") %>%
+    kableExtra::column_spec(3, width = "3.5cm") %>%
+    kableExtra::kable_styling(
+        font_size = 7,
+        latex_options = c(
+            "striped",
+            "hold_position",
+            "repeat_header"
+        )
+    ) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::landscape()
+```
+
+`r clearpage()`
+
+```{r print-scenarios-exp3}
+dat.scenarios.print %>%
+    dplyr::filter(stringr::str_detect(experimentID, "^Exp\\. 3")) %>%
+    dplyr::select(experimentID, title, text, option1, option2) %>%
+    kable.packed("experimentID",
+                 caption = stringr::str_c(
+                     "Scenarios used in Experiments 3a--3c. After reading the scenario and both options, participants were asked: \\emph{",
+                     exp3.choice.question,
+                     "}"
+                 ),
+                 col.names = c("Title", "Scenario", "Option 1", "Option 2"),
+                 booktabs = TRUE,
+                 longtable = TRUE,
+                 escape = FALSE
+    ) %>%
+    kableExtra::column_spec(1, width = "2cm") %>%
+    kableExtra::column_spec(2, width = "8.5cm") %>%
+    kableExtra::column_spec(3, width = "4cm") %>%
+    kableExtra::column_spec(4, width = "4cm") %>%
+    kableExtra::kable_styling(
+        font_size = 7,
+        latex_options = c(
+            "striped",
+            "hold_position",
+            "repeat_header"
+        )
+    ) %>%
+    kableExtra::kable_classic() %>%
+    kableExtra::landscape()
+```
+
+`r clearpage()`
+
+```{r print-scenarios-exp4-6}
+dat.scenarios.print %>%
+    dplyr::filter(stringr::str_detect(experimentID, "^Exp\\. ([456]|AS)\\b")) %>%
+    dplyr::select(experimentID, title, text, question.severity, question.acceptability) %>%
+    kable.packed("experimentID",
+                 caption = "Scenarios used in Experiments 4--6. The Hospital Power Outage scenario of Experiment 4 was excluded from the analyses (see \\protect\\ref{app:scenario-errors-exp4}).",
                  col.names = c("Title", "Scenario", "Severity question", "Acceptability question"),
                  booktabs = TRUE,
                  longtable = TRUE,
@@ -6855,6 +7093,11 @@ dat.scenario.content %>%
 # LLM {#app:llm}
 
 ```{r, child=if(INCLUDE_LLM_SI) here::here(CHILD_RMD_DIR, 'moral_numbers_LLMs.Rmd')}
+```
+
+`r clearpage()`
+
+```{r, child=here::here(CHILD_RMD_DIR, 'moral_numbers_robustness_checks_exclusions.Rmd')}
 ```
 
 
@@ -6905,7 +7148,11 @@ Here, we report analyses based on individual fits as well as their correlations 
 dat.moral.numbers.fit.by.subj.m <- dplyr::bind_rows(
     dat.moral.numbers.fit.by.subj.1param %>%
         dplyr::ungroup() %>%
-        dplyr::filter(experimentID %in% c("exp1", "exp10", "exp10.vivacityManipulationWorking", "exp11", "exp11.vivacityManipulationWorking", "exp4", "exp8", "exp8.vivacityManipulationWorking")) %>%
+        select_exps(
+            require_single_version = FALSE,
+            expID_clean = c("exp1", "exp4", "exp8", "exp10", "exp11"),
+            scenarios_excluded = TRUE
+        ) %>%
         dplyr::filter(is.finite(w)) %>%
         dplyr::group_by(experimentID, blocks, decisionType, vivacity) %>%
         dplyr::summarize(dplyr::across(c(w), list(N = length, M = mean, SE = se, min = min, max = max))) %>%
@@ -6913,6 +7160,10 @@ dat.moral.numbers.fit.by.subj.m <- dplyr::bind_rows(
     dat.moral.numbers.fit.by.subj.2param %>%
         dplyr::ungroup() %>%
         filter_vivacity_exps() %>%
+        select_exps(
+            require_single_version = FALSE,
+            scenarios_excluded = TRUE
+        ) %>%
         dplyr::filter(is.finite(w)) %>%
         dplyr::group_by(experimentID, blocks, decisionType, vivacity) %>%
         dplyr::summarize(dplyr::across(c(w, a), list(N = length, M = mean, SE = se, min = min, max = max))) %>%
@@ -6984,9 +7235,10 @@ As a validity check of these (likely unreliable) individual fits, we correlated 
 dat.moral.numbers.fit.by.subj.1param.with.ratings <- dplyr::left_join(
     dat.moral.numbers.fit.by.subj.1param %>%
         # Get w
-        dplyr::filter((experimentID %in%
-                           dat.moral.numbers.exp.correspondance$experimentID.data) |
-                          stringr::str_ends(experimentID, "vivacityManipulationWorking")) %>%
+        dplyr::filter(
+            parse_exp_id(experimentID)$expID_clean %in%
+                dat.moral.numbers.exp.correspondance$experimentID.data
+        ) %>%
         dplyr::filter(blocks == "all"),
     dat.moral.numbers %>%
         dplyr::filter(question == "acceptability") %>%
@@ -7004,18 +7256,36 @@ dat.moral.numbers.fit.by.subj.1param.with.ratings <- dplyr::left_join(
     dplyr::filter(is.finite(w) & is.finite(rating.raw))
 ```
 
-```{r correlation-w-ratings, fig.cap="Spearman correlations between individual $w$ parameter estimates and average acceptability ratings across experiments. Higher $w$ values reflect less precise numerical representations and lower sensitivity to the beneficiary:victim ratio, predicting lower acceptability of the high-ratio option. All correlations were highly significant."}
-dat.moral.numbers.fit.by.subj.1param.with.ratings %>%
-    dplyr::filter(experimentID %in% c("exp1", "exp10", "exp10.vivacityManipulationWorking", "exp11", "exp11.vivacityManipulationWorking", "exp4", "exp8", "exp8.vivacityManipulationWorking")) %>%
+```{r correlation-w-ratings-calculate}
+dat.moral.numbers.fit.by.subj.1param.with.ratings.for.cor <-
+    dat.moral.numbers.fit.by.subj.1param.with.ratings %>%
+    select_exps(
+        require_single_version = FALSE,
+        expID_clean = c("exp1", "exp4", "exp8", "exp10", "exp11"),
+        scenarios_excluded = TRUE
+    ) %>%
     format_exp_info() %>%
+    tidyr::drop_na(w, rating.raw)
+
+dat.moral.numbers.cor.w.ratings <-
+    dat.moral.numbers.fit.by.subj.1param.with.ratings.for.cor %>%
     dplyr::group_by(experimentID, decisionType, vivacity) %>%
-    tidyr::drop_na(w, rating.raw) %>%
     rstatix::cor_test(w, rating.raw, method = "spearman") %>%
-    dplyr::mutate(cond = dplyr::case_when(
-        !is.na(decisionType) ~ as.character(decisionType),
-        !is.na(vivacity) ~ as.character(vivacity),
-        TRUE ~ NA_character_
-    )) %>%
+    dplyr::ungroup() %>%
+    # rstatix::cor_test() does not report N
+    dplyr::left_join(
+        dat.moral.numbers.fit.by.subj.1param.with.ratings.for.cor %>%
+            dplyr::count(experimentID, decisionType, vivacity, name = "N"),
+        by = c("experimentID", "decisionType", "vivacity")
+    ) %>%
+    dplyr::mutate(cond = dplyr::coalesce(
+        as.character(decisionType),
+        as.character(vivacity)
+    ))
+```
+
+```{r correlation-w-ratings, fig.cap="Spearman correlations between individual $w$ parameter estimates and average acceptability ratings across experiments. Higher $w$ values reflect less precise numerical representations and lower sensitivity to the beneficiary:victim ratio, predicting lower acceptability ratings. In Experiment 4, a problematic scenario has been excluded. All correlations were highly significant."}
+dat.moral.numbers.cor.w.ratings %>%
     ggplot2::ggplot(ggplot2::aes(x = experimentID, y = cor, fill = cond)) +
     ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8)) +
     ggplot2::geom_text(
@@ -7038,119 +7308,39 @@ dat.moral.numbers.fit.by.subj.1param.with.ratings %>%
         legend.position = "none"
     ) +
     ggplot2::labs(
-        y = TeX("Correlation between $w$ and (raw) acceptability ratings"),
+        y = latex2exp::TeX("Correlation between $w$ and (raw) acceptability ratings"),
         x = NULL
     )
 ```
 
-As shown in Figure \ref{fig:correlation-w-ratings}, the $w$ estimates showed strong negative correlations with ratings in all experiments and conditions. 
+```{r correlation-w-ratings-print}
+dat.moral.numbers.cor.w.ratings %>%
+    dplyr::arrange(experimentID, cond) %>%
+    dplyr::select(experimentID, cond, N, cor, p) %>%
+    knitr::kable(
+        caption = "Spearman correlations between individual $w$ parameter estimates and average acceptability ratings across experiments. In Experiment 4, a problematic scenario has been excluded.",
+        col.names = c("Experiment", "Condition", "$N$", "$\\rho$", "$p$"),
+        digits = 3,
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position"
+    )) %>%
+    kableExtra::kable_classic_2()
+```
+
+As shown in Figure \ref{fig:correlation-w-ratings} and Table \ref{tab:correlation-w-ratings-print}, the $w$ estimates showed strong negative correlations with ratings in all experiments and conditions. 
 
 ## Correlations between $\alpha$ and risk ratios
 
 
-```{r augment-individual-fits-with-ratings-2param}
-dat.moral.numbers.fit.by.subj.2param.with.ratings <-
-    dplyr::left_join(
-        dat.moral.numbers.fit.by.subj.2param %>%
-            # Get w and alpha
-            dplyr::filter(
-                !is.na(vivacity),
-                blocks == "all",
-                (experimentID %in%
-                     dat.moral.numbers.exp.correspondance$experimentID.data) |
-                    stringr::str_ends(experimentID, "vivacityManipulationWorking")
-            ),
-        dat.moral.numbers %>%
-            dplyr::filter(
-                !is.na(vivacity),
-                (experimentID %in%
-                     dat.moral.numbers.exp.correspondance$experimentID.data) |
-                    stringr::str_ends(experimentID, "vivacityManipulationWorking")
-            ) %>%
-            dplyr::filter(question == "acceptability") %>%
-            dplyr::group_by(experimentID, ResponseId, decisionType, vivacity) %>%
-            dplyr::summarize(
-                rating.raw = mean(rating.raw),
-                rating.bin = mean(rating.bin),
-                .groups = "drop"
-            ) %>%
-            dplyr::arrange(rating.raw) %>%
-            dplyr::mutate(blocks = "all"),
-        by = c("experimentID", "blocks", "ResponseId", "decisionType", "vivacity")
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(blocks == "all") %>%
-    dplyr::select(-c(blocks, decisionType)) %>%
-    tidyr::pivot_wider(
-        id_cols = c("ResponseId", "experimentID"),
-        names_from = "vivacity",
-        values_from = c("w", "a", "rating.raw", "rating.bin")
-    ) %>%
-    tidyr::drop_na() %>%
-    dplyr::mutate(rr = rating.bin_vivid / rating.bin_neutral)
-```
-
-```{r correlation-a-ratings, fig.cap="Spearman correlations between individual $\\alpha$ parameter estimates and (left) average acceptability ratings in the vivid condition and (right) the relative risk of acceptability ($\\RR = P_{acceptable, vivid} / P_{acceptable, neutral}$) across experiments with vividness manipulations. Higher $\\alpha$ values reflect greater attentional weight on the victims, predicting lower acceptability in the vivid condition and a lower relative risk. All correlations were highly significant."}
-dat.moral.numbers.fit.by.subj.2param.with.ratings %>%
-    filter_vivacity_exps() %>%
-    format_exp_info() %>%
-    dplyr::group_by(experimentID) %>%
-    rstatix::cor_test(a_vivid, rating.raw_vivid, rr, method = "spearman") %>%
-    dplyr::filter(
-        !(
-            (var1 == "rating.raw_vivid" & var2 == "rr") |
-                (var2 == "rating.raw_vivid" & var1 == "rr")
-        )
-    ) %>%
-    dplyr::group_by(experimentID) %>%
-    make_cor_test_triangular() %>%
-    dplyr::mutate(
-        dplyr::across(
-            dplyr::matches("^var[12]$"),
-            \(x) {
-                x %>%
-                    stringr::str_replace("a_vivid", 'alpha*" (vivid)"') %>%
-                    stringr::str_replace("rating.raw_vivid", '"Rating (vivid)"') %>%
-                    stringr::str_replace("rr", '"RR"')
-            }
-        )
-    ) %>%
-    tidyr::unite(var_pair, var1, var2, sep = '*" vs. "*') %>%
-    ggplot2::ggplot(ggplot2::aes(x = experimentID, y = cor)) +
-    ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8)) +
-    ggplot2::scale_fill_manual(
-        values = c(
-            "vivid" = "gray40",
-            "neutral" = "gray70",
-            "moral" = "gray40",
-            "economic" = "gray70",
-            "NA" = "gray55"
-        )
-    ) +
-    ggplot2::coord_flip() +
-    ggplot2::theme(
-        legend.position = "none"
-    ) +
-    ggplot2::labs(
-        y = TeX("Correlation between $\\alpha$ and other values"),
-        x = NULL
-    ) +
-    ggplot2::facet_wrap(. ~ var_pair, labeller = ggplot2::label_parsed)
-```
-Higher $\alpha$ values reflect greater attention to the victims. As a validity check of these (likely unreliable) individual fits, we correlated them with (1) the participants' acceptability ratings in the *vivid* condition, averaged (for each participant) across all ratios, and (2) with the vivid/neutral acceptability risk ratio. We would expect a negative correlation between $\alpha$ and both acceptability in the vivid condition, and with the risk ratios.
-
-
-
-
-## Tests against chance of individual fits of the $\alpha$ parameter in Experiments 4 to 6(WAS: `r get.original.experimentID("exp4")` to `r get.original.experimentID("exp6")`)
-
-We tried to fit the data from the Experiments with vivacity manipulations (i.e., Experiments 4 to 6) to our model, and then compared the $\alpha$ parameter across the vivid and the neutral conditions as a within-participant contrast. Specifically, for each participant, we fit the $w$ parameter in the neutral condition, with $\alpha$ fixed to 1 (hereafter $w_\text{neutral}$). In the vivid condition, we then set the $w$ parameter to $w_\text{neutral}$, and estimated the $\alpha$ parameter. For comparison purposes, we repeated this calculation for the neutral condition as well. We then compared the $\alpha$ parameter in the vivid condition to the neutral level of 1.
-
-
 ```{r fits-individual-with-forced-w-calculate}
 # Add individual Weber ratios in the neutral condition when both blocks are considered
-# When considering only the first block, take the median as the first block is a between-subject
-#    contrast, where no fits from the other condition are available.
+# (only both blocks are used)
 dat.moral.numbers.fit.by.subj.forced.w <-
     # All blocks - use individual fits
     dplyr::left_join(
@@ -7179,7 +7369,136 @@ dat.moral.numbers.fit.by.subj.forced.w <-
     dplyr::ungroup()
 ```
 
-```{r exp8-fits-individual-with-forced-w-print, eval = FALSE}
+```{r augment-individual-fits-with-forced-w-with-ratings}
+dat.moral.numbers.fit.by.subj.forced.w.with.ratings <-
+    dplyr::left_join(
+        dat.moral.numbers.fit.by.subj.forced.w %>%
+            # We only have blocks == "all" anyhow
+            dplyr::filter(blocks == "all") %>%
+            dplyr::select(experimentID, ResponseId, vivacity, a),
+        dat.moral.numbers %>%
+            dplyr::filter(
+                !is.na(vivacity),
+                question == "acceptability"
+            ) %>%
+            dplyr::group_by(experimentID, ResponseId, vivacity) %>%
+            dplyr::summarize(
+                rating.raw = mean(rating.raw),
+                rating.bin = mean(rating.bin),
+                .groups = "drop"
+            ),
+        by = c("experimentID", "ResponseId", "vivacity")
+    ) %>%
+    tidyr::pivot_wider(
+        id_cols = c("ResponseId", "experimentID"),
+        names_from = "vivacity",
+        values_from = c("a", "rating.raw", "rating.bin")
+    ) %>%
+    tidyr::drop_na() %>%
+    dplyr::mutate(rr = rating.bin_vivid / rating.bin_neutral)
+```
+
+```{r correlation-forced-w-a-ratings-calculate}
+dat.moral.numbers.fit.by.subj.forced.w.with.ratings.for.cor <-
+    dat.moral.numbers.fit.by.subj.forced.w.with.ratings %>%
+    filter_vivacity_exps() %>%
+    # Select before format_exp_info(), which hides the scenarioExcluded suffix
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
+    format_exp_info()
+
+dat.moral.numbers.cor.forced.w.a.ratings <-
+    dat.moral.numbers.fit.by.subj.forced.w.with.ratings.for.cor %>%
+    dplyr::group_by(experimentID) %>%
+    rstatix::cor_test(a_vivid, rating.raw_vivid, rr, method = "spearman") %>%
+    dplyr::filter(
+        !(
+            (var1 == "rating.raw_vivid" & var2 == "rr") |
+                (var2 == "rating.raw_vivid" & var1 == "rr")
+        )
+    ) %>%
+    dplyr::group_by(experimentID) %>%
+    make_cor_test_triangular() %>%
+    dplyr::ungroup() %>%
+    # rstatix::cor_test() does not report N
+    dplyr::left_join(
+        dat.moral.numbers.fit.by.subj.forced.w.with.ratings.for.cor %>%
+            dplyr::count(experimentID, name = "N"),
+        by = "experimentID"
+    )
+```
+
+```{r correlation-forced-w-a-ratings, fig.cap="Spearman correlations between individual estimates of $\\alpha$ in the vivid condition, with $w$ fixed to the participant's estimate in the neutral condition, and (left) average acceptability ratings in the vivid condition and (right) the relative risk of acceptability ($\\RR = P_{acceptable, vivid} / P_{acceptable, neutral}$) across experiments with vividness manipulations. Higher $\\alpha$ values reflect greater attentional weight on the victims, predicting a lower relative risk. In Experiment 4, a problematic scenario has been excluded. All correlations were significant except for the filtered version of Experiment 5, where they were marginal."}
+dat.moral.numbers.cor.forced.w.a.ratings %>%
+    dplyr::mutate(
+        dplyr::across(
+            dplyr::matches("^var[12]$"),
+            \(x) {
+                x %>%
+                    stringr::str_replace("a_vivid", 'alpha*" (vivid)"') %>%
+                    stringr::str_replace("rating.raw_vivid", '"Rating (vivid)"') %>%
+                    stringr::str_replace("rr", '"RR"')
+            }
+        )
+    ) %>%
+    tidyr::unite(var_pair, var1, var2, sep = '*" vs. "*') %>%
+    ggplot2::ggplot(ggplot2::aes(x = experimentID, y = cor)) +
+    ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8)) +
+    ggplot2::scale_fill_manual(
+        values = c(
+            "vivid" = "gray40",
+            "neutral" = "gray70",
+            "moral" = "gray40",
+            "economic" = "gray70",
+            "NA" = "gray55"
+        )
+    ) +
+    ggplot2::coord_flip() +
+    ggplot2::theme(
+        legend.position = "none"
+    ) +
+    ggplot2::labs(
+        y = latex2exp::TeX("Correlation between $\\alpha$ and other values"),
+        x = NULL
+    ) +
+    ggplot2::facet_wrap(. ~ var_pair, labeller = ggplot2::label_parsed)
+```
+
+```{r correlation-forced-w-a-ratings-print}
+dat.moral.numbers.cor.forced.w.a.ratings %>%
+    dplyr::mutate(
+        var_pair = dplyr::if_else(
+            var1 == "rr" | var2 == "rr",
+            "$\\alpha_\\text{vivid}$ vs. RR",
+            "$\\alpha_\\text{vivid}$ vs. rating (vivid)"
+        )
+    ) %>%
+    dplyr::arrange(var_pair, experimentID) %>%
+    dplyr::select(var_pair, experimentID, N, cor, p) %>%
+    knitr::kable(
+        caption = "Spearman correlations between individual estimates of $\\alpha$ in the vivid condition (with $w$ fixed to the participant's estimate in the neutral condition) and the average acceptability ratings in the vivid condition as well as the vivid/neutral relative risk of acceptability (RR). In Experiment 4, a problematic scenario has been excluded.",
+        col.names = c("Variables", "Experiment", "$N$", "$\\rho$", "$p$"),
+        digits = 3,
+        booktabs = TRUE,
+        longtable = FALSE,
+        escape = FALSE
+    ) %>%
+    kableExtra::kable_styling(latex_options = c(
+        "striped",
+        "scale_down",
+        "hold_position"
+    )) %>%
+    kableExtra::kable_classic_2()
+```
+
+Higher $\alpha$ values reflect greater attention to the victims. As a partially circular consistency check of the individual fits of $\alpha$ (with $w$ fixed to each participant's estimate in the neutral condition; see below), we correlated $\alpha_\text{vivid}$ with (1) the participants' acceptability ratings in the *vivid* condition, averaged (for each participant) across all ratios, and (2) the vivid/neutral relative risk of acceptability. As $w$ was fixed to each participant's estimate in the neutral condition, $\alpha_\text{vivid}$ reflects how much less acceptable the sacrifices were in the vivid condition than predicted from the neutral condition. We thus expect a negative correlation between $\alpha_\text{vivid}$ and the relative risk. The negative correlation with the vivid ratings mainly serves as a consistency check, as $\alpha_\text{vivid}$ is the only free parameter fitted to these ratings. As shown in Figure \ref{fig:correlation-forced-w-a-ratings} and Table \ref{tab:correlation-forced-w-a-ratings-print}, the correlations were significant, except in the filtered version of Experiment 5, where they were marginal ($p = .100$).
+
+
+## Tests against chance of individual fits of the $\alpha$ parameter in Experiments 4 to 6(WAS: `r get.original.experimentID("exp4")` to `r get.original.experimentID("exp6")`)
+
+We also compared the individual $\alpha$ parameter across the vivid and the neutral conditions as a within-participant contrast. Specifically, for each participant, we fit the $w$ parameter in the neutral condition, with $\alpha$ fixed to 1 (hereafter $w_\text{neutral}$). In the vivid condition, we then set the $w$ parameter to $w_\text{neutral}$, and estimated the $\alpha$ parameter. For comparison purposes, we repeated this calculation for the neutral condition as well. We then compared the $\alpha$ parameter in the vivid condition to the neutral level of 1.
+
+
+```{r fits-individual-with-forced-w-print}
 dat.moral.numbers.fit.by.subj.forced.w.summary <- dat.moral.numbers.fit.by.subj.forced.w %>%
     na.omit() %>%
     dplyr::group_by(experimentID, blocks, vivacity) %>%
@@ -7193,9 +7512,12 @@ dat.moral.numbers.fit.by.subj.forced.w.summary <- dat.moral.numbers.fit.by.subj.
 
 dplyr::bind_rows(
     dat.moral.numbers.fit.by.subj.forced.w.summary %>%
+        select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>% 
         dplyr::rename(N1 = N) %>%
         dplyr::mutate(test.type = "Test of the $\\alpha$ parameter against the chance level of 1", .before = 1),
+    
     dat.moral.numbers.fit.by.subj.forced.w %>%
+        select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>% 
         dplyr::filter(blocks == "all") %>%
         dplyr::arrange(experimentID, blocks, vivacity, ResponseId) %>%
         dplyr::group_by(experimentID, blocks) %>%
@@ -7206,11 +7528,11 @@ dplyr::bind_rows(
 ) %>%
     dplyr::relocate(N2, .after = N1) %>%
     format_exp_info() %>%
-    dplyr::arrange(desc(test.type), experimentID, blocks, vivacity) %>%
+    dplyr::arrange(dplyr::desc(test.type), experimentID, blocks, vivacity) %>%
     dplyr::select(-blocks) %>%
     kable.packed(
         "test.type",
-        caption = "By subject estimates of the $alpha$ paramenter in Experiment 8, where the w parameter was set to a fit from the one-parameter model in the neutral condition. When only the first block was considered (and thus only one block per participant), the w parameter was set to the median of the w parameter estimates in the neutral condition in the first block.",
+        caption = "By-participant estimates of the $\\alpha$ parameter in Experiments 4 to 6, where the $w$ parameter was set to each participant's estimate from the one-parameter model in the neutral condition (both blocks combined).",
         # col.names = c(),
         booktabs = TRUE,
         longtable = FALSE,
@@ -7225,8 +7547,9 @@ dplyr::bind_rows(
     kableExtra::kable_classic_2()
 ```
 
-```{r fits-individual-with-forced-w-plot, fig.cap = "Individual fits of the $\\alpha$ (attentional weight) parameter in Experiments 4 to 6, estimated with $w$ fixed to the bootstrap estimate from the neutral condition. Higher $\\alpha$ values indicate greater attentional weight placed on the victims relative to the beneficiaries. Each violin shows the distribution of individual estimates; the vividness manipulation consistently shifts $\\alpha$ upward in the vivid condition.", fig.height = 10}
+```{r fits-individual-with-forced-w-plot, fig.cap = "Individual fits of the $\\alpha$ (attentional weight) parameter in Experiments 4 to 6, estimated with $w$ fixed to each participant's estimate in the neutral condition. Higher $\\alpha$ values indicate greater attentional weight placed on the victims relative to the beneficiaries. Each violin shows the distribution of individual estimates; the vividness manipulation consistently shifts $\\alpha$ upward in the vivid condition, though this shift is not significant in the unfiltered version of Experiment 5. In Experiment 4, a problematic scenario has been excluded.", fig.height = 10}
 dat.moral.numbers.fit.by.subj.forced.w %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     format_exp_info() %>%
     # We only have blocks == "all" anyhow
     dplyr::filter(blocks == "all") %>%
@@ -7238,7 +7561,7 @@ dat.moral.numbers.fit.by.subj.forced.w %>%
     ggplot2::facet_wrap(experimentID ~ ., ncol = 2)
 ```
 
-As shown in Figure \ref{fig:fits-individual-with-forced-w-plot}, estimates of $\alpha$ were different from 1 in both the vivid and the neutral conditions, but the estimates in the vivid condition were significantly higher than in the neutral condition. However, as shown in Figure \ref{fig:fits-individual-with-forced-w-plot}, there are also a number of outliers, presumably due to the poor individual fit to the data. As a result, while these results confirm our predictions, the limited number of trials per participant and the considerable number of outliers makes this analysis less convincing.
+As shown in Table \ref{tab:fits-individual-with-forced-w-print} and Figure \ref{fig:fits-individual-with-forced-w-plot}, estimates of $\alpha$ were different from 1 in both the vivid and the neutral conditions, but the estimates in the vivid condition were significantly higher than in the neutral condition except in the unfiltered version of Experiment 5. However, as shown in Figure \ref{fig:fits-individual-with-forced-w-plot}, there are also a number of outliers, presumably due to the poor individual fit to the data. As a result, while these results confirm our predictions, the limited number of trials per participant and the considerable number of outliers makes this analysis less convincing.
 
 
 
@@ -7254,7 +7577,7 @@ As shown in Figure \ref{fig:fits-individual-with-forced-w-plot}, estimates of $\
 ## APP: Pre-registered but statistically or methodologically inappropriate experiments and analyses manipulating the relative salience of the victims.
 
 
-### Failed attempts to make the victims more {#app:failed-vivacity-manipulations}
+### Failed attempts to make the victims more salient {#app:failed-vivacity-manipulations}
 
 
 ```{r, child=here::here(CHILD_RMD_DIR, 'model_numbers_failed_vivacity_exps.Rmd')}
@@ -7308,7 +7631,7 @@ dat.moral.numbers.critical.ratios <-
                         question == "acceptability",
                         vivacity == "vivid"
                     ) %>%
-                    get.ratio.before.asymptote(search.strategy = ..1, test = ..2, verbose = !RECALCULATE_EVERYTHING_APP)
+                    get.ratio.before.asymptote(search.strategy = ..1, test = ..2, verbose = !RECALCULATE_ASYMPTOTE_BOOTSTRAP)
             )
     )
 ```
@@ -7318,6 +7641,7 @@ dat.moral.numbers.critical.ratios <-
 
 ```{r identify-asymptote-print}
 dat.moral.numbers.critical.ratios %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = FALSE) %>%
     format_exp_info() %>%
     dplyr::arrange(experimentID, blocks, test, search.strategy) %>%
     dplyr::relocate(experimentID, .before = 1) %>%
@@ -7361,7 +7685,7 @@ As our attempt to estimate the onset of the asymptotic range was unsuccessful, w
 ```
 
 ```{r exp8-bootstrap-asymptote-calculate}
-if (RECALCULATE_EVERYTHING_APP) {
+if (RECALCULATE_ASYMPTOTE_BOOTSTRAP) {
     dat.moral.numbers.for.bootstrap.fit.asymptote.fits.exp8 <- run_bootstrap_fit_for_asymptote(
         dat = dat.moral.numbers.for.bootstrap.fit,
         v.exps = c("exp8", "exp8.vivacityManipulationWorking"),
@@ -7388,7 +7712,7 @@ if (RECALCULATE_EVERYTHING_APP) {
 ```
 
 ```{r exp10-bootstrap-asymptote-calculate}
-if (RECALCULATE_EVERYTHING_APP) {
+if (RECALCULATE_ASYMPTOTE_BOOTSTRAP) {
     dat.moral.numbers.for.bootstrap.fit.asymptote.fits.exp10 <- run_bootstrap_fit_for_asymptote(
         dat = dat.moral.numbers.for.bootstrap.fit,
         v.exps = c("exp10", "exp10.vivacityManipulationWorking"),
@@ -7449,7 +7773,7 @@ dplyr::bind_rows(
 ### Other attempts to identify the asymptotic range (Experiment AS) {#app:exp-AS}
 
 
-In Experiment 4, the highest *beneficiary:victim* ratio likely did not reach the asymptote. In Experiment 9a, we addressed this by using only the vivid condition from Experiment 4 and introducing more extreme ratios of up to 1:20,000. We also removed some scenarios[^excludedScenarios], as they were not plausible for very large numbers. As a result, participants completed 10 (rather than 12) trials per vividness condition.
+In Experiment 4, the highest *beneficiary:victim* ratio likely did not reach the asymptote. In Experiment 9a, we addressed this by using only the neutral condition from Experiment 4 and introducing more extreme ratios of up to 20,000:1. We also removed some scenarios[^excludedScenarios], as they were not plausible for very large numbers. As a result, participants completed 10 (rather than 12) trials.
 
 [^excludedScenarios]: Note to self: The station and hospital scenarios were excluded
 
@@ -7502,7 +7826,7 @@ dplyr::bind_rows(
 
 As shown in Figure \ref{fig:exp9a-severity-plot-by-subjects-scenarios-raw}, participants rated the deaths of victims as somewhat more horrific than those of beneficiaries.
 
-To ensure that participants did not consider the deaths of the victims to be intrinsically more horrific than those of the beneficiaries on a per-death basis, we excluded participants who, in the neutral (and only) condition, rated the victims’ deaths as significantly more or less severe than expected by chance. This was determined using a one-tailed binomial test, based on the number of trials. Based on this criterion, `r dat.moral.numbers.bad.subj.severity %>% dplyr::filter(str_detect(experimentID, "exp9a")) %>% distinct(ResponseId) %>% nrow` out of `r dat.moral.numbers.severity.m.by.subj %>% dplyr::filter(str_detect(experimentID, "exp9a")) %>% distinct(ResponseId) %>% nrow` participants were excluded.
+To ensure that participants did not consider the deaths of the victims to be intrinsically more horrific than those of the beneficiaries on a per-death basis, we excluded participants who, in the neutral (and only) condition, rated the victims’ deaths as significantly more or less severe than expected by chance. This was determined using one-tailed binomial tests in each direction, based on the number of trials. Based on this criterion, `r dat.moral.numbers.bad.subj.severity %>% dplyr::filter(str_detect(experimentID, "exp9a")) %>% distinct(ResponseId) %>% nrow` out of `r dat.moral.numbers.severity.m.by.subj %>% dplyr::filter(str_detect(experimentID, "exp9a")) %>% distinct(ResponseId) %>% nrow` participants were excluded.
 
 
 `r clearpage()`
@@ -7625,7 +7949,7 @@ ggpubr::ggarrange(
 
 #### Identifying asymptote 
 
-As all ratios in Experiment 9a are very high, the preregistered algorithm for identifying the asymptotes is not applicable. However, visual inspection of Figure \ref{fig:exp9a-plot} suggests that the asymptote is probably reached by a ratio of 1:3000
+As all ratios in Experiment 9a are very high, the preregistered algorithm for identifying the asymptotes is not applicable. However, visual inspection of Figure \ref{fig:exp9a-plot} suggests that the asymptote is probably reached by a ratio of 3000:1
 
 
 ### APP: Pre-registered analyses based on the pre-asymptotic vs asymptotic range {#app:asymptotic-analyses}
@@ -7650,10 +7974,7 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range <- dat.moral.nu
         question == "acceptability"
     ) %>%
     dplyr::mutate(
-        asymptote.start = unname(v.asymptote.start[stringr::str_remove(
-            experimentID,
-            ".vivacityManipulationWorking"
-        )]),
+        asymptote.start = unname(v.asymptote.start[parse_exp_id(experimentID)$expID_clean]),
         ratio.range = factor(
             ifelse(ratio > asymptote.start,
                    "asymptote", "pre-asymptote"
@@ -7672,14 +7993,24 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range <- dat.moral.nu
     dplyr::mutate(
         d.absolute = neutral - vivid,
         d.relative = 7 / 5 * (neutral - vivid) / (neutral + vivid)
-    )
+    ) %>%
+    # Keep only participants with difference scores in both ratio ranges. In the scenario-excluded
+    # version of Experiment 4, removing the Hospital Power Outage scenario leaves some participants
+    # without an asymptotic-range trial in one of the vivacity conditions.
+    # (Experiments without a defined asymptote have no ratio ranges and are kept as they are.)
+    dplyr::group_by(experimentID, ResponseId) %>%
+    dplyr::filter(
+        all(is.na(ratio.range)) |
+            (dplyr::n_distinct(ratio.range) == 2 & all(!is.na(d.absolute)))
+    ) %>%
+    dplyr::ungroup()
 
 # By ratio
 ```
 
 ```{r exp8-asymptotic-vs-preasymptotic-range-raw-plot, fig.cap = "Difference in raw acceptability ratings between the neutral and vivid conditions as a function of ratio range in Experiment 4. For each participant, ratings were averaged separately within the pre-asymptotic (beneficiary:victim ratio $\\leq$ 600) and asymptotic (ratio $>$ 600) ranges; the boundary was determined by visual inspection of the data. The absolute difference score is the simple difference neutral $-$ vivid; the relative difference score is $\\frac{7}{5} \\times \\frac{\\text{neutral} - \\text{vivid}}{\\text{neutral} + \\text{vivid}}$, which is scaled to $[-1, 1]$ for a 6-point rating scale. Positive values indicate lower acceptability in the vivid condition. Upper panels: all participants; lower panels: participants for whom the vivacity manipulation was successful."}
 dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-    dplyr::filter(stringr::str_detect(experimentID, "exp8")) %>%
+    select_exps(require_single_version = FALSE, expID_clean = "exp8", scenarios_excluded = TRUE) %>%
     format_exp_info() %>%
     tidyr::pivot_longer(dplyr::starts_with("d."),
                         names_to = "difference.type",
@@ -7759,7 +8090,7 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range.comparisons <- 
     dplyr::relocate(n2, .after = n1) %>%
     dplyr::relocate(difference.type, .after = ratio.range) %>%
     dplyr::relocate(Median, M, SD, .before = p) %>%
-    dplyr::arrange(desc(test.type), desc(experimentID), difference.type, ratio.range)
+    dplyr::arrange(dplyr::desc(test.type), dplyr::desc(experimentID), difference.type, ratio.range)
 ```
 
 Our analyses of raw ratings are based on two difference scores. First, we computed simple difference of the acceptability ratings in the neutral vs. vivid condition, that is $\text{rating}_{\text{neutral}} - \text{rating}_{\text{vivid}}$. Second, we computed relative difference scores, $\frac{7}{5} \times \frac{\text{rating}_{\text{neutral}} - \text{rating}_{\text{vivid}}}{\text{rating}_{\text{neutral}} + \text{rating}_{\text{vivid}}}$. (The factor 7/5 simply scales this difference to values between -1 and 1 for a 6 point scale.)
@@ -7799,7 +8130,9 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
 
 ```{r exp8-10-asymptotic-vs-preasymptotic-range-raw-plot, fig.cap = "Difference in raw acceptability ratings between the neutral and vivid conditions as a function of ratio range in Experiments 4 and 5 combined. For each participant, ratings were averaged separately within the pre-asymptotic and asymptotic ranges; the boundaries were determined by visual inspection of the data (ratio $>$ 600 for Experiment 4, ratio $>$ 500 for Experiment 5). The absolute difference score is the simple difference neutral $-$ vivid; the relative difference score is $\\frac{7}{5} \\times \\frac{\\text{neutral} - \\text{vivid}}{\\text{neutral} + \\text{vivid}}$, which is scaled to $[-1, 1]$ for a 6-point rating scale. Positive values indicate lower acceptability in the vivid condition. Upper panels: all participants; lower panels: participants for whom the vivacity manipulation was successful."}
 dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-    dplyr::filter(stringr::str_detect(experimentID, "exp8|exp10")) %>%
+    pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
+    format_exp_info() %>%
     tidyr::pivot_longer(dplyr::starts_with("d."),
                         names_to = "difference.type",
                         values_to = "d"
@@ -7807,15 +8140,6 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
     # dplyr::group_by(experimentID, difference.type) %>%
     # dplyr::mutate(Z = abs(scale(d))) %>%
     # dplyr::filter(Z < 3) %>%
-    dplyr::mutate(
-        experimentID = dplyr::case_when(
-            experimentID == "exp8"                              ~ "Exp. 4+5",
-            experimentID == "exp10"                             ~ "Exp. 4+5",
-            experimentID == "exp8.vivacityManipulationWorking"  ~ "Exp. 4+5 (filtered)",
-            experimentID == "exp10.vivacityManipulationWorking" ~ "Exp. 4+5 (filtered)",
-            TRUE                                                ~ experimentID
-        )
-    ) %>%
     ggplot2::ggplot(ggplot2::aes(x = ratio.range, y = d)) %>%
     violin_plot_template(add.dot.plot = FALSE, yintercept = 0) +
     # Don't use ylim since it throws away data !
@@ -7838,8 +8162,7 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
 dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.comparisons <- dplyr::bind_rows(
     # Compare individual difference scores to zero
     dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-        dplyr::filter(stringr::str_detect(experimentID, "exp8|exp10")) %>%
-        dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp\\d+", "exp8+10")) %>%
+        pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
         rstatix::df_nest_by(experimentID, ratio.range) %>%
         dplyr::mutate(tmp = purrr::map(
             data,
@@ -7872,8 +8195,7 @@ dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.compari
     
     # Compare the difference scores across ratio ranges
     dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-        dplyr::filter(stringr::str_detect(experimentID, "exp8|exp10")) %>%
-        dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp\\d+", "exp8+10")) %>%
+        pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
         tidyr::pivot_longer(c(d.absolute, d.relative),
                             names_to = "difference.type",
                             values_to = "d"
@@ -7904,13 +8226,14 @@ dplyr::bind_rows(
     dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range.comparisons,
     dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.comparisons
 ) %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     format_exp_info() %>%
-    fix_zero_p_values(p) %>% 
+    fix_zero_p_values(p) %>%
     dplyr::arrange(desc(test.type), experimentID, difference.type, ratio.range) %>%
     dplyr::rename_with(~ stringr::str_replace_all(.x, "\\.", " ")) %>%
     kable.packed(
         "test type",
-        caption = "Wilcoxon tests of vivacity difference scores (vivid minus neutral acceptability) in Experiments 4 and 5. Top panel: one-sample tests against zero (i.e., whether vivacity affected acceptability). Bottom panel: paired tests comparing pre-asymptotic vs.\\ asymptotic ratio ranges (i.e., whether the vivacity effect was larger in the pre-asymptotic range). Rows labelled (filtered) are restricted to participants for whom the vivacity manipulation was successful.",
+        caption = "Wilcoxon tests of vivacity difference scores in Experiments 4 and 5. The absolute difference score is neutral $-$ vivid; the relative difference score is $\\frac{7}{5} \\times \\frac{\\text{neutral} - \\text{vivid}}{\\text{neutral} + \\text{vivid}}$, scaled to $[-1, 1]$ for a 6-point rating scale. Positive values indicate lower acceptability in the vivid condition. Top panel: one-sample tests against zero (i.e., whether vivacity affected acceptability). Bottom panel: paired tests comparing pre-asymptotic vs.\\ asymptotic ratio ranges (i.e., whether the vivacity effect was larger in the pre-asymptotic range). Rows labelled (filtered) are restricted to participants for whom the vivacity manipulation was successful.",
         linesep = "",
         booktabs = TRUE,
         longtable = FALSE,
@@ -7936,7 +8259,10 @@ As shown in Table \ref{tab:asymptotic-vs-preasymptotic-range-raw-print} and Figu
 
 ```{r exp8-asymptotic-vs-preasymptotic-range-bin-glmm-calculate}
 dat.moral.numbers.exp8.bin.lmer.both.ratio.ranges <- dat.moral.numbers %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+    select_exps(
+        expID_clean = "exp8",
+        require_single_version = FALSE, 
+        scenarios_excluded = TRUE) %>% 
     dplyr::filter(question == "acceptability") %>%
     dplyr::mutate(ratio.range = factor(
         ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
@@ -7955,7 +8281,10 @@ dat.moral.numbers.exp8.bin.lmer.both.ratio.ranges <- dat.moral.numbers %>%
 
 
 dat.moral.numbers.exp8.bin.lmer.pre.asymptotic.ratio.range <- dat.moral.numbers %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+    select_exps(
+        expID_clean = "exp8",
+        require_single_version = FALSE, 
+        scenarios_excluded = TRUE) %>% 
     dplyr::filter(question == "acceptability") %>%
     dplyr::mutate(ratio.range = factor(
         ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
@@ -7974,7 +8303,10 @@ dat.moral.numbers.exp8.bin.lmer.pre.asymptotic.ratio.range <- dat.moral.numbers 
         extract.results.from.binary.model())
 
 dat.moral.numbers.exp8.bin.lmer.asymptotic.ratio.range <- dat.moral.numbers %>%
-    dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+    select_exps(
+        expID_clean = "exp8",
+        require_single_version = FALSE, 
+        scenarios_excluded = TRUE) %>% 
     dplyr::filter(question == "acceptability") %>%
     dplyr::mutate(ratio.range = factor(
         ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
@@ -8010,7 +8342,7 @@ dplyr::bind_rows(
     tidyr::unite(experimentID.model, experimentID, model, sep = " - ") %>%
     kable.packed(
         "experimentID.model",
-        caption = "GLMM for binary data in Experiment 8 for filtered data. If didn't compute the unfiltered GLMMS since even the filtered once don't work.",
+        caption = "GLMM for binary data in Experiment 8 for filtered data. I didn't compute the unfiltered GLMMS since even the filtered once don't work.",
         col.names = c("Effect", "Estimate", "SE", "CI", "Estimate", "SE", "CI", "t", "p"),
         booktabs = TRUE,
         longtable = FALSE,
@@ -8095,21 +8427,31 @@ dat.moral.numbers.exp10.bin.lmer.asymptotic.ratio.range <- dat.moral.numbers %>%
 ```{r exp8-10-asymptotic-vs-preasymptotic-range-bin-glmm-calculate}
 dat.moral.numbers.exp8.10.bin.lmer.both.ratio.ranges <- dplyr::bind_rows(
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+        select_exps(
+            expID_clean = "exp8",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         )),
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp10")) %>%
+        select_exps(
+            expID_clean = "exp10",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp10"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         ))
 ) %>%
-    dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp\\d+", "exp8+10")) %>%
+    pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
+    select_exps(
+        require_single_version = FALSE,
+        scenarios_excluded = TRUE
+    ) %>%
     dplyr::mutate(vivacity = factor(vivacity, levels = c("neutral", "vivid"))) %>%
     dplyr::group_by(experimentID) %>%
     dplyr::group_modify(~ lme4::glmer(
@@ -8124,21 +8466,32 @@ dat.moral.numbers.exp8.10.bin.lmer.both.ratio.ranges <- dplyr::bind_rows(
 
 dat.moral.numbers.exp8.10.bin.lmer.pre.asymptotic.ratio.range <- dplyr::bind_rows(
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+        select_exps(
+            expID_clean = "exp8",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         )),
+    
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp10")) %>%
+        select_exps(
+            expID_clean = "exp10",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp10"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         ))
 ) %>%
-    dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp\\d+", "exp8+10")) %>%
+    pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
+    select_exps(
+        require_single_version = FALSE,
+        scenarios_excluded = TRUE
+    ) %>%
     dplyr::mutate(vivacity = factor(vivacity, levels = c("neutral", "vivid"))) %>%
     dplyr::filter(ratio.range != "asymptote") %>%
     dplyr::group_by(experimentID) %>%
@@ -8153,21 +8506,32 @@ dat.moral.numbers.exp8.10.bin.lmer.pre.asymptotic.ratio.range <- dplyr::bind_row
 
 dat.moral.numbers.exp8.10.bin.lmer.asymptotic.ratio.range <- dplyr::bind_rows(
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp8")) %>%
+        select_exps(
+            expID_clean = "exp8",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp8"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         )),
+    
     dat.moral.numbers %>%
-        dplyr::filter(stringr::str_starts(experimentID, "exp10")) %>%
+        select_exps(
+            expID_clean = "exp10",
+            require_single_version = FALSE
+        ) %>%
         dplyr::filter(question == "acceptability") %>%
         dplyr::mutate(ratio.range = factor(
             ifelse(ratio > unname(v.asymptote.start["exp10"]), "asymptote", "pre-asymptote"),
             levels = c("pre-asymptote", "asymptote")
         ))
 ) %>%
-    dplyr::mutate(experimentID = stringr::str_replace(experimentID, "^exp\\d+", "exp8+10")) %>%
+    pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10") %>%
+    select_exps(
+        require_single_version = FALSE,
+        scenarios_excluded = TRUE
+    ) %>%
     dplyr::mutate(vivacity = factor(vivacity, levels = c("neutral", "vivid"))) %>%
     dplyr::filter(ratio.range == "asymptote") %>%
     dplyr::group_by(experimentID) %>%
@@ -8208,6 +8572,7 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range.glmm.for.table 
             dplyr::mutate(model = "Asymptotic range", .before = 1)
     ) %>%
     dplyr::select(-t_log, -p_log) %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     rename.terms(term) %>%
     format_exp_info() %>%
     dplyr::arrange(experimentID) %>%
@@ -8246,9 +8611,19 @@ In our pre-registration, we planned to use generalized linear mixed models to an
 
 
 ```{r exp8-10-asymptotic-vs-preasymptotic-range-anova}
-dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-    filter_vivacity_exps() %>%
-    combine_exps("^exp(8|10)$") %>%
+dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range <- 
+    dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
+    select_exps(
+        expID_clean = c("exp8", "exp10"),
+        require_single_version = FALSE
+    )
+
+dplyr::bind_rows(
+    dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range,
+    dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
+        pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10")
+) %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
     tidyr::pivot_longer(
         cols = c(neutral, vivid),
         names_to = "vivacity", values_to = "rating"
@@ -8267,7 +8642,7 @@ dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
     fix_zero_p_values(p.value) %>%
     kable.packed(
         "experimentID",
-        caption = "Repeated-measures ANOVA of raw acceptability difference scores (vivid minus neutral) in Experiments 4 and 5, pooled across participants. The within-subjects factors are vivacity (neutral vs.\\ vivid) and ratio range (pre-asymptotic vs.\\ asymptotic). Only participants for whom the vivacity manipulation was successful are included.",
+        caption = "Repeated-measures ANOVAs of participants' mean raw acceptability ratings in Experiments 4 and 5, separately and pooled (Exp. 4+5), with the within-subjects factors vivacity (neutral vs.\\ vivid) and ratio range (pre-asymptotic vs.\\ asymptotic). Rows labelled (filtered) are restricted to participants for whom the vivacity manipulation was successful.",
         booktabs = TRUE,
         longtable = FALSE,
         escape = FALSE

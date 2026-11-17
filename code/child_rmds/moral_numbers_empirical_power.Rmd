@@ -24,7 +24,20 @@ To test this issue, we ran an empirical power analysis for the interaction throu
 ```{r interaction-power-analysis-define-parameters-observed}
 # Find averages and risk ratios in asymptotic and pre-asymptotic ranges
 dat.moral.numbers.averages.in.ratio.ranges.observed <- v.asymptote.start %>%
-    tibble::enframe("experimentID", "ratio") %>%
+    tibble::enframe("expID_clean", "ratio") %>%
+    # Experiments 4 and 5 only, as described in the text
+    dplyr::filter(expID_clean %in% c("exp8", "exp10")) %>%
+    # Original versions, plus scenario-excluded versions where they exist
+    tidyr::crossing(scenarios_excluded = c(FALSE, TRUE)) %>%
+    dplyr::filter(!scenarios_excluded | expID_clean %in% l_exp_with_scenario_exclusions) %>%
+    dplyr::mutate(
+        experimentID = make_exp_id(
+            expID_clean,
+            scenarios_excluded = scenarios_excluded,
+            vivacity_filtered = FALSE
+        )
+    ) %>%
+    dplyr::select(experimentID, ratio) %>%
     dplyr::group_by(experimentID) %>%
     dplyr::group_modify(
         {
@@ -100,6 +113,7 @@ We conducted these simulations using two parameter sets. First, we used the prob
 
 dplyr::bind_rows(
     dat.moral.numbers.averages.in.ratio.ranges.observed %>%
+        select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
         format_exp_info(),
     dat.moral.numbers.averages.in.ratio.ranges.samples
 ) %>%
@@ -127,7 +141,10 @@ dplyr::bind_rows(
 ```
 
 ```{r interaction-power-analysis-run-simulations}
-if (RECALCULATE_EVERYTHING_APP) {
+if (RECALCULATE_POWER_SIMULATIONS) {
+    # Set seed to Cesar's birthday
+    set.seed(1207100)
+
     gc() # Clean up memory just in case
     
     # Run simulations and compute the proportion of significant interactions. This is the statistical power of the interaction
@@ -164,6 +181,7 @@ if (RECALCULATE_EVERYTHING_APP) {
 ```{r interaction-power-analysis-print-results, eval = RUN_EMP_POWER_ANA}
 dplyr::bind_rows(
     dat_proportion_ia_significant_exp8_10 %>%
+        select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
         format_exp_info(),
     dat_proportion_ia_significant_samples
 ) %>%
@@ -257,7 +275,7 @@ We ran an empirical power analyses for our difference scores with the same param
 ```
 
 ```{r diff-score-power-analysis-run-simulations}
-if (RECALCULATE_EVERYTHING_APP) {
+if (RECALCULATE_POWER_SIMULATIONS) {
     # Set seed to Cesar's birthday
     set.seed(1207100)
     
@@ -317,6 +335,7 @@ if (RECALCULATE_EVERYTHING_APP) {
 ```{r diff-score-power-analysis-print-results, eval = RUN_EMP_POWER_ANA}
 dplyr::bind_rows(
     dat_proportion_diff_score_significant_exp8_10 %>%
+        select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
         format_exp_info(),
     dat_proportion_diff_score_significant_samples
 ) %>%
@@ -344,6 +363,7 @@ dplyr::bind_rows(
     )) %>%
     kableExtra::add_header_above(c("P(acceptable)" = 2, "Risk ratio for P(acceptable) $\\frac{\\text{neutral}}{\\text{vivid}}$" = 2, " " = 1), escape = FALSE) %>%
     kableExtra::kable_classic_2()
+
 ```
 ```{r diff-score-power-analysis-plot-results, fig.width=12, fig.height=12, fig.cap = "Empirical power as a function of simulation parameters for the difference between vivacity difference scores across ratio ranges. (a) Histogram of empirical power across all simulated parameter combinations. (b) Heatmaps showing empirical power as a function of risk ratios in the pre-asymptotic (x-axis) and asymptotic (y-axis) ranges. Facets represent different combinations of probabilities of an “acceptable” response in each range. Warmer colors indicate higher power. Power increases when the difference between the risk ratios is larger, i.e., when the pre-asymptotic risk ratio is high and the asymptotic risk ratio is low."}
 plot_diff_score_power_histogram <- purrr::map(
@@ -407,30 +427,26 @@ ggpubr::ggarrange(
 ```
 
 
-As shown in Figure \ref{fig:diff-score-power-analysis-plot-results}, the empirical power is less sensitive to the simulation parameters than in the case of the GLMMs, and the majority of the simulations show satisfactory power. Critically, however, even though the parameters were relatively similar, the parameters in Experiment 4 yielded less than 10% empirical power, while those in Experiment 5 yielded more than 80%. As in the case of the GLMMs, these analyses thus cannot reliably detect differences in difference scores across ratio ranges. As a result, it seems reasonable to conclude that these analyses are not well-suited to detect the interaction, given our data-generating process.
+As shown in Figure \ref{fig:diff-score-power-analysis-plot-results}, the empirical power is less sensitive to the simulation parameters than in the case of the GLMMs, and the majority of the simulations show satisfactory power. Critically, however, the empirical power was highly variable even for relatively similar parameters. With the parameters observed in Experiment 4, absolute difference scores yielded only about `r round(100 * dat_proportion_diff_score_significant_exp8_10 %>% dplyr::filter(experimentID == "exp8.scenarioExcluded", difference_type == "d.absolute") %>% dplyr::pull(ia_signif))`% empirical power, while those observed in Experiment 5 yielded `r round(100 * dat_proportion_diff_score_significant_exp8_10 %>% dplyr::filter(experimentID == "exp10", difference_type == "d.absolute") %>% dplyr::pull(ia_signif))`%; for relative difference scores, power was `r knitr::combine_words(round(100 * dat_proportion_diff_score_significant_exp8_10 %>% dplyr::filter(experimentID %in% c("exp8.scenarioExcluded", "exp10"), difference_type == "d.relative") %>% dplyr::arrange(factor(experimentID, levels = c("exp8.scenarioExcluded", "exp10"))) %>% dplyr::pull(ia_signif)), after = "%")`, respectively. As shown below, the number of participants required for 80% power in our actual data varied just as widely, between 108 and 1375 participants depending on the experiment and on the difference score used. As in the case of the GLMMs, these analyses thus cannot reliably detect differences in difference scores across ratio ranges. As a result, it seems reasonable to conclude that these analyses are not well-suited to detect the interaction, given our data-generating process.
 
 
 
-We also performed a power analysis to determine how many participants would be create to observe 80% power for the difference scores (neutral vs. vivid) across the asymptotic and non-asymptotic range. As shown in Table \ref{tab:exp8-10-asymptotic-vs-preasymptotic-power}, 80% power would require about 400 participants in Experiment 10, and more in other experiments. 
 
 `r clearpage()`
 
 #### APP: Required number of participants for the ratio-range based analyses of difference scores
 
-```{r exp8-10-asymptotic-vs-preasymptotic-power}
-dplyr::bind_rows(
-    dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-        dplyr::filter(!stringr::str_detect(experimentID, "exp11")) %>%
-        filter_vivacity_exps() %>%
-        format_exp_info() %>%
-        dplyr::mutate(experimentID = factor(experimentID, levels = sort(unique(experimentID)))),
-    dat.moral.numbers.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
-        dplyr::filter(!stringr::str_detect(experimentID, "exp11"),
-                      !stringr::str_detect(experimentID, "\\.vivacityManipulationWorking$")) %>%
-        filter_vivacity_exps() %>%
-        combine_exps("^exp(8|10)$") %>%
-        format_exp_info()
+```{r exp8-10-asymptotic-vs-preasymptotic-power-calculate}
+
+dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.for.print <- 
+    dplyr::bind_rows(
+    dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range,
+    dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range %>%
+        select_exps(require_single_version = FALSE, vivacity_filtered = FALSE) %>%
+        pool_exps(expID_clean = c("exp8", "exp10"), expID_pooled = "exp8+10")
 ) %>%
+    select_exps(require_single_version = FALSE, scenarios_excluded = TRUE) %>%
+    format_exp_info() %>%
     tidyr::pivot_longer(c(d.absolute, d.relative),
                         names_to = "difference.type",
                         values_to = "d"
@@ -457,8 +473,13 @@ dplyr::bind_rows(
         ),
         .groups = "drop"
     ) %>%
-    dplyr::select(-M, -SD) %>%
+    dplyr::select(-M, -SD)
     #format_exp_info() %>%
+```    
+    
+    
+```{r exp8-10-asymptotic-vs-preasymptotic-power}    
+dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.for.print %>%
     dplyr::arrange(experimentID, difference.type) %>%
     kable.packed(
         "experimentID",
@@ -470,3 +491,6 @@ dplyr::bind_rows(
     ) %>%
     kableExtra::kable_classic_2()
 ```
+
+We also performed a power analysis to determine how many participants would be needed to observe 80% power for the difference scores (neutral vs. vivid) across the asymptotic and non-asymptotic range. As shown in Table \ref{tab:exp8-10-asymptotic-vs-preasymptotic-power}, 80% power would require between `r knitr::combine_words(range(dat.moral.numbers.exp8.10.asymptotic.vs.preasymptotic.raw.by.ratio.range.for.print$n.required))` participants.
+

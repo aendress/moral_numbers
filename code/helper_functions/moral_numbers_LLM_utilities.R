@@ -1,21 +1,3 @@
-mfv <- function(x = ., return_number = TRUE){
-    
-    # Get the most frequent value (as a character)
-    val <- names(sort(table(x), decreasing = TRUE))[1]
-    
-    if(isTRUE(return_number)){
-        # Try to convert to numeric if it looks numeric
-        val_num <- suppressWarnings(as.numeric(val))
-        
-        # Return numeric if conversion succeeded
-        if (!is.na(val_num)) {
-            val <- val_num
-        }
-    }  
-    
-    return(val)
-}
-
 classify_models <- function(dat = .) {
     
     dat %>% 
@@ -34,10 +16,16 @@ relabel_models <- function(model) {
     labeled <- LLM_LABELS[model]
     
     # Get all possible levels (excluding "Humans")
-    all_levels <- setdiff(unname(LLM_LABELS), "Humans") %>% sort()
-    
-    # Put "Humans" first, then alphabetically sorted others
-    level_order <- c("Humans", all_levels)
+    all_levels <- setdiff(unname(LLM_LABELS), "Humans")
+
+    # Models alphabetically; within a model, reasoning efforts from none to the highest
+    # (labels end in "(<effort> reasoning)", or "(reasoning)" when reasoning is simply switched on)
+    base_labels <- stringr::str_remove(all_levels, " \\([a-z]* ?reasoning\\)$")
+    efforts <- stringr::str_match(all_levels, "\\(([a-z]*) ?reasoning\\)$")[, 2]
+    effort_ranks <- match(efforts, c("no", "minimal", "low", "medium", "high", ""))
+
+    # Put "Humans" first, then the sorted others
+    level_order <- c("Humans", all_levels[order(base_labels, effort_ranks)])
     
     # Return as factor with specified levels
     factor(labeled, levels = level_order)

@@ -1,0 +1,443 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage[]{natbib}
+\bibliographystyle{plainnat}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabularx}
+\usepackage{xltabular}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  pdftitle={Moral numbers - Claude refusals in the rerun of the Experiment 3 LLM simulations},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Moral numbers - Claude refusals in the rerun of the Experiment 3 LLM simulations}
+\author{Ansgar D. Endress \& Peter Ayton\\
+City St George's, University of London}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Refused answers in the Claude runs}\label{refused-answers-in-the-claude-runs}
+
+In the three runs with Claude Sonnet 5.5 (low, medium and high reasoning effort; 5,760 trials each), 271, 41, 206 answers were empty, and 36, 10, 24 further answers were text without a rating (e.g., cut off). We count both as refused. 98\% of the refused answers occurred in Experiment 3b, where the ratio is pitted against utility.
+
+Refusals never occurred as long as the conversation history only contained ratings (0 of 11,415 trials). They occurred only after Claude had answered with text, which was then fed back into the conversation as its earlier answer (3.4\% of these trials), and were frequent once an earlier answer had been refused (58\%).
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-answer-types}Answer types of Claude Sonnet 5.5 per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility), condition, option order and reasoning effort. Empty and cut-off answers (text without digit) are counted as refused.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{llllrrrrrr}
+\toprule
+experimentID & condition & ratioOrder & reasoning\_effort & digit & text\_with\_digit & empty & text\_without\_digit & n & prop\_refused\\
+\midrule
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+Exp. 3a & Moral & high\_ratio\_first & medium & 720 & 0 & 0 & 0 & 720 & 0.000\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{719} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+Exp. 3a & Moral & high\_ratio\_second & low & 701 & 5 & 14 & 0 & 720 & 0.019\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{714} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+\addlinespace
+Exp. 3a & Moral & high\_ratio\_second & high & 720 & 0 & 0 & 0 & 720 & 0.000\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{718} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+Exp. 3a & Economic & high\_ratio\_first & medium & 697 & 23 & 0 & 0 & 720 & 0.000\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{714} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+Exp. 3a & Economic & high\_ratio\_second & low & 720 & 0 & 0 & 0 & 720 & 0.000\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{718} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.000}\\
+Exp. 3a & Economic & high\_ratio\_second & high & 719 & 1 & 0 & 0 & 720 & 0.000\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{626} & \cellcolor{gray!10}{24} & \cellcolor{gray!10}{67} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.097}\\
+Exp. 3b & Moral & high\_ratio\_first & medium & 623 & 84 & 13 & 0 & 720 & 0.018\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{611} & \cellcolor{gray!10}{29} & \cellcolor{gray!10}{77} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.111}\\
+\addlinespace
+Exp. 3b & Moral & high\_ratio\_second & low & 523 & 89 & 85 & 23 & 720 & 0.150\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{539} & \cellcolor{gray!10}{165} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.022}\\
+Exp. 3b & Moral & high\_ratio\_second & high & 711 & 3 & 5 & 1 & 720 & 0.008\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{463} & \cellcolor{gray!10}{205} & \cellcolor{gray!10}{49} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.072}\\
+Exp. 3b & Economic & high\_ratio\_first & medium & 485 & 219 & 14 & 2 & 720 & 0.022\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{539} & \cellcolor{gray!10}{104} & \cellcolor{gray!10}{65} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.107}\\
+Exp. 3b & Economic & high\_ratio\_second & low & 405 & 252 & 56 & 7 & 720 & 0.088\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{508} & \cellcolor{gray!10}{206} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{720} & \cellcolor{gray!10}{0.008}\\
+Exp. 3b & Economic & high\_ratio\_second & high & 569 & 84 & 59 & 8 & 720 & 0.093\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-by-history}Refused answers by what the conversation history contained before the trial (trials 2 to 12).}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{llrrr}
+\toprule
+reasoning\_effort & history & n & n\_refused & prop\_refused\\
+\midrule
+\cellcolor{gray!10}{low} & \cellcolor{gray!10}{only digits} & \cellcolor{gray!10}{3683} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0.000}\\
+low & earlier text answer & 1173 & 57 & 0.049\\
+\cellcolor{gray!10}{low} & \cellcolor{gray!10}{earlier refused answer} & \cellcolor{gray!10}{424} & \cellcolor{gray!10}{250} & \cellcolor{gray!10}{0.590}\\
+medium & only digits & 3385 & 0 & 0.000\\
+\cellcolor{gray!10}{medium} & \cellcolor{gray!10}{earlier text answer} & \cellcolor{gray!10}{1795} & \cellcolor{gray!10}{20} & \cellcolor{gray!10}{0.011}\\
+\addlinespace
+medium & earlier refused answer & 100 & 31 & 0.310\\
+\cellcolor{gray!10}{high} & \cellcolor{gray!10}{only digits} & \cellcolor{gray!10}{4347} & \cellcolor{gray!10}{0} & \cellcolor{gray!10}{0.000}\\
+high & earlier text answer & 653 & 47 & 0.072\\
+\cellcolor{gray!10}{high} & \cellcolor{gray!10}{earlier refused answer} & \cellcolor{gray!10}{280} & \cellcolor{gray!10}{183} & \cellcolor{gray!10}{0.654}\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-n-conversations}Number of conversations (simulated participants) with at least one refused answer (out of 120 per experiment, condition and reasoning effort).}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{lllr}
+\toprule
+experimentID & condition & reasoning\_effort & n\_conversations\\
+\midrule
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{2}\\
+Exp. 3a & Moral & medium & 0\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{0}\\
+Exp. 3a & Economic & low & 0\\
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{0}\\
+\addlinespace
+Exp. 3a & Economic & high & 0\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{32}\\
+Exp. 3b & Moral & medium & 12\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{13}\\
+Exp. 3b & Economic & low & 23\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{8}\\
+Exp. 3b & Economic & high & 34\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{longtable}[t]{lllllrlrrr}
+\caption{\label{tab:claude-refusals-conversations}Conversations with refused answers: trial and scenario of the first refused answer, number of conversations whose first refused answer was this scenario, number of refused answers, and number of text answers before the first refused answer.}\\
+\toprule
+experimentID & condition & reasoning\_effort & ratioOrder & subj & first\_refused\_trial & first\_refused\_title & n\_scenario & n\_refused & n\_text\_answers\_before\\
+\midrule
+\endfirsthead
+\caption[]{\label{tab:claude-refusals-conversations}Conversations with refused answers: trial and scenario of the first refused answer, number of conversations whose first refused answer was this scenario, number of refused answers, and number of text answers before the first refused answer. \textit{(continued)}}\\
+\toprule
+experimentID & condition & reasoning\_effort & ratioOrder & subj & first\_refused\_trial & first\_refused\_title & n\_scenario & n\_refused & n\_text\_answers\_before\\
+\midrule
+\endhead
+
+\endfoot
+\bottomrule
+\endlastfoot
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2b\_moral.high\_ratio\_second\_group0\_lsd1\_s5} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{1}\\
+Exp. 3a & Moral & low & high\_ratio\_second & exp2b\_moral.high\_ratio\_second\_group0\_lsd1\_s3 & 2 & Bomb on the Train & 1 & 11 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd10\_s4} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd6\_s4 & 2 & Bomb on the Train & 3 & 11 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd6\_s5} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{1}\\
+\addlinespace
+Exp. 3b & Moral & low & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd10\_s1 & 3 & Fuming Hospital & 3 & 1 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd5\_s2} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & low & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd5\_s5 & 3 & Fuming Hospital & 3 & 8 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd4\_s1} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd4\_s3 & 6 & Space Supplies & 2 & 7 & 1\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd5\_s4} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd11\_s5 & 3 & Fuming Hospital & 7 & 10 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s1} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s2 & 3 & Fuming Hospital & 7 & 10 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd3\_s1} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{1}\\
+\addlinespace
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd3\_s3 & 3 & Fuming Hospital & 7 & 3 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd6\_s2} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd9\_s1 & 3 & Fuming Hospital & 7 & 2 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd11\_s3} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s4 & 2 & Bomb on the Train & 5 & 7 & 1\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd3\_s4} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd4\_s5 & 2 & Bomb on the Train & 5 & 1 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd5\_s2} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd11\_s2 & 5 & Hopsital Power Outage & 4 & 3 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s3} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1}\\
+\addlinespace
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd4\_s2 & 5 & Hopsital Power Outage & 4 & 2 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd6\_s1} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd3\_s5 & 4 & Blitz & 3 & 2 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd6\_s3} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd9\_s5 & 4 & Blitz & 3 & 8 & 2\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd7\_s1} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{4}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd8\_s3 & 6 & Space Supplies & 2 & 7 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd9\_s2} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4}\\
+Exp. 3b & Moral & low & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd8\_s1 & 10 & Human Sacrifice & 1 & 3 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd2\_s3} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{4}\\
+\addlinespace
+Exp. 3b & Moral & medium & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd4\_s5 & 7 & Flooding Valleys & 2 & 4 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd6\_s1} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & medium & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s1 & 8 & Bomb Disposal in a Factory & 4 & 1 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd3\_s1} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{Bomb Disposal in a Factory} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4}\\
+Exp. 3b & Moral & medium & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd4\_s3 & 8 & Bomb Disposal in a Factory & 4 & 1 & 6\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd7\_s1} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{Bomb Disposal in a Factory} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{5}\\
+Exp. 3b & Moral & medium & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd11\_s2 & 11 & Treatment Policy & 2 & 1 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd2\_s3} & \cellcolor{gray!10}{11} & \cellcolor{gray!10}{Treatment Policy} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{5}\\
+Exp. 3b & Moral & medium & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd12\_s5 & 3 & Fuming Hospital & 1 & 5 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd9\_s1} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{4}\\
+\addlinespace
+Exp. 3b & Moral & medium & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd7\_s2 & 10 & Human Sacrifice & 1 & 1 & 5\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd3\_s5} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & high & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd4\_s2 & 6 & Space Supplies & 6 & 6 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd4\_s4} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & high & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd7\_s1 & 6 & Space Supplies & 6 & 7 & 2\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd7\_s4} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & high & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd9\_s4 & 6 & Space Supplies & 6 & 7 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd5\_s3} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & high & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd5\_s5 & 5 & Hopsital Power Outage & 2 & 5 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd1\_s4} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+\addlinespace
+Exp. 3b & Moral & high & high\_ratio\_first & exp2ac\_moral.high\_ratio\_first\_group0\_lsd3\_s3 & 7 & Flooding Valleys & 1 & 6 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_first\_group0\_lsd9\_s2} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Moral & high & high\_ratio\_second & exp2ac\_moral.high\_ratio\_second\_group0\_lsd6\_s3 & 8 & Bomb Disposal in a Factory & 1 & 5 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_moral.high\_ratio\_second\_group0\_lsd12\_s1} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & low & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd3\_s2 & 8 & Bomb Disposal in a Factory & 3 & 3 & 1\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd4\_s5} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{Bomb Disposal in a Factory} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{6}\\
+Exp. 3b & Economic & low & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd9\_s5 & 8 & Bomb Disposal in a Factory & 3 & 1 & 5\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd12\_s3} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{3}\\
+Exp. 3b & Economic & low & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd9\_s4 & 4 & Blitz & 2 & 9 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd4\_s2} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{3}\\
+\addlinespace
+Exp. 3b & Economic & low & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd8\_s5 & 5 & Hopsital Power Outage & 2 & 1 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd11\_s5} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & low & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd10\_s4 & 3 & Fuming Hospital & 1 & 10 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd3\_s3} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{Zoklid Plague} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd10\_s3 & 2 & Bomb on the Train & 5 & 11 & 1\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd11\_s1} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd11\_s3 & 2 & Bomb on the Train & 5 & 10 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd11\_s5} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{Bomb on the Train} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd12\_s4 & 2 & Bomb on the Train & 5 & 10 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd10\_s4} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{2}\\
+\addlinespace
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s3 & 3 & Fuming Hospital & 2 & 10 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s4} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{3}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd11\_s4 & 8 & Bomb Disposal in a Factory & 1 & 1 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd6\_s5} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{Forced Siege} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{10}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd7\_s4 & 10 & Human Sacrifice & 1 & 1 & 7\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s1} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{5}\\
+Exp. 3b & Economic & low & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s5 & 11 & Treatment Policy & 1 & 1 & 6\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd1\_s2} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{6}\\
+Exp. 3b & Economic & medium & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd5\_s3 & 7 & Flooding Valleys & 2 & 3 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd6\_s4} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{3}\\
+\addlinespace
+Exp. 3b & Economic & medium & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd10\_s4 & 8 & Bomb Disposal in a Factory & 1 & 1 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd8\_s4} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{Human Sacrifice} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{7}\\
+Exp. 3b & Economic & medium & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd10\_s3 & 6 & Space Supplies & 1 & 4 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s2} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & medium & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd4\_s1 & 5 & Hopsital Power Outage & 1 & 3 & 3\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd10\_s4} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd11\_s4 & 4 & Blitz & 5 & 3 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd12\_s1} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd2\_s2 & 4 & Blitz & 5 & 7 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd2\_s5} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{Blitz} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{2}\\
+\addlinespace
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd11\_s5 & 6 & Space Supplies & 5 & 1 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd2\_s3} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{3}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd2\_s4 & 6 & Space Supplies & 5 & 1 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd4\_s4} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{Space Supplies} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd5\_s1 & 6 & Space Supplies & 5 & 4 & 2\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd12\_s5} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{3}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd2\_s1 & 7 & Flooding Valleys & 3 & 5 & 5\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd4\_s1} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd8\_s1 & 10 & Human Sacrifice & 2 & 1 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd8\_s4} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{Human Sacrifice} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4}\\
+\addlinespace
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd3\_s3 & 8 & Bomb Disposal in a Factory & 1 & 3 & 4\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd1\_s2} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{Forced Siege} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd9\_s5 & 3 & Fuming Hospital & 1 & 7 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_first} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_first\_group0\_lsd8\_s3} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_first & exp2ac\_economic.high\_ratio\_first\_group0\_lsd9\_s1 & 9 & Zoklid Plague & 1 & 3 & 5\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd12\_s2} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s2 & 3 & Fuming Hospital & 4 & 7 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s4} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{Fuming Hospital} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s5 & 3 & Fuming Hospital & 4 & 10 & 1\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd2\_s3} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{Bomb Disposal in a Factory} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{1}\\
+\addlinespace
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s1 & 8 & Bomb Disposal in a Factory & 3 & 4 & 3\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s3} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{Bomb Disposal in a Factory} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{4}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd3\_s1 & 7 & Flooding Valleys & 2 & 5 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd3\_s4} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{Flooding Valleys} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd2\_s4 & 9 & Zoklid Plague & 2 & 4 & 1\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd3\_s3} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{Zoklid Plague} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{5}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd8\_s2 & 4 & Blitz & 1 & 6 & 2\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{high\_ratio\_second} & \cellcolor{gray!10}{exp2ac\_economic.high\_ratio\_second\_group0\_lsd6\_s4} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{Hopsital Power Outage} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{3}\\
+Exp. 3b & Economic & high & high\_ratio\_second & exp2ac\_economic.high\_ratio\_second\_group0\_lsd9\_s1 & 6 & Space Supplies & 1 & 5 & 4\\*
+\end{longtable}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.8\linewidth]{moral_numbers_LLMs_exp3_claude_refusals_files/figure-latex/claude-refusals-plot-by-trial-1} 
+
+}
+
+\caption{Proportion of refused answers of Claude Sonnet 5.5 by trial position and reasoning effort.}\label{fig:claude-refusals-plot-by-trial}
+\end{figure}
+
+To find out why these answers were refused, we resent each refused request with the same conversation, that is, with the prompts of all trials up to the refused one and Claude's earlier answers as they had been fed back into the conversation, as well as the same system prompt and settings. 511 of 518 requests with an originally empty answer and 44 of 70 requests with a cut-off answer were refused again, all with the stop reason \emph{refusal} and the category \emph{reasoning\_extraction}. According to the explanation returned by the API, the requests were blocked as they seemed to violate the Terms of Service restrictions on reverse engineering or duplicating model outputs. The refusals thus came from a filter of the API against the extraction of model outputs, triggered by Claude's own text answers in the conversation history, rather than from a judgement about the content of the scenarios.
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-replay-reproduced}Refused requests resent with the same conversation (prompts and earlier answers): number of resent requests, number and proportion refused again, and refusal category returned by the API, per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility), condition, reasoning effort and type of the original answer.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{llllrrrl}
+\toprule
+experimentID & condition & reasoning\_effort & answer\_type & n\_resent & n\_refused\_again & prop\_refused\_again & refusal\_category\\
+\midrule
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{empty} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{1.000} & \cellcolor{gray!10}{reasoning\_extraction}\\
+Exp. 3b & Moral & low & empty & 152 & 150 & 0.987 & reasoning\_extraction\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{26} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{0.538} & \cellcolor{gray!10}{reasoning\_extraction}\\
+Exp. 3b & Moral & medium & empty & 23 & 23 & 1.000 & reasoning\_extraction\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{0.667} & \cellcolor{gray!10}{reasoning\_extraction}\\
+\addlinespace
+Exp. 3b & Moral & high & empty & 82 & 82 & 1.000 & reasoning\_extraction\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.250} & \cellcolor{gray!10}{reasoning\_extraction}\\
+Exp. 3b & Economic & low & empty & 105 & 102 & 0.971 & reasoning\_extraction\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{0.400} & \cellcolor{gray!10}{reasoning\_extraction}\\
+Exp. 3b & Economic & medium & empty & 18 & 18 & 1.000 & reasoning\_extraction\\
+\addlinespace
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1.000} & \cellcolor{gray!10}{reasoning\_extraction}\\
+Exp. 3b & Economic & high & empty & 124 & 122 & 0.984 & reasoning\_extraction\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{text\_without\_digit} & \cellcolor{gray!10}{20} & \cellcolor{gray!10}{17} & \cellcolor{gray!10}{0.850} & \cellcolor{gray!10}{reasoning\_extraction}\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-replay-reproduced-conversations}Conversations with resent requests: number of conversations, number in which all resent requests were refused again, and number in which at least one was refused again.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{lllrrr}
+\toprule
+experimentID & condition & reasoning\_effort & n\_conversations & n\_all\_refused\_again & n\_any\_refused\_again\\
+\midrule
+\cellcolor{gray!10}{Exp. 3a} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{2}\\
+Exp. 3b & Moral & low & 32 & 21 & 27\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Moral} & \cellcolor{gray!10}{medium} & \cellcolor{gray!10}{12} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{11}\\
+Exp. 3b & Moral & high & 13 & 11 & 12\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{low} & \cellcolor{gray!10}{23} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{17}\\
+\addlinespace
+Exp. 3b & Economic & medium & 8 & 8 & 8\\
+\cellcolor{gray!10}{Exp. 3b} & \cellcolor{gray!10}{Economic} & \cellcolor{gray!10}{high} & \cellcolor{gray!10}{34} & \cellcolor{gray!10}{29} & \cellcolor{gray!10}{33}\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{table}[!h]
+\centering\centering
+\caption{\label{tab:claude-refusals-replay-explanations}Explanations returned with the refusals.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{ll}
+\toprule
+refusal\_category & refusal\_explanation\\
+\midrule
+\cellcolor{gray!10}{reasoning\_extraction} & \cellcolor{gray!10}{This request was blocked as it seems to violate Anthropic's Terms of Service restrictions on reverse engineering or duplicating model outputs. To learn more, visit https://www.anthropic.com/legal/commercial-terms. API integrators: you can reduce refusals for your users by configuring a fallback model — see https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback}\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\bibliography{/Users/endress/ansgar.bib}
+
+\end{document}
