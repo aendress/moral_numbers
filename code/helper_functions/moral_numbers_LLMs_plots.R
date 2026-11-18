@@ -511,13 +511,16 @@ make_llm_exp2_joint_plot <- function(dat, base_size = 14, label_size = 3, add_re
     p_joint_plot_base
 }
 
-make_llm_exp3_moral_economic_plot <- function(dat_wide = ., experiments = NULL, facet_row = NULL, base_size = 14, label_size = 3, add_repel = FALSE, repel_size = label_size) {
+make_llm_exp3_moral_economic_plot <- function(dat_wide = ., experiments = NULL, facet_row = NULL, base_size = 14, label_size = 3, add_repel = FALSE, repel_size = label_size,
+                                              quadrant_label_colour = "gray20", human_frame_colour = "#0072B2") {
     # Preference for the high-ratio option in moral (y) vs. economic (x) dilemmas, one point per model and one panel
     # per experiment (Exp. 3a: ratio vs. harm; Exp. 3b: ratio vs. utility). Points above the diagonal prefer the
     # high-ratio option more in moral than in economic dilemmas.
     # dat: wide_by_condition data of prepare_llm_internal_exp2_plot_data() (one row per model and experiment)
     # experiments: experimentIDs (formatted, e.g. "Exp. 3b (Ratio vs. utility)") to show; NULL: all
     # facet_row: name of a column of dat_wide for the rows of the panels (e.g., the option order); NULL: one row
+    # quadrant_label_colour, human_frame_colour: colours of the quadrant labels and of the frame around the humans'
+    # quadrant (e.g., lighter colours on a black background)
 
     if (!is.null(experiments)) {
         dat_wide <- dat_wide %>%
@@ -584,7 +587,7 @@ make_llm_exp3_moral_economic_plot <- function(dat_wide = ., experiments = NULL, 
             data        = dat_human_quadrant,
             ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
             fill        = NA,
-            color       = "#0072B2",
+            color       = human_frame_colour,
             linewidth   = 1,
             inherit.aes = FALSE
         ) +
@@ -593,7 +596,7 @@ make_llm_exp3_moral_economic_plot <- function(dat_wide = ., experiments = NULL, 
             ggplot2::aes(x = x, y = y, vjust = vjust, label = label),
             hjust       = 0.5,
             size        = label_size,
-            color       = "gray20",
+            color       = quadrant_label_colour,
             lineheight  = 0.9,
             inherit.aes = FALSE
         ) +
