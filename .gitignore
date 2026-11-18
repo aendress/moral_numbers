@@ -106,3 +106,7 @@ Rplots.pdf
 
 # Funding requests and LLM invoices (not code)
 requests/
+
+# Old and unused code, kept locally only
+code/unused/
+code/old_rmds/

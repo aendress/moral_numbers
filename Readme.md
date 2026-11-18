@@ -172,13 +172,6 @@ Some files in `code/child_rmds/` are standalone documents rather than children:
 - `moral_numbers_LLMs_exp3_rerun.Rmd` runs the LLM simulations of Experiment 3 with the corrected prompts. Its output (in `code/output/`) is read by `moral_numbers_LLMs.Rmd`.
 - `code/child_rmds/exp3_rerun_scripts/` contains scripts extracted from `moral_numbers_LLMs_exp3_rerun.Rmd` with `knitr::purl()`. They were used to run the cloud and local simulations from the command line, which is much faster than running them in RStudio. The two `*_gemini_*` scripts were used for the Gemini reruns.
 
-## Old RMDs
-
-`code/old_rmds/` contains superseded versions of the main document, kept for reference only:
-
-- `moral_numbers_may8.tex` and `moral_numbers_may8.pdf`: the render of 8 May 2026.
-- `moral_numbers_before_app.Rmd`: the main Rmd before the appendix was restructured (October 2026).
-
 ## Experiment materials
 
 Scenario files (XML) and number-condition files (CSV) for all experiments are collected in the `materials/` folder:
