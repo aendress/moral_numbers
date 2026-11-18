@@ -77,7 +77,7 @@ create_prospect_relative_value_plot <- function(dat = .){
         ggplot2::scale_linetype_discrete("Internal noise (w)", drop = FALSE) +
         labs(
             x = "Relative change (relative to endowment)",
-            y = TeX("Loss aversion $\\left(\\frac{\\left|Utility_{Loss}\\right|}{\\left|Utility{Gain}\\right|}\\right)$")
+            y = TeX("Loss aversion $\\left(\\frac{\\left|Utility_{Loss}\\right|}{\\left|Utility_{Gain}\\right|}\\right)$")
         )
 }
 

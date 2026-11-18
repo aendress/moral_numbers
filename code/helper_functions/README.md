@@ -71,6 +71,7 @@ Plotting functions for model fits, bootstrap summaries, and vivacity experiment 
 | `bootstrap.summary.to.fit.summary` | Converts bootstrap sample summaries to a fit-summary data frame for plotting |
 | `create.predictor.comparison.plot` | Plots acceptability as a function of multiple candidate predictors (ratio, utility, harm) |
 | `combine_vivacity_detailed_plots` | Assembles a 2×2 panel of vivacity condition plots (binarized/raw × all blocks/first block) for a single experiment |
+| `arrange_with_legends_below` | Arranges panels (labelled a, b, ...) with each selected panel's legend underneath its plot, aligning plot areas across panels (used for the model illustration figure) |
 
 ---
 

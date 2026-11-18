@@ -374,3 +374,49 @@ combine_vivacity_detailed_plots <- function(experimentID){
             common.legend = TRUE
         )
 }
+
+arrange_with_legends_below <- function(l_panels,
+                                       ncol = length(l_panels),
+                                       nrow = 1,
+                                       legend_panels = seq_along(l_panels))
+{
+    # Arranges panels (labelled a, b, ...), with each panel's legend underneath
+    # the plot inside the panel. Only the panels in legend_panels show their
+    # legends (e.g., to avoid repeating identical legends); the plot areas are
+    # aligned across panels with and without legends.
+    
+    l_panels <- l_panels %>%
+        purrr::imap(
+            \(p, i) p +
+                ggplot2::theme(
+                    legend.position = dplyr::if_else(
+                        i %in% legend_panels,
+                        "bottom",
+                        "none"
+                    ),
+                    legend.direction = "horizontal",
+                    legend.title = ggplot2::element_text(size = 11),
+                    legend.text = ggplot2::element_text(size = 10),
+                    legend.key.width = ggplot2::unit(.6, "cm"),
+                    legend.background = ggplot2::element_blank()
+                ) +
+                ggplot2::guides(
+                    colour = ggplot2::guide_legend(
+                        title.position = "top",
+                        nrow = 2
+                    ),
+                    linetype = ggplot2::guide_legend(
+                        title.position = "top",
+                        nrow = 2
+                    )
+                )
+        )
+    
+    ggpubr::ggarrange(
+        plotlist = l_panels,
+        ncol = ncol,
+        nrow = nrow,
+        labels = "auto",
+        align = "hv"
+    )
+}

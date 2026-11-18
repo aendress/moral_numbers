@@ -2709,22 +2709,43 @@ Figure \ref{fig:model-illustration-plot}a shows how this model captures both uti
 
 In fact, comparisons involving human lives are likely particularly noisy, as lives are notoriously hard to value. For example, in a risk reduction context, different methods place different monetary values on human life [@Viscusi2003], and, even within a single country such as the US, different values are used in different contexts (\$10M for the Environmental Protection Agency vs. \$8.9M for the Department of Agriculture vs. \$2.2M for wrongful death awards in 2017; [@Merrill2017]). Likewise, widely used indicators of burdens of disease such as Disability-adjusted Life Years are controversial, in part because they place a higher value on younger lives and life free from disability [@Gold2002]. Moral decisions thus require translating verbally expressed numbers of lives into noisy analogue representations. If the common human is no more certain about the relative values of different human lives than professional economists, deciders likely face substantial uncertainty about the relative subjective value of the options in sacrificial dilemmas. Hence, their (moral) choices likely reflect the level of uncertainty they face, and deontological decisions simply reflect extreme uncertainty about the values of humans and their lives. 
 
-```{r define-ws-for-demos}
+```{r define-params-for-demos}
 
-# Define all values of w for the demos as they will be used both for the 
-# basic model illustration and for the loss aversion demonstration
+# Parameters for the model illustrations (panels of the model illustration figure)
+l_demo_params <- list(
+    utilitarian_deontological = list(
+        ratio = seq(1, 40, .1),
+        w = c(0, .5, 1, 2, Inf)
+    ),
+    
+    criterion_shift = list(
+        ratio = seq(1, 40, .1),
+        a = 2^seq(-2, 2, .5),
+        w = c(.25, .5, .75)
+    ),
+    
+    loss_aversion = list(
+         w = c(
+             seq(0, 2, .5),
+             10, 20, 50, 100, Inf
+         )
+    )
+)
 
-w_demo_levels <- c(
-    seq(0, 2, .5),
-    10, 20, 50, 100, Inf
-) 
+# Factor levels shared by all panels showing different values of w, so that
+# each w has the same colour and line type in all panels
+w_demo_levels <- sort(
+    union(
+        l_demo_params$utilitarian_deontological$w,
+        l_demo_params$loss_aversion$w
+    )
+)
 
 ```
 
 ```{r utilitarian-deontological-plot-define}
 plot.utilitarian.deontological <- expand.grid(
-    ratio = seq(1, 40, .1),
-    w = c(0, .5, 1, 2, Inf)
+    l_demo_params$utilitarian_deontological
 ) %>%
     dplyr::mutate(
         acceptability =
@@ -2747,8 +2768,18 @@ plot.utilitarian.deontological <- expand.grid(
         x = "Weber ratio",
         y = "Acceptability"
     ) +
-    ggplot2::scale_color_discrete("Internal noise (w)", drop = FALSE) +
-    ggplot2::scale_linetype_discrete("Internal noise (w)", drop = FALSE) +
+    # drop = FALSE keeps the colours consistent with the loss aversion panel,
+    # while breaks restricts the legend to the values of w shown here
+    ggplot2::scale_color_discrete(
+        "Internal noise (w)",
+        breaks = as.character(l_demo_params$utilitarian_deontological$w),
+        drop = FALSE
+    ) +
+    ggplot2::scale_linetype_discrete(
+        "Internal noise (w)",
+        breaks = as.character(l_demo_params$utilitarian_deontological$w),
+        drop = FALSE
+    ) +
     ggplot2::theme( # legend.position = c(.925, .325),
         legend.position = c(.75, .325),
         # legend.direction = "horizontal",
@@ -2767,12 +2798,9 @@ Apart from moral decisions, uncertainty critically affects economic decisions [@
 
 ```{r loss-aversion-demo-create-data}
 dat_prospect_demo <- create_data_for_prospect_demo(
-    100, 
-    ws = c(
-        seq(0, 2, .5),
-        10, 20, 50, 100, Inf
-    ) 
-) %>% 
+    100,
+    ws = l_demo_params$loss_aversion$w
+) %>%
     dplyr::mutate(
         w = factor(w, levels = w_demo_levels)
     )
@@ -2791,9 +2819,7 @@ As shown in Figure \ref{fig:model-illustration-plot}b, increasing the attentiona
 
 ```{r criterion-shift-plot-define}
 plot.criterion.shift <- expand.grid(
-    ratio = seq(1, 40, .1),
-    a = 2^seq(-2, 2, .5),
-    w = c(.25, .5, .75)
+    l_demo_params$criterion_shift
 ) %>%
     dplyr::mutate(
         acceptability =
@@ -2812,7 +2838,8 @@ plot.criterion.shift <- expand.grid(
         y = "Acceptability"
     ) +
     ggplot2::scale_color_gradient(
-        name = TeX("Weight of victims ($\\alpha$)"),
+        # plotmath ignores the theme's bold legend titles, so set bold explicitly
+        name = expression(bold("Weight of victims (" * alpha * ")")),
         trans = "log2",
         low = "blue", high = "red"
     ) +
@@ -2830,87 +2857,39 @@ plot.criterion.shift <- expand.grid(
 
 
 
-```{r model-illustration-plot-4-panels, fig.cap = "(a,b) Model illustrations. (a) In the psychophysical model of moral decision making, utilitarian choices reflect decisions with low internal noise ($w$). Each line represents a different value of $w$ (see legend). (b) Changing the attentional weight of the victims ($\\alpha$) changes the threshold at which sacrificial decisions become acceptable. Each line represents a different value of $\\alpha$ (see legend). (c,d) Illustration of loss aversion as a consequence of magnitude processing. (c) Subjective utility as a function of relative gains or losses with respect to an endowment, for different values of the uncertainty parameter $w$. The S-shaped curve emerges naturally from a psychometric function, while the asymmetric values of utilities of gain and losses emerges from their asymetric Weber ratios. Dotted blue lines mark the utility values at a change of $\\pm 50\\%$, illustrating that the absolute utility of a $50\\%$ loss exceeds that of a $50\\%$ gain. (d) Ratio of absolute utilities for losses vs.\\ gains, $\\frac{\\left|\\text{Utility}_{\\text{Loss}}\\right|}{\\left|\\text{Utility}_{\\text{Gain}}\\right|}$, as a function of relative change. Values greater than 1 indicate loss aversion. Note that loss aversion exceeds 1 for all values of $w$ and increases with the size of the change.", fig.width = 9, fig.height=10, eval = FALSE}
+```{r model-illustration-plot-4-panels, fig.cap = "(a) Predicted acceptability as a function of the \\emph{beneficiary:victim} ratio for different values of internal noise ($w$), indicated by line colours and patterns (see legend below). Low noise yields utilitarian responses, with higher asymptotic acceptability; high noise yields deontological ones, with lower asymptotic acceptability. (b) Predicted acceptability as a function of the \\emph{beneficiary:victim} ratio for different values of the victims' attentional weight ($\\alpha$; see legend below) and three values of internal noise ($w$; sub-panels). Higher $\\alpha$ values raise the threshold at which sacrificial decisions become acceptable. Asymptotic acceptability does not depend on $\\alpha$. (c) Loss aversion as a direct consequence of the psychophysical model. Subjective utility as a function of relative gains or losses with respect to an endowment, for different values of internal noise ($w$), indicated by line colours and patterns (see legend below). The S-shaped curve emerges from a psychometric function; the higher absolute utility of losses relative to equivalent gains emerges from their asymmetric Weber ratios. Blue dotted lines mark utility values at $\\pm 50\\%$, showing that the absolute utility of a $50\\%$ loss exceeds that of a $50\\%$ gain. (d) Ratio of absolute utilities for losses vs.\\ gains, $\\frac{\\left|\\text{Utility}_{\\text{Loss}}\\right|}{\\left|\\text{Utility}_{\\text{Gain}}\\right|}$, as a function of relative change. Values greater than 1 indicate loss aversion. Note that loss aversion exceeds 1 for all values of $w$ and increases with the size of the change.", fig.width = 9, fig.height=10, eval = FALSE}
 
-ggpubr::ggarrange(
-    
+# Each panel gets its own legend, placed underneath its plot (panels c and d
+# share the same legend, but showing it in both keeps their plot areas aligned)
+list(
     plot.utilitarian.deontological,
-    ggpubr::ggarrange(
-        plot.criterion.shift +
-            ggplot2::theme(
-                legend.position = "right",
-                legend.text = ggplot2::element_text(
-                    size = 9,
-                    angle = 0
-                ),
-                legend.title = ggplot2::element_text(
-                    size = 9,
-                    angle = 90
-                )
-            ) +
-            ggplot2::guides(
-                colour = ggplot2::guide_legend(title.position = "left"),
-                linetype = ggplot2::guide_legend(title.position = "left")
-            )
-    ),
-    
-    dat_prospect_demo %>% 
+    plot.criterion.shift,
+    dat_prospect_demo %>%
         create_prospect_change_value_plot(),
-    
-    dat_prospect_demo %>% 
-        create_prospect_relative_value_plot(),
-    
-    ncol = 2,
-    nrow = 2,
-    widths = c(1, 1.5),
-    labels = "auto",
-    common.legend = TRUE,
-    legend = "bottom"
-)
+    dat_prospect_demo %>%
+        create_prospect_relative_value_plot()
+) %>%
+    arrange_with_legends_below(
+        ncol = 2,
+        nrow = 2
+    )
 
 ```
 
 
-```{r model-illustration-plot, fig.cap = "(a,b) Model illustrations. (a) In the psychophysical model of moral decision making, utilitarian choices reflect decisions with low internal noise ($w$). Each line represents a different value of $w$ (see legend). (b) Changing the attentional weight of the victims ($\\alpha$) changes the threshold at which sacrificial decisions become acceptable. Each line represents a different value of $\\alpha$ (see legend). (c,d) Illustration of loss aversion as a consequence of magnitude processing. (c) Subjective utility as a function of relative gains or losses with respect to an endowment, for different values of the uncertainty parameter $w$. The S-shaped curve emerges naturally from a psychometric function, while the asymmetric values of utilities of gain and losses emerges from their asymetric Weber ratios. Dotted blue lines mark the utility values at a change of $\\pm 50\\%$, illustrating that the absolute utility of a $50\\%$ loss exceeds that of a $50\\%$ gain.", fig.width = 11, fig.height=5.5}
+```{r model-illustration-plot, fig.cap = "(a) Predicted acceptability as a function of the \\emph{beneficiary:victim} ratio for different values of internal noise ($w$), indicated by line colours and patterns (see legend below). Low noise yields utilitarian responses, with higher asymptotic acceptability; high noise yields deontological ones, with lower asymptotic acceptability. (b) Predicted acceptability as a function of the \\emph{beneficiary:victim} ratio for different values of the victims' attentional weight ($\\alpha$; see legend below) and three values of internal noise ($w$; sub-panels). Higher $\\alpha$ values raise the threshold at which sacrificial decisions become acceptable. Asymptotic acceptability does not depend on $\\alpha$. (c) Loss aversion as a direct consequence of the psychophysical model. Subjective utility as a function of relative gains or losses with respect to an endowment, for different values of internal noise ($w$), indicated by line colours and patterns (see legend below). The S-shaped curve emerges from a psychometric function; the higher absolute utility of losses relative to equivalent gains emerges from their asymmetric Weber ratios. Blue dotted lines mark utility values at $\\pm 50\\%$, showing that the absolute utility of a $50\\%$ loss exceeds that of a $50\\%$ gain.", fig.width = 11, fig.height=5.5}
 
-ggpubr::ggarrange(
-    
+# Each panel gets its own legend, placed underneath its plot
+list(
     plot.utilitarian.deontological,
-    # Keep ggarrange for internal legend
-    ggpubr::ggarrange(
-        plot.criterion.shift +
-            ggplot2::theme(
-                legend.position = "right",
-                legend.text = ggplot2::element_text(
-                    size = 9,
-                    angle = 0
-                ),
-                legend.title = ggplot2::element_text(
-                    size = 9,
-                    angle = 90
-                )
-            ) +
-            ggplot2::guides(
-                colour = ggplot2::guide_legend(title.position = "left"),
-                linetype = ggplot2::guide_legend(title.position = "left")
-            )
-    ),
-    
-    dat_prospect_demo %>% 
-        create_prospect_change_value_plot(),
-    
-    # dat_prospect_demo %>% 
-    #     create_prospect_relative_value_plot(),
-    
-    ncol = 3,
-    nrow = 1,
-    widths = c(1, 1.25, 1),
-    labels = "auto",
-    common.legend = TRUE,
-    legend = "bottom"
-)
+    plot.criterion.shift,
+    dat_prospect_demo %>%
+        create_prospect_change_value_plot()
+) %>%
+    arrange_with_legends_below()
 
 ```
+
 
 ## Predictions of moral models
 
